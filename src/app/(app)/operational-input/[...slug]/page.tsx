@@ -79,14 +79,14 @@ export default function OperationalInputFlowPage() {
 
   useEffect(() => {
     // If the slug is invalid or missing, redirect to the first tab or a default page.
-    if (!currentTab) {
+    if (!activeTab || !tabs.some(t => t.id === activeTab)) {
       if(requestId) {
         router.replace(`/operational-input/${requestId}/${tabs[0].id}`);
-      } else {
+      } else if (!isOperationalInputLoading) { // Avoid redirecting while loading
         router.replace('/ckc-requests');
       }
     }
-  }, [currentTab, requestId, router, tabs]);
+  }, [activeTab, tabs, requestId, router, isOperationalInputLoading]);
   
 
   const handleNext = async (data: any) => {
@@ -131,7 +131,7 @@ export default function OperationalInputFlowPage() {
     }
   };
 
-  if (isOperationalInputLoading || !currentTab) {
+  if (isOperationalInputLoading) {
     return <FormLoadingSkeleton />;
   }
   
@@ -166,23 +166,26 @@ export default function OperationalInputFlowPage() {
                 </Button>
               </div>
             </div>
-            <TabsContent value={activeTab}>
-                <Suspense fallback={<div>Loading form...</div>}>
-                    <JsonSchemaForm
-                        key={activeTab} // Ensures re-render on tab change
-                        schema={currentTab.schema}
-                        schemaType={currentTab.schemaType as any}
-                        onSubmit={handleNext}
-                        onCancel={handleBack}
-                        requestId={requestId}
-                        dataKey={currentTab.id.replace(/-/g, '_')}
-                        isLastStep={currentTabIndex === tabs.length - 1}
-                    />
-                </Suspense>
-            </TabsContent>
+            {currentTab && (
+              <TabsContent value={activeTab} forceMount>
+                  <Suspense fallback={<div>Loading form...</div>}>
+                      <JsonSchemaForm
+                          key={activeTab} // Ensures re-render on tab change
+                          schema={currentTab.schema}
+                          schemaType={currentTab.schemaType as any}
+                          onSubmit={handleNext}
+                          onCancel={handleBack}
+                          requestId={requestId}
+                          dataKey={currentTab.id.replace(/-/g, '_')}
+                          isLastStep={currentTabIndex === tabs.length - 1}
+                      />
+                  </Suspense>
+              </TabsContent>
+            )}
           </Tabs>
         </main>
       </div>
     </div>
   );
 }
+
