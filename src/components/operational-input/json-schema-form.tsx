@@ -87,9 +87,10 @@ interface JsonSchemaFormProps {
   onCancel: () => void;
   requestId: string;
   dataKey: string;
+  isLastStep?: boolean;
 }
 
-export function JsonSchemaForm({ schema, schemaType, onSubmit, onCancel, requestId, dataKey }: JsonSchemaFormProps) {
+export function JsonSchemaForm({ schema, schemaType, onSubmit, onCancel, requestId, dataKey, isLastStep = false }: JsonSchemaFormProps) {
   const firestore = useFirestore();
   const zodSchema = useMemo(() => generateZodSchema(schema), [schema]);
   
@@ -471,7 +472,7 @@ export function JsonSchemaForm({ schema, schemaType, onSubmit, onCancel, request
               <Button type="button" variant="outline" onClick={onCancel}>
                 Back
               </Button>
-              <Button type="submit">Continue</Button>
+              <Button type="submit">{isLastStep ? 'Finish' : 'Continue'}</Button>
             </div>
           </form>
         </Form>

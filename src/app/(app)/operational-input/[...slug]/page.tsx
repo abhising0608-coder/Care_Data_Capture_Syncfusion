@@ -16,6 +16,7 @@ import { basicInfoSchema } from '@/lib/schemas/basic-info-schema';
 import { companyDetailsSchema } from '@/lib/schemas/company-details-schema';
 import { commonDetailsSchema } from '@/lib/schemas/common-details-schema';
 import { pharmaSchema } from '@/lib/schemas/sectorial-schemas/pharma-schema';
+import { otherDetailsSchema } from '@/lib/schemas/other-details-schema';
 import { doc, setDoc } from 'firebase/firestore';
 import { useDoc, useFirestore, useUser, useMemoFirebase } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
@@ -43,7 +44,7 @@ export default function OperationalInputFlowPage() {
     { id: 'company-details', label: 'Company Details', schema: companyDetailsSchema, schemaType: 'form' },
     { id: 'common-details', label: 'Common Details', schema: commonDetailsSchema, schemaType: 'form' },
     { id: 'sectorial-operational-data', label: `${financialSector} Operational Data`, schema: pharmaSchema, schemaType: 'spreadsheet' },
-    { id: 'other-details', label: 'Other Details', schema: {}, schemaType: 'form' },
+    { id: 'other-details', label: 'Other Details', schema: otherDetailsSchema, schemaType: 'form' },
   ], [financialSector]);
 
   const currentTabIndex = tabs.findIndex(tab => tab.id === activeTab);
@@ -69,7 +70,7 @@ export default function OperationalInputFlowPage() {
       if (nextTab) {
         router.push(`/operational-input/${requestId}/${nextTab.id}`);
       } else {
-        // Last tab, maybe go to a summary page or back to the list
+        // Last tab, go back to the list
         router.push('/ckc-requests');
       }
     } catch (error) {
@@ -173,6 +174,7 @@ export default function OperationalInputFlowPage() {
                         onCancel={handleBack}
                         requestId={requestId}
                         dataKey={currentTab.id.replace(/-/g, '_')}
+                        isLastStep={currentTabIndex === tabs.length - 1}
                     />
                 </Suspense>
             </TabsContent>
