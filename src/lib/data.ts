@@ -1,6 +1,8 @@
 import { CKCRequest } from '@/lib/definitions';
 import { subDays } from 'date-fns';
 
+// This is now just used for the "Pending" tab, which is a mock.
+// The "Accepted" tab uses live data from Firestore.
 export const mockRequests: CKCRequest[] = [
   {
     id: 'REQ001',

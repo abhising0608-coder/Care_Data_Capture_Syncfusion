@@ -1,5 +1,5 @@
 export type CKCRequest = {
-  id: string;
+  id: string; // Corresponds to requestId
   companyId: string;
   companyName: string;
   financialInputSector: string;
@@ -16,16 +16,17 @@ export type CKCRequest = {
   provisionalFY: string[];
   projectionFY: string[];
   remarks: string;
-  receiptDateTime: Date;
-  receiptResponseDateTime: Date | null;
-  entryAllottedDateTime: Date | null;
-  entryCompletedDateTime: Date | null;
-  checkingAllottedDateTime: Date | null;
-  checkingCompletedDateTime: Date | null;
+  receiptDateTime: any; // Using any for Firestore Timestamps
+  receiptResponseDateTime: any | null;
+  entryAllottedDateTime: any | null;
+  entryCompletedDateTime: any | null;
+  checkingAllottedDateTime: any | null;
+  checkingCompletedDateTime: any | null;
   sentBackFlag: boolean;
   createdBy: string;
   overallStatus: string;
   itemType: string;
   path: string;
   resultType: 'Standalone' | 'Consolidated';
+  ckcAnalystName?: string;
 };
