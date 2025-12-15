@@ -56,7 +56,11 @@ export default function OperationalInputFlowPage() {
   const { user } = useUser();
   const { toast } = useToast();
 
-  const [requestId, activeTab] = useMemo(() => params.slug || [], [params.slug]);
+  // All hooks must be called at the top level and in the same order.
+  const [requestId, activeTab] = useMemo(() => {
+    const slug = params.slug || [];
+    return [slug[0] || null, slug[1] || null];
+  }, [params.slug]);
 
   const operationalInputRef = useMemoFirebase(() => {
     if (!firestore || !requestId) return null;
@@ -78,23 +82,22 @@ export default function OperationalInputFlowPage() {
   const currentTab = useMemo(() => tabs[currentTabIndex], [tabs, currentTabIndex]);
 
   useEffect(() => {
-    // If the slug is invalid or missing, redirect to the first tab or a default page.
-    if (!activeTab || !tabs.some(t => t.id === activeTab)) {
-      if(requestId) {
-        router.replace(`/operational-input/${requestId}/${tabs[0].id}`);
-      } else if (!isOperationalInputLoading) { // Avoid redirecting while loading
+    // Redirect logic remains in useEffect, but the component does not return early.
+    if (!isOperationalInputLoading) {
+      if (!requestId) {
         router.replace('/ckc-requests');
+      } else if (!activeTab || !tabs.some(t => t.id === activeTab)) {
+        router.replace(`/operational-input/${requestId}/${tabs[0].id}`);
       }
     }
   }, [activeTab, tabs, requestId, router, isOperationalInputLoading]);
-  
 
   const handleNext = async (data: any) => {
     if (!firestore || !user || !requestId || !currentTab) return;
 
     try {
-      const operationalInputRef = doc(firestore, 'operational_input', requestId);
-      await setDoc(operationalInputRef, {
+      const docRef = doc(firestore, 'operational_input', requestId);
+      await setDoc(docRef, {
         [currentTab.id.replace(/-/g, '_')]: data,
         updatedAt: new Date(),
         updatedBy: user.uid,
@@ -109,7 +112,6 @@ export default function OperationalInputFlowPage() {
       if (nextTab) {
         router.push(`/operational-input/${requestId}/${nextTab.id}`);
       } else {
-        // Last tab, go back to the list
         router.push('/ckc-requests');
       }
     } catch (error) {
@@ -131,7 +133,8 @@ export default function OperationalInputFlowPage() {
     }
   };
 
-  if (isOperationalInputLoading) {
+  // Conditional rendering is now handled within the JSX, not with early returns.
+  if (isOperationalInputLoading || !currentTab || !requestId) {
     return <FormLoadingSkeleton />;
   }
   
@@ -166,26 +169,23 @@ export default function OperationalInputFlowPage() {
                 </Button>
               </div>
             </div>
-            {currentTab && (
-              <TabsContent value={activeTab} forceMount>
-                  <Suspense fallback={<div>Loading form...</div>}>
-                      <JsonSchemaForm
-                          key={activeTab} // Ensures re-render on tab change
-                          schema={currentTab.schema}
-                          schemaType={currentTab.schemaType as any}
-                          onSubmit={handleNext}
-                          onCancel={handleBack}
-                          requestId={requestId}
-                          dataKey={currentTab.id.replace(/-/g, '_')}
-                          isLastStep={currentTabIndex === tabs.length - 1}
-                      />
-                  </Suspense>
-              </TabsContent>
-            )}
+            <TabsContent value={activeTab} forceMount>
+                <Suspense fallback={<div>Loading form...</div>}>
+                    <JsonSchemaForm
+                        key={activeTab} // Ensures re-render on tab change
+                        schema={currentTab.schema}
+                        schemaType={currentTab.schemaType as any}
+                        onSubmit={handleNext}
+                        onCancel={handleBack}
+                        requestId={requestId}
+                        dataKey={currentTab.id.replace(/-/g, '_')}
+                        isLastStep={currentTabIndex === tabs.length - 1}
+                    />
+                </Suspense>
+            </TabsContent>
           </Tabs>
         </main>
       </div>
     </div>
   );
 }
-
