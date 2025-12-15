@@ -2,7 +2,16 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import { format } from 'date-fns';
+import {
+  collection,
+  query,
+  where,
+  doc,
+  writeBatch,
+  Timestamp,
+  serverTimestamp,
+} from 'firebase/firestore';
+import { useAuth, useCollection, useFirestore, useUser, useMemoFirebase } from '@/firebase';
 import {
   Check,
   Download,
@@ -13,7 +22,7 @@ import {
   ChevronLeft,
   ChevronRight,
   ChevronsLeft,
-  ChevronsRight
+  ChevronsRight,
 } from 'lucide-react';
 import {
   Card,
@@ -47,52 +56,99 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { mockRequests } from '@/lib/data';
 import type { CKCRequest } from '@/lib/definitions';
 import { Badge } from '../ui/badge';
+import { Skeleton } from '../ui/skeleton';
 
 type SortConfig = {
   key: keyof CKCRequest;
   direction: 'ascending' | 'descending';
 } | null;
 
+const formatFirestoreTimestamp = (timestamp: Timestamp) => {
+  if (!timestamp) return 'N/A';
+  return timestamp.toDate().toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
+};
+
 export function PendingRequestsList() {
-  const [requests, setRequests] = React.useState<CKCRequest[]>(mockRequests);
   const [searchTerm, setSearchTerm] = React.useState('');
-  const [filters, setFilters] = React.useState<{ listed: string[]; cycle: string[] }>({ listed: [], cycle: [] });
-  const [sortConfig, setSortConfig] = React.useState<SortConfig>(null);
+  const [filters, setFilters] = React.useState<{
+    listed: string[];
+    cycle: string[];
+    auditedFY: string[];
+  }>({ listed: [], cycle: [], auditedFY: [] });
+  const [sortConfig, setSortConfig] = React.useState<SortConfig>({ key: 'receiptDateTime', direction: 'descending' });
   const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 10 });
   const { toast } = useToast();
+  const firestore = useFirestore();
+  const { user } = useUser();
+  const auth = useAuth();
+  
+  const pendingRequestsQuery = useMemoFirebase(() => {
+    if (!firestore) return null;
+    return query(collection(firestore, 'ckc_operational_requests'), where('status', '==', 'PENDING'));
+  }, [firestore]);
 
-  const handleAccept = (requestId: string) => {
-    // This simulates a server action.
-    setRequests((prev) => prev.filter((req) => req.id !== requestId));
-    toast({
-      title: 'Success',
-      description: `Request ${requestId} has been accepted.`,
-    });
+  const { data: requests, isLoading: loading } = useCollection<CKCRequest>(pendingRequestsQuery);
+
+  const handleAccept = async (requestId: string) => {
+    if (!firestore || !user) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'You must be logged in to accept requests.',
+      });
+      return;
+    }
+
+    const requestRef = doc(firestore, 'ckc_operational_requests', requestId);
+
+    try {
+      const batch = writeBatch(firestore);
+      batch.update(requestRef, {
+        status: 'ACCEPTED',
+        assignedTo: user.uid,
+        ckcAnalystName: user.displayName || user.email || 'Unnamed Analyst',
+        entryAllottedDateTime: serverTimestamp(),
+      });
+      await batch.commit();
+
+      toast({
+        title: 'Success',
+        description: `Request ${requestId} has been accepted.`,
+      });
+    } catch (error) {
+      console.error('Error accepting request:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Failed to accept the request. It might have been accepted by another analyst.',
+      });
+    }
   };
 
   const filteredRequests = React.useMemo(() => {
-    let filtered = requests.filter((req) =>
-      req.status === 'PENDING' &&
-      (
-        req.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        req.companyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        req.companyId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        req.cycle.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        req.auditedFY.some(fy => fy.includes(searchTerm))
-      )
-    );
+    if (!requests) return [];
+    return requests.filter((req) => {
+      const searchTermLower = searchTerm.toLowerCase();
+      const matchesSearch =
+        req.id.toLowerCase().includes(searchTermLower) ||
+        req.companyName.toLowerCase().includes(searchTermLower) ||
+        req.companyId.toLowerCase().includes(searchTermLower) ||
+        req.cycle.toLowerCase().includes(searchTermLower) ||
+        req.auditedFY.some((fy) => fy.includes(searchTermLower));
 
-    if (filters.listed.length > 0) {
-      filtered = filtered.filter(req => filters.listed.includes(req.listed));
-    }
-    if (filters.cycle.length > 0) {
-      filtered = filtered.filter(req => filters.cycle.includes(req.cycle));
-    }
+      const matchesFilters =
+        (filters.cycle.length === 0 || filters.cycle.includes(req.cycle)) &&
+        (filters.listed.length === 0 || filters.listed.includes(req.listed)) &&
+        (filters.auditedFY.length === 0 || req.auditedFY.some(fy => filters.auditedFY.includes(fy)));
 
-    return filtered;
+      return matchesSearch && matchesFilters;
+    });
   }, [requests, searchTerm, filters]);
   
   const sortedRequests = React.useMemo(() => {
@@ -131,13 +187,13 @@ export function PendingRequestsList() {
     setSortConfig({ key, direction });
   };
   
-  const KpiCard = ({ title, value, description }: { title: string, value: string, description: string }) => (
+  const KpiCard = ({ title, value, description }: { title: string, value: string | number, description: string }) => (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium">{title}</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="text-2xl font-bold">{value}</div>
+        <div className="text-2xl font-bold">{loading ? <Skeleton className="h-8 w-1/2" /> : value}</div>
         <p className="text-xs text-muted-foreground">{description}</p>
       </CardContent>
     </Card>
@@ -152,22 +208,24 @@ export function PendingRequestsList() {
     { key: 'receiptDateTime', label: 'Received Date' },
     { key: 'auditedFY', label: 'Audited FY' },
   ];
+  
+  const uniqueAuditedFYs = Array.from(new Set(requests?.flatMap(r => r.auditedFY) || []));
 
   return (
     <>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            <KpiCard title="Pending Requests" value={requests.length.toString()} description="Total requests waiting for acceptance." />
-            <KpiCard title="Accepted by Me" value="12" description="Requests you are currently working on." />
-            <KpiCard title="Total Requests Today" value="89" description="Across all analysts." />
-        </div>
-        <Card>
-          <CardContent className="p-4 space-y-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <KpiCard title="Pending Requests" value={requests?.length ?? 0} description="Total requests waiting for acceptance." />
+        <KpiCard title="Initial Cycle" value={requests?.filter(r => r.cycle === 'Initial').length ?? 0} description="Initial rating requests." />
+        <KpiCard title="Surveillance Cycle" value={requests?.filter(r => r.cycle === 'Surveillance').length ?? 0} description="Surveillance requests." />
+      </div>
+      <Card>
+        <CardContent className="p-4 space-y-4">
           <div className="flex items-center justify-between gap-2 flex-wrap">
             <div className="relative flex-1 md:grow-0">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
                 type="search"
-                placeholder="Search requests..."
+                placeholder="Search pending requests..."
                 className="w-full rounded-lg bg-card pl-8 md:w-[200px] lg:w-[320px]"
                 onChange={(e) => {
                   setSearchTerm(e.target.value);
@@ -184,7 +242,7 @@ export function PendingRequestsList() {
                     <ChevronDown className="h-4 w-4 opacity-50" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
+                <DropdownMenuContent align="end" className="w-[200px]">
                   <DropdownMenuLabel>Filter by</DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuLabel>Listed</DropdownMenuLabel>
@@ -214,6 +272,17 @@ export function PendingRequestsList() {
                   >
                     Surveillance
                   </DropdownMenuCheckboxItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuLabel>Audited FY</DropdownMenuLabel>
+                  {uniqueAuditedFYs.map(fy => (
+                    <DropdownMenuCheckboxItem
+                      key={fy}
+                      checked={filters.auditedFY.includes(fy)}
+                      onCheckedChange={(checked) => setFilters(f => ({...f, auditedFY: checked ? [...f.auditedFY, fy] : f.auditedFY.filter(i => i !== fy)}))}
+                    >
+                      {fy}
+                    </DropdownMenuCheckboxItem>
+                  ))}
                 </DropdownMenuContent>
               </DropdownMenu>
               <Button variant="outline" className="gap-1">
@@ -222,125 +291,133 @@ export function PendingRequestsList() {
               </Button>
             </div>
           </div>
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    {headers.map(header => (
-                      <TableHead key={header.key}>
-                        <Button variant="ghost" onClick={() => requestSort(header.key)}>
-                          {header.label}
-                          <ArrowUpDown className="ml-2 h-4 w-4" />
-                        </Button>
-                      </TableHead>
-                    ))}
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {paginatedRequests.length > 0 ? (
-                    paginatedRequests.map((req) => (
-                      <TableRow key={req.id}>
-                        <TableCell className="font-medium">
-                          <Link href={`/operational-input/request/${req.id}`} className="text-primary hover:underline">
-                            {req.id}
-                          </Link>
-                        </TableCell>
-                        <TableCell>{req.companyName}</TableCell>
-                        <TableCell>{req.companyId}</TableCell>
-                        <TableCell><Badge variant={req.listed === 'Yes' ? 'default' : 'secondary'}>{req.listed}</Badge></TableCell>
-                        <TableCell>{req.cycle}</TableCell>
-                        <TableCell>{format(new Date(req.receiptDateTime), 'PP')}</TableCell>
-                        <TableCell>{req.auditedFY.join(', ')}</TableCell>
-                        <TableCell>
-                          <Button variant="ghost" size="icon" onClick={() => handleAccept(req.id)} aria-label={`Accept request ${req.id}`}>
-                            <Check className="h-5 w-5 text-accent" />
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  ) : (
-                    <TableRow>
-                      <TableCell colSpan={headers.length + 1} className="h-24 text-center">
-                        No results found.
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  {headers.map(header => (
+                    <TableHead key={header.key}>
+                      <Button variant="ghost" onClick={() => requestSort(header.key)}>
+                        {header.label}
+                        <ArrowUpDown className="ml-2 h-4 w-4" />
+                      </Button>
+                    </TableHead>
+                  ))}
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {loading ? (
+                  Array.from({ length: pagination.pageSize }).map((_, i) => (
+                    <TableRow key={i}>
+                      <TableCell colSpan={headers.length + 1}>
+                        <Skeleton className="h-8 w-full" />
                       </TableCell>
                     </TableRow>
-                  )}
-                </TableBody>
-              </Table>
+                  ))
+                ) : paginatedRequests.length > 0 ? (
+                  paginatedRequests.map((req) => (
+                    <TableRow key={req.id}>
+                      <TableCell className="font-medium">
+                        <Link href={`/operational-input/request/${req.id}`} className="text-primary hover:underline">
+                          {req.id}
+                        </Link>
+                      </TableCell>
+                      <TableCell>{req.companyName}</TableCell>
+                      <TableCell>{req.companyId}</TableCell>
+                      <TableCell><Badge variant={req.listed === 'Yes' ? 'default' : 'secondary'}>{req.listed}</Badge></TableCell>
+                      <TableCell>{req.cycle}</TableCell>
+                      <TableCell>{formatFirestoreTimestamp(req.receiptDateTime)}</TableCell>
+                      <TableCell>{req.auditedFY.join(', ')}</TableCell>
+                      <TableCell>
+                        <Button variant="ghost" size="icon" onClick={() => handleAccept(req.id)} aria-label={`Accept request ${req.id}`}>
+                          <Check className="h-5 w-5 text-accent" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={headers.length + 1} className="h-24 text-center">
+                      No pending requests found.
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+          <div className="flex items-center justify-between">
+            <div className="text-sm text-muted-foreground">
+              {pagination.pageIndex * pagination.pageSize + 1}-
+              {Math.min((pagination.pageIndex + 1) * pagination.pageSize, sortedRequests.length)} of{' '}
+              {sortedRequests.length} requests
             </div>
-            <div className="flex items-center justify-between">
-                <div className="text-sm text-muted-foreground">
-                    {pagination.pageIndex * pagination.pageSize + 1}-
-                    {Math.min((pagination.pageIndex + 1) * pagination.pageSize, sortedRequests.length)} of{' '}
-                    {sortedRequests.length} requests
-                </div>
-                <div className="flex items-center space-x-6 lg:space-x-8">
-                    <div className="flex items-center space-x-2">
-                        <p className="text-sm font-medium">Rows per page</p>
-                        <Select
-                            value={`${pagination.pageSize}`}
-                            onValueChange={(value) => {
-                                setPagination({ ...pagination, pageSize: Number(value), pageIndex: 0 });
-                            }}
-                        >
-                            <SelectTrigger className="h-8 w-[70px]">
-                                <SelectValue placeholder={pagination.pageSize} />
-                            </SelectTrigger>
-                            <SelectContent side="top">
-                                {[10, 20, 30, 50].map((pageSize) => (
-                                    <SelectItem key={pageSize} value={`${pageSize}`}>
-                                        {pageSize}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
-                    <div className="flex w-[100px] items-center justify-center text-sm font-medium">
-                        Page {pagination.pageIndex + 1} of {pageCount}
-                    </div>
-                    <div className="flex items-center space-x-2">
-                        <Button
-                            variant="outline"
-                            className="hidden h-8 w-8 p-0 lg:flex"
-                            onClick={() => setPagination({ ...pagination, pageIndex: 0 })}
-                            disabled={pagination.pageIndex === 0}
-                        >
-                            <span className="sr-only">Go to first page</span>
-                            <ChevronsLeft className="h-4 w-4" />
-                        </Button>
-                        <Button
-                            variant="outline"
-                            className="h-8 w-8 p-0"
-                            onClick={() => setPagination({ ...pagination, pageIndex: pagination.pageIndex - 1 })}
-                            disabled={pagination.pageIndex === 0}
-                        >
-                            <span className="sr-only">Go to previous page</span>
-                            <ChevronLeft className="h-4 w-4" />
-                        </Button>
-                        <Button
-                            variant="outline"
-                            className="h-8 w-8 p-0"
-                            onClick={() => setPagination({ ...pagination, pageIndex: pagination.pageIndex + 1 })}
-                            disabled={pagination.pageIndex >= pageCount - 1}
-                        >
-                            <span className="sr-only">Go to next page</span>
-                            <ChevronRight className="h-4 w-4" />
-                        </Button>
-                        <Button
-                            variant="outline"
-                            className="hidden h-8 w-8 p-0 lg:flex"
-                            onClick={() => setPagination({ ...pagination, pageIndex: pageCount - 1 })}
-                            disabled={pagination.pageIndex >= pageCount - 1}
-                        >
-                            <span className="sr-only">Go to last page</span>
-                            <ChevronsRight className="h-4 w-4" />
-                        </Button>
-                    </div>
-                </div>
+            <div className="flex items-center space-x-6 lg:space-x-8">
+              <div className="flex items-center space-x-2">
+                <p className="text-sm font-medium">Rows per page</p>
+                <Select
+                  value={`${pagination.pageSize}`}
+                  onValueChange={(value) => {
+                    setPagination({ ...pagination, pageSize: Number(value), pageIndex: 0 });
+                  }}
+                >
+                  <SelectTrigger className="h-8 w-[70px]">
+                    <SelectValue placeholder={pagination.pageSize} />
+                  </SelectTrigger>
+                  <SelectContent side="top">
+                    {[10, 20, 30, 50].map((pageSize) => (
+                      <SelectItem key={pageSize} value={`${pageSize}`}>
+                        {pageSize}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex w-[100px] items-center justify-center text-sm font-medium">
+                Page {pagination.pageIndex + 1} of {pageCount}
+              </div>
+              <div className="flex items-center space-x-2">
+                <Button
+                  variant="outline"
+                  className="hidden h-8 w-8 p-0 lg:flex"
+                  onClick={() => setPagination({ ...pagination, pageIndex: 0 })}
+                  disabled={pagination.pageIndex === 0}
+                >
+                  <span className="sr-only">Go to first page</span>
+                  <ChevronsLeft className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  className="h-8 w-8 p-0"
+                  onClick={() => setPagination({ ...pagination, pageIndex: pagination.pageIndex - 1 })}
+                  disabled={pagination.pageIndex === 0}
+                >
+                  <span className="sr-only">Go to previous page</span>
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  className="h-8 w-8 p-0"
+                  onClick={() => setPagination({ ...pagination, pageIndex: pagination.pageIndex + 1 })}
+                  disabled={pagination.pageIndex >= pageCount - 1}
+                >
+                  <span className="sr-only">Go to next page</span>
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  className="hidden h-8 w-8 p-0 lg:flex"
+                  onClick={() => setPagination({ ...pagination, pageIndex: pageCount - 1 })}
+                  disabled={pagination.pageIndex >= pageCount - 1}
+                >
+                  <span className="sr-only">Go to last page</span>
+                  <ChevronsRight className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </CardContent>
+      </Card>
     </>
   );
 }

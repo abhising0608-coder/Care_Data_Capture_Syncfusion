@@ -1,5 +1,8 @@
+import type { Timestamp } from 'firebase/firestore';
+
 export type CKCRequest = {
-  id: string; // Corresponds to requestId
+  id: string; // Corresponds to document ID in Firestore
+  requestId: string; // The original request ID from the source system
   companyId: string;
   companyName: string;
   financialInputSector: string;
@@ -16,12 +19,12 @@ export type CKCRequest = {
   provisionalFY: string[];
   projectionFY: string[];
   remarks: string;
-  receiptDateTime: any; // Using any for Firestore Timestamps
-  receiptResponseDateTime: any | null;
-  entryAllottedDateTime: any | null;
-  entryCompletedDateTime: any | null;
-  checkingAllottedDateTime: any | null;
-  checkingCompletedDateTime: any | null;
+  receiptDateTime: Timestamp; 
+  receiptResponseDateTime: Timestamp | null;
+  entryAllottedDateTime: Timestamp | null;
+  entryCompletedDateTime: Timestamp | null;
+  checkingAllottedDateTime: Timestamp | null;
+  checkingCompletedDateTime: Timestamp | null;
   sentBackFlag: boolean;
   createdBy: string;
   overallStatus: string;
