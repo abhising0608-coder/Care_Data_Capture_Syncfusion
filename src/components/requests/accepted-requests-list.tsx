@@ -117,12 +117,12 @@ export function AcceptedRequestsList() {
 
   const { data: requests, isLoading } = useCollection<CKCRequest>(acceptedRequestsQuery);
   
-  const handleContinue = (requestId: string) => {
+  const handleInitiate = (requestId: string) => {
     toast({
-      title: 'Resuming Request',
-      description: `Loading details for request ${requestId}.`,
+      title: 'Initiating Data Entry',
+      description: `Loading configuration for request ${requestId}.`,
     });
-    router.push(`/operational-input/request/${requestId}`);
+    router.push(`/operational-input/initiate?requestId=${requestId}`);
   };
 
   const filteredRequests = React.useMemo(() => {
@@ -315,12 +315,13 @@ export function AcceptedRequestsList() {
                       <TableCell>
                         <Button
                           variant="ghost"
-                          size="icon"
-                          onClick={() => handleContinue(req.id)}
-                          aria-label={`Continue request ${req.id}`}
+                          size="sm"
+                          onClick={() => handleInitiate(req.id)}
+                          aria-label={`Initiate request ${req.id}`}
                           disabled={claims && claims.isAdmin}
                         >
-                          <ArrowRight className="h-5 w-5 text-accent" />
+                          <ArrowRight className="h-4 w-4 mr-2" />
+                          Initiate
                         </Button>
                       </TableCell>
                     </TableRow>

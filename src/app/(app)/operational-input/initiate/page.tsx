@@ -3,7 +3,7 @@
 import { Suspense } from 'react';
 import { OperationalInputForm } from '@/components/operational-input/operational-input-form';
 
-export default function OperationalInputPage() {
+export default function InitiateOperationalInputPage() {
   return (
     <div className="space-y-6">
       <div>
