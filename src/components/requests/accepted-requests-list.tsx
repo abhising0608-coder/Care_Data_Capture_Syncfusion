@@ -100,7 +100,7 @@ export function AcceptedRequestsList() {
   const { user, claims, isUserLoading } = useUser();
 
   const acceptedRequestsQuery = useMemoFirebase(() => {
-    if (!firestore || isUserLoading) return null; // Wait for user info
+    if (!firestore || isUserLoading || !user) return null;
 
     const requestsRef = collection(firestore, 'ckc_operational_requests');
     
