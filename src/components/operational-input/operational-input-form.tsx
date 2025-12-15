@@ -49,7 +49,7 @@ const formSchema = z.object({
 type OperationalInputFormValues = z.infer<typeof formSchema>;
 
 const currentYear = new Date().getFullYear();
-const financialYears = Array.from({ length: 10 }, (_, i) => `${currentYear - i -1}-${(currentYear - i).toString().slice(2)}`);
+const financialYears = Array.from({ length: 10 }, (_, i) => `${currentYear - i - 1}-${(currentYear - i).toString().slice(2)}`);
 
 export function OperationalInputForm() {
   const router = useRouter();
@@ -57,10 +57,14 @@ export function OperationalInputForm() {
   const requestIdFromQuery = searchParams.get('requestId');
   const firestore = useFirestore();
   const { user } = useUser();
+  const [clientUuid, setClientUuid] = useState<string | null>(null);
 
-  const [prefilledData, setPrefilledData] = useState<{ companyName: string; approach: string; } | null>(null);
+  useEffect(() => {
+    // Generate UUID only on the client side after mount
+    setClientUuid(uuidv4());
+  }, []);
 
-  // We should use useDoc here, but for now we keep useCollection to avoid breaking changes
+
   const singleDocQuery = useMemoFirebase(() => {
       if (!firestore || !requestIdFromQuery) return null;
       return query(collection(firestore, 'ckc_operational_requests'), where('id', '==', requestIdFromQuery));
@@ -87,7 +91,6 @@ export function OperationalInputForm() {
         companyName: request.companyName,
         approach: request.resultType,
       };
-      setPrefilledData(data);
       form.reset({
         companyName: data.companyName,
         approach: data.approach,
@@ -105,14 +108,20 @@ export function OperationalInputForm() {
         toast({ title: "Error", description: "Authentication failed. Please try again.", variant: "destructive" });
         return;
     }
+    
+    // Use the request ID from the query if it exists, otherwise use the client-generated UUID
+    const entryId = requestIdFromQuery || clientUuid;
+    if (!entryId) {
+      toast({ title: "Error", description: "Missing required information to proceed.", variant: "destructive" });
+      return;
+    }
+
 
     try {
-        // If a requestId comes from the URL, use it. Otherwise, generate a new one.
-        const entryId = requestIdFromQuery || uuidv4();
         const operationalInputRef = doc(firestore, 'operational_input', entryId);
         
         await setDoc(operationalInputRef, {
-            ...data,
+            initiation: data, // Save under 'initiation' key
             requestId: entryId,
             createdBy: user.uid,
             createdAt: new Date(),
@@ -136,9 +145,10 @@ export function OperationalInputForm() {
     }
   };
   
-  if (isRequestLoading && requestIdFromQuery) {
+  if ((isRequestLoading && requestIdFromQuery) || (clientUuid === null && !requestIdFromQuery)) {
     return <Skeleton className="h-96 w-full" />;
   }
+
 
   return (
     <Card>
@@ -189,7 +199,7 @@ export function OperationalInputForm() {
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select an approach" />
-                        </SelectTrigger>
+                        </Trigger>
                       </FormControl>
                       <SelectContent>
                         <SelectItem value="Standalone">Standalone</SelectItem>
@@ -210,7 +220,7 @@ export function OperationalInputForm() {
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select financial year" />
-                        </SelectTrigger>
+                        </Trigger>
                       </FormControl>
                       <SelectContent>
                         {financialYears.map(fy => (
@@ -232,7 +242,7 @@ export function OperationalInputForm() {
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select amount scale" />
-                        </SelectTrigger>
+                        </Trigger>
                       </FormControl>
                       <SelectContent>
                         <SelectItem value="Hundreds">Hundreds</SelectItem>
@@ -256,7 +266,7 @@ export function OperationalInputForm() {
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select currency" />
-                        </SelectTrigger>
+                        </Trigger>
                       </FormControl>
                       <SelectContent>
                         <SelectItem value="INR">INR (₹)</SelectItem>
@@ -273,7 +283,7 @@ export function OperationalInputForm() {
               />
             </div>
             <div className="flex justify-end gap-4">
-              <Button type="button" variant="outline" onClick={() => form.reset()}>
+              <Button type="button" variant="outline" onClick={() => router.back()}>
                 Cancel
               </Button>
               <Button type="submit">Submit</Button>
