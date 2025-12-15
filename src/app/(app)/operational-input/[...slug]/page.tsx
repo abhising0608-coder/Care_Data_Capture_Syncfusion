@@ -1,7 +1,7 @@
 
 'use client';
 
-import { Suspense, useMemo, useEffect, ReactNode } from 'react';
+import { Suspense, useMemo, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -57,7 +57,7 @@ export default function OperationalInputFlowPage() {
     const { toast } = useToast();
 
     const [requestId, activeTab] = useMemo(() => {
-        const slug = params.slug || [];
+        const slug = Array.isArray(params.slug) ? params.slug : [params.slug];
         return [slug[0] || null, slug[1] || null];
     }, [params.slug]);
 
@@ -140,10 +140,6 @@ export default function OperationalInputFlowPage() {
         }
     };
 
-    if (isOperationalInputLoading || !requestId || !operationalInputData) {
-        return <FormLoadingSkeleton />;
-    }
-
     return (
         <div className="flex min-h-screen w-full flex-col">
             <div className="flex flex-col sm:gap-4 sm:py-4">
@@ -175,7 +171,11 @@ export default function OperationalInputFlowPage() {
                                 </Button>
                             </div>
                         </div>
-                        {currentTab ? (
+                        {isOperationalInputLoading || !currentTab || !operationalInputData ? (
+                            <TabsContent value={activeTab || ''} forceMount>
+                               <FormLoadingSkeleton />
+                            </TabsContent>
+                        ) : (
                             <TabsContent value={activeTab || ''} forceMount>
                                 <Suspense fallback={<FormLoadingSkeleton />}>
                                     <JsonSchemaForm
@@ -190,10 +190,6 @@ export default function OperationalInputFlowPage() {
                                     />
                                 </Suspense>
                             </TabsContent>
-                        ) : (
-                           <TabsContent value={activeTab || ''} forceMount>
-                               <FormLoadingSkeleton />
-                           </TabsContent>
                         )}
                     </Tabs>
                 </main>
