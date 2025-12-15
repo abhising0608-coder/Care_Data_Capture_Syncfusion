@@ -4,6 +4,7 @@ import * as React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PendingRequestsList } from './pending-requests-list';
 import { AcceptedRequestsList } from './accepted-requests-list';
+import { ClosedRequestsList } from './closed-requests-list';
 
 export function RequestsList() {
   return (
@@ -19,8 +20,8 @@ export function RequestsList() {
       <TabsContent value="accepted" className="space-y-4">
         <AcceptedRequestsList />
       </TabsContent>
-      <TabsContent value="closed">
-        <p className="text-muted-foreground">Closed requests will appear here.</p>
+      <TabsContent value="closed" className="space-y-4">
+        <ClosedRequestsList />
       </TabsContent>
     </Tabs>
   );
