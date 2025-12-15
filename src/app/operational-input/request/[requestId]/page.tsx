@@ -2,8 +2,7 @@
 
 import { useParams } from 'next/navigation';
 import { useMemo } from 'react';
-import { doc } from 'firebase/firestore';
-import { useDoc, useFirestore, useUser, useMemoFirebase } from '@/firebase';
+import useSWR from 'swr';
 import { ArrowLeft, Download, CheckCircle, XCircle } from 'lucide-react';
 import Link from 'next/link';
 
@@ -26,6 +25,7 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import type { CKCRequest } from '@/lib/definitions';
+import { useAuth } from '@/hooks/use-auth';
 
 interface DocumentInfo {
   docType: 'Audited' | 'Provisional' | 'Projection';
@@ -33,17 +33,16 @@ interface DocumentInfo {
   isValid: boolean;
 }
 
+const fetcher = (url: string) => fetch(url).then(res => res.json());
+
 export default function RequestDetailPage() {
   const { requestId } = useParams<{ requestId: string }>();
-  const firestore = useFirestore();
-  const { isUserLoading } = useUser();
+  const { isLoading: isUserLoading } = useAuth();
 
-  const requestRef = useMemoFirebase(() => {
-    if (!firestore || !requestId) return null;
-    return doc(firestore, 'ckc_operational_requests', requestId);
-  }, [firestore, requestId]);
-
-  const { data: request, isLoading } = useDoc<CKCRequest>(requestRef);
+  const { data: request, isLoading } = useSWR<CKCRequest>(
+    requestId ? `/api/requests/${requestId}` : null,
+    fetcher
+  );
 
   const documents: DocumentInfo[] = useMemo(() => {
     if (!request) return [];

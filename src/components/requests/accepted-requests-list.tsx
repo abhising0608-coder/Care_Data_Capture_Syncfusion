@@ -4,14 +4,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import {
-  collection,
-  query,
-  where,
-  onSnapshot,
-  Timestamp,
-} from 'firebase/firestore';
-import { useAuth, useFirestore, useUser, useMemoFirebase } from '@/firebase';
+import useSWR, { useSWRConfig } from 'swr';
 import {
   Download,
   Filter,
@@ -59,16 +52,18 @@ import { useToast } from '@/hooks/use-toast';
 import type { CKCRequest } from '@/lib/definitions';
 import { Badge } from '../ui/badge';
 import { Skeleton } from '../ui/skeleton';
-import { useCollection } from '@/firebase/firestore/use-collection';
+import { useAuth } from '@/hooks/use-auth';
 
 type SortConfig = {
   key: keyof CKCRequest;
   direction: 'ascending' | 'descending';
 } | null;
 
-const formatFirestoreTimestamp = (timestamp: Timestamp) => {
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
+
+const formatTimestamp = (timestamp: string | Date | undefined | null) => {
   if (!timestamp) return 'N/A';
-  return timestamp.toDate().toLocaleDateString('en-US', {
+  return new Date(timestamp).toLocaleDateString('en-US', {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
@@ -97,26 +92,9 @@ export function AcceptedRequestsList() {
   });
   const { toast } = useToast();
   const router = useRouter();
-  const firestore = useFirestore();
-  const { user, claims, isUserLoading } = useUser();
-
-  const acceptedRequestsQuery = useMemoFirebase(() => {
-    if (!firestore || isUserLoading) return null;
-
-    const requestsRef = collection(firestore, 'ckc_operational_requests');
-    
-    // Base query for accepted requests
-    let q = query(requestsRef, where('status', '==', 'ACCEPTED'));
-    
-    // If user exists and is not an admin, filter by their UID
-    if (user && claims && !claims.isAdmin) {
-      q = query(q, where('assignedTo', '==', user.uid));
-    }
-    
-    return q;
-  }, [firestore, user, claims, isUserLoading]);
-
-  const { data: requests, isLoading } = useCollection<CKCRequest>(acceptedRequestsQuery);
+  const { user, claims, isLoading: isUserLoading } = useAuth();
+  
+  const { data: requests, isLoading } = useSWR<CKCRequest[]>('/api/requests?status=ACCEPTED', fetcher);
   
   const handleInitiate = (requestId: string) => {
     toast({
@@ -128,7 +106,13 @@ export function AcceptedRequestsList() {
 
   const filteredRequests = React.useMemo(() => {
     if (!requests) return [];
-    return requests.filter((req) => {
+    let analystFilteredRequests = requests;
+    // If user is not an admin, filter by their UID
+    if (user && claims && !claims.isAdmin) {
+      analystFilteredRequests = requests.filter(r => r.assignedTo === user.uid);
+    }
+    
+    return analystFilteredRequests.filter((req) => {
       const searchTermLower = searchTerm.toLowerCase();
       const matchesSearch =
         req.id.toLowerCase().includes(searchTermLower) ||
@@ -148,7 +132,7 @@ export function AcceptedRequestsList() {
 
       return matchesSearch && matchesFilters;
     });
-  }, [requests, searchTerm, filters]);
+  }, [requests, searchTerm, filters, user, claims]);
 
   const sortedRequests = React.useMemo(() => {
     let sortableItems = [...filteredRequests];
@@ -309,7 +293,7 @@ export function AcceptedRequestsList() {
                         </Badge>
                       </TableCell>
                       <TableCell>{req.cycle}</TableCell>
-                      <TableCell>{formatFirestoreTimestamp(req.receiptDateTime)}</TableCell>
+                      <TableCell>{formatTimestamp(req.receiptDateTime)}</TableCell>
                       <TableCell>{req.auditedFY.join(', ')}</TableCell>
                       <TableCell>{req.ckcAnalystName || 'N/A'}</TableCell>
                       <TableCell>

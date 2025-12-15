@@ -1,7 +1,6 @@
-import type { Timestamp } from 'firebase/firestore';
 
 export type CKCRequest = {
-  id: string; // Corresponds to document ID in Firestore
+  id: string; // Corresponds to document ID
   requestId: string; // The original request ID from the source system
   companyId: string;
   companyName: string;
@@ -19,12 +18,12 @@ export type CKCRequest = {
   provisionalFY: string[];
   projectionFY: string[];
   remarks: string;
-  receiptDateTime: Timestamp; 
-  receiptResponseDateTime: Timestamp | null;
-  entryAllottedDateTime: Timestamp | null;
-  entryCompletedDateTime: Timestamp | null;
-  checkingAllottedDateTime: Timestamp | null;
-  checkingCompletedDateTime: Timestamp | null;
+  receiptDateTime: string | Date; // Using ISO string or Date object
+  receiptResponseDateTime: string | Date | null;
+  entryAllottedDateTime: string | Date | null;
+  entryCompletedDateTime: string | Date | null;
+  checkingAllottedDateTime: string | Date | null;
+  checkingCompletedDateTime: string | Date | null;
   sentBackFlag: boolean;
   createdBy: string;
   overallStatus: string;

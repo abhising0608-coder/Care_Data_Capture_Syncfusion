@@ -1,11 +1,14 @@
+'use client';
+
 import { AppSidebar } from '@/components/app-sidebar';
 import { AppHeader } from '@/components/app-header';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
-import { FirebaseClientProvider } from '@/firebase/client-provider';
+import { AuthProvider } from '@/hooks/use-auth';
+
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
-    <FirebaseClientProvider>
+    <AuthProvider>
       <SidebarProvider>
         <AppSidebar />
         <SidebarInset>
@@ -15,6 +18,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           </main>
         </SidebarInset>
       </SidebarProvider>
-    </FirebaseClientProvider>
+    </AuthProvider>
   );
 }

@@ -1,13 +1,14 @@
 
 'use client';
 
-import { Suspense, useMemo, useEffect } from 'react';
+import { Suspense, useMemo, useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
   FileSpreadsheet,
   ChevronLeft,
 } from 'lucide-react';
+import useSWR from 'swr';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -18,10 +19,11 @@ import { companyDetailsSchema } from '@/lib/schemas/company-details-schema';
 import { commonDetailsSchema } from '@/lib/schemas/common-details-schema';
 import { pharmaSchema } from '@/lib/schemas/sectorial-schemas/pharma-schema';
 import { otherDetailsSchema } from '@/lib/schemas/other-details-schema';
-import { doc, setDoc } from 'firebase/firestore';
-import { useDoc, useFirestore, useUser, useMemoFirebase } from '@/firebase';
+import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
+
+const fetcher = (url: string) => fetch(url).then(res => res.json());
 
 const FormLoadingSkeleton = () => (
     <div className="p-4 sm:p-6 lg:p-8 space-y-6">
@@ -48,8 +50,7 @@ const FormLoadingSkeleton = () => (
 export default function OperationalInputFlowPage() {
     const params = useParams();
     const router = useRouter();
-    const firestore = useFirestore();
-    const { user } = useUser();
+    const { user } = useAuth();
     const { toast } = useToast();
 
     const [requestId, activeTab] = useMemo(() => {
@@ -57,22 +58,18 @@ export default function OperationalInputFlowPage() {
         return [slug[0] || null, slug[1] || 'basic-info'];
     }, [params.slug]);
 
-    const operationalInputRef = useMemoFirebase(() => {
-        if (!firestore || !requestId) return null;
-        return doc(firestore, 'operational_input', requestId);
-    }, [firestore, requestId]);
-
-    const { data: operationalInputData, isLoading: isOperationalInputLoading } = useDoc(operationalInputRef);
+    const { data: operationalInputData, isLoading: isOperationalInputLoading, mutate } = useSWR(requestId ? `/api/operational-input/${requestId}` : null, fetcher);
     
     const tabs = useMemo(() => {
         const financialSector = operationalInputData?.initiation?.financialInputSector || 'Pharma';
-        return [
+        const baseTabs = [
             { id: 'basic-info', label: 'Basic Info', schema: basicInfoSchema, schemaType: 'form' },
             { id: 'company-details', label: 'Company Details', schema: companyDetailsSchema, schemaType: 'form' },
             { id: 'common-details', label: 'Common Details', schema: commonDetailsSchema, schemaType: 'form' },
             { id: 'sectorial-operational-data', label: `${financialSector} Operational Data`, schema: pharmaSchema, schemaType: 'spreadsheet' },
             { id: 'other-details', label: 'Other Details', schema: otherDetailsSchema, schemaType: 'form' },
         ];
+        return baseTabs;
     }, [operationalInputData]);
 
     const currentTabIndex = useMemo(() => {
@@ -91,15 +88,24 @@ export default function OperationalInputFlowPage() {
     }, [activeTab, tabs, requestId, router]);
 
     const handleNext = async (data: any) => {
-        if (!firestore || !user || !requestId || !currentTab) return;
+        if (!user || !requestId || !currentTab) return;
 
         try {
-            const docRef = doc(firestore, 'operational_input', requestId);
-            await setDoc(docRef, {
+            const payload = {
+                ...operationalInputData,
                 [currentTab.id.replace(/-/g, '_')]: data,
-                updatedAt: new Date(),
+                updatedAt: new Date().toISOString(),
                 updatedBy: user.uid,
-            }, { merge: true });
+            };
+            
+            await fetch(`/api/operational-input/${requestId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
+            });
+            
+            // Revalidate the local SWR cache
+            mutate(payload, false);
 
             toast({
                 title: 'Data Saved',
@@ -162,24 +168,27 @@ export default function OperationalInputFlowPage() {
                                 </Button>
                             </div>
                         </div>
-                        <TabsContent value={activeTab || ''} forceMount>
-                            <Suspense fallback={<FormLoadingSkeleton />}>
-                                {isOperationalInputLoading || !operationalInputData ? (
-                                    <FormLoadingSkeleton />
-                                ) : (
-                                    <JsonSchemaForm
-                                        key={activeTab}
-                                        schema={currentTab.schema}
-                                        schemaType={currentTab.schemaType as any}
-                                        onSubmit={handleNext}
-                                        onCancel={handleBack}
-                                        requestId={requestId!}
-                                        dataKey={currentTab.id.replace(/-/g, '_')}
-                                        isLastStep={currentTabIndex === tabs.length - 1}
-                                    />
-                                )}
-                            </Suspense>
-                        </TabsContent>
+                        {tabs.map(tab => (
+                            <TabsContent key={tab.id} value={tab.id} forceMount={tab.id === activeTab}>
+                                <Suspense fallback={<FormLoadingSkeleton />}>
+                                    {isOperationalInputLoading ? (
+                                        <FormLoadingSkeleton />
+                                    ) : (
+                                        (activeTab === tab.id) &&
+                                        <JsonSchemaForm
+                                            key={activeTab}
+                                            schema={tab.schema}
+                                            schemaType={tab.schemaType as any}
+                                            onSubmit={handleNext}
+                                            onCancel={handleBack}
+                                            requestId={requestId!}
+                                            dataKey={tab.id.replace(/-/g, '_')}
+                                            isLastStep={currentTabIndex === tabs.length - 1}
+                                        />
+                                    )}
+                                </Suspense>
+                            </TabsContent>
+                        ))}
                     </Tabs>
                 </main>
             </div>

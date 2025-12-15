@@ -4,6 +4,7 @@
 import { useForm, useFieldArray, Controller, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import useSWR from 'swr';
 import {
   Form,
   FormControl,
@@ -17,9 +18,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { useDoc, useFirestore, useMemoFirebase } from '@/firebase';
-import { doc } from 'firebase/firestore';
-import { useEffect, useMemo, useState, useCallback } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Skeleton } from '../ui/skeleton';
 import { PlusCircle, Trash2, Check, RefreshCw, Pencil, X, ChevronsUp, ChevronsDown } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -90,16 +89,12 @@ interface JsonSchemaFormProps {
   isLastStep?: boolean;
 }
 
+const fetcher = (url: string) => fetch(url).then(res => res.json());
+
 export function JsonSchemaForm({ schema, schemaType, onSubmit, onCancel, requestId, dataKey, isLastStep = false }: JsonSchemaFormProps) {
-  const firestore = useFirestore();
   const zodSchema = useMemo(() => generateZodSchema(schema), [schema]);
   
-  const operationalInputRef = useMemoFirebase(() => {
-      if (!firestore || !requestId) return null;
-      return doc(firestore, 'operational_input', requestId);
-  }, [firestore, requestId]);
-  
-  const { data: existingData, isLoading } = useDoc(operationalInputRef);
+  const { data: existingData, isLoading } = useSWR(`/api/operational-input/${requestId}`, fetcher);
 
   const form = useForm({
     resolver: zodResolver(zodSchema),
@@ -327,7 +322,7 @@ export function JsonSchemaForm({ schema, schemaType, onSubmit, onCancel, request
               <SyncfusionSpreadsheet
                 // This is a simplified approach; a real implementation would need
                 // a way to pass sheet-specific data and save it back.
-                initialData={sectionProp.spreadsheetData.initialData}
+                initialData={sectionProp.spreadsheetData?.initialData || []}
                 onSave={(data) => {
                   form.setValue(`${sectionKey}.spreadsheet_data`, data);
                 }}

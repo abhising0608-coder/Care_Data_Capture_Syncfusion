@@ -1,24 +1,17 @@
 
 'use client';
-import { Bell, PanelLeft } from 'lucide-react';
+import { Bell } from 'lucide-react';
 import Link from 'next/link';
+import useSWR from 'swr';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { SidebarTrigger } from '@/components/ui/sidebar';
-import { useCollection, useFirestore, useMemoFirebase, useUser } from '@/firebase';
-import { collection, query, where } from 'firebase/firestore';
+import type { CKCRequest } from '@/lib/definitions';
+
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export function AppHeader() {
-  const firestore = useFirestore();
-  const { isUserLoading } = useUser();
-  const pendingRequestsQuery = useMemoFirebase(
-    () => {
-      if (!firestore || isUserLoading) return null;
-      return query(collection(firestore, 'ckc_operational_requests'), where('status', '==', 'PENDING'));
-    },
-    [firestore, isUserLoading]
-  );
-  const { data: pendingRequests } = useCollection(pendingRequestsQuery);
+  const { data: pendingRequests } = useSWR<CKCRequest[]>('/api/requests?status=PENDING', fetcher);
 
   const newRequestCount = pendingRequests?.length || 0;
 

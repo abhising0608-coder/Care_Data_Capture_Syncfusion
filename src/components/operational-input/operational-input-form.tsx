@@ -3,11 +3,11 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { useCollection, useFirestore, useUser, useMemoFirebase } from '@/firebase';
-import { addDoc, collection, doc, query, setDoc, where } from 'firebase/firestore';
+import useSWR from 'swr';
+import { useAuth } from '@/hooks/use-auth';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -38,6 +38,8 @@ import type { CKCRequest } from '@/lib/definitions';
 import { Skeleton } from '../ui/skeleton';
 import { v4 as uuidv4 } from 'uuid';
 
+const fetcher = (url: string) => fetch(url).then(res => res.json());
+
 const formSchema = z.object({
   companyName: z.string().min(1, 'Company Name is required.'),
   approach: z.string().min(1, 'Approach is required.'),
@@ -55,8 +57,7 @@ export function OperationalInputForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const requestIdFromQuery = searchParams.get('requestId');
-  const firestore = useFirestore();
-  const { user } = useUser();
+  const { user } = useAuth();
   const [clientUuid, setClientUuid] = useState<string | null>(null);
 
   useEffect(() => {
@@ -64,14 +65,10 @@ export function OperationalInputForm() {
     setClientUuid(uuidv4());
   }, []);
 
-
-  const singleDocQuery = useMemoFirebase(() => {
-      if (!firestore || !requestIdFromQuery) return null;
-      return query(collection(firestore, 'ckc_operational_requests'), where('id', '==', requestIdFromQuery));
-
-  }, [firestore, requestIdFromQuery]);
-
-  const { data: requestData, isLoading: isRequestLoading } = useCollection<CKCRequest>(singleDocQuery);
+  const { data: requestData, isLoading: isRequestLoading } = useSWR<CKCRequest[]>(
+    requestIdFromQuery ? `/api/requests?id=${requestIdFromQuery}` : null,
+    fetcher
+  );
 
   const form = useForm<OperationalInputFormValues>({
     resolver: zodResolver(formSchema),
@@ -104,7 +101,7 @@ export function OperationalInputForm() {
   const { toast } = useToast();
 
   const onSubmit = async (data: OperationalInputFormValues) => {
-    if (!firestore || !user) {
+    if (!user) {
         toast({ title: "Error", description: "Authentication failed. Please try again.", variant: "destructive" });
         return;
     }
@@ -116,17 +113,20 @@ export function OperationalInputForm() {
       return;
     }
 
-
     try {
-        const operationalInputRef = doc(firestore, 'operational_input', entryId);
-        
-        await setDoc(operationalInputRef, {
+        const payload = {
             initiation: data, // Save under 'initiation' key
             requestId: entryId,
             createdBy: user.uid,
-            createdAt: new Date(),
+            createdAt: new Date().toISOString(),
             status: 'initiated'
-        }, { merge: true });
+        };
+
+        await fetch(`/api/operational-input/${entryId}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
 
         toast({
             title: 'Configuration Saved',
@@ -148,7 +148,6 @@ export function OperationalInputForm() {
   if ((isRequestLoading && requestIdFromQuery) || (clientUuid === null && !requestIdFromQuery)) {
     return <Skeleton className="h-96 w-full" />;
   }
-
 
   return (
     <Card>

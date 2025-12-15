@@ -1,14 +1,9 @@
+
 'use client';
 
 import * as React from 'react';
 import Link from 'next/link';
-import {
-  collection,
-  query,
-  where,
-  Timestamp,
-} from 'firebase/firestore';
-import { useFirestore, useUser, useMemoFirebase } from '@/firebase';
+import useSWR from 'swr';
 import {
   Download,
   Filter,
@@ -54,30 +49,26 @@ import {
 import type { CKCRequest } from '@/lib/definitions';
 import { Badge } from '../ui/badge';
 import { Skeleton } from '../ui/skeleton';
-import { useCollection } from '@/firebase/firestore/use-collection';
+import { useAuth } from '@/hooks/use-auth';
 
 type SortConfig = {
   key: keyof CKCRequest;
   direction: 'ascending' | 'descending';
 } | null;
 
-const formatFirestoreTimestamp = (timestamp: Timestamp | null | undefined): string => {
-  if (!timestamp) return 'N/A';
-  // Check if it's a Firestore Timestamp and has the toDate method
-  if (timestamp && typeof timestamp.toDate === 'function') {
-    return timestamp.toDate().toLocaleString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true,
-    });
-  }
-  // Fallback for strings or other types
-  return String(timestamp);
-};
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
+const formatTimestamp = (timestamp: string | Date | undefined | null) => {
+  if (!timestamp) return 'N/A';
+  return new Date(timestamp).toLocaleString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  });
+};
 
 export function ClosedRequestsList() {
   const [searchTerm, setSearchTerm] = React.useState('');
@@ -99,27 +90,19 @@ export function ClosedRequestsList() {
     pageIndex: 0,
     pageSize: 10,
   });
-  const firestore = useFirestore();
-  const { user, claims, isUserLoading } = useUser();
+  const { user, claims, isLoading: isUserLoading } = useAuth();
 
-  const closedRequestsQuery = useMemoFirebase(() => {
-    if (!firestore || isUserLoading) return null;
-
-    const requestsRef = collection(firestore, 'ckc_operational_requests');
-    let q = query(requestsRef, where('status', '==', 'CLOSED'));
-    
-    if (user && claims && !claims.isAdmin) {
-      q = query(q, where('assignedTo', '==', user.uid));
-    }
-    
-    return q;
-  }, [firestore, user, claims, isUserLoading]);
-
-  const { data: requests, isLoading } = useCollection<CKCRequest>(closedRequestsQuery);
+  const { data: requests, isLoading } = useSWR<CKCRequest[]>('/api/requests?status=CLOSED', fetcher);
 
   const filteredRequests = React.useMemo(() => {
     if (!requests) return [];
-    return requests.filter((req) => {
+
+    let analystFilteredRequests = requests;
+    if (user && claims && !claims.isAdmin) {
+      analystFilteredRequests = requests.filter(r => r.assignedTo === user.uid);
+    }
+
+    return analystFilteredRequests.filter((req) => {
         const searchTermLower = searchTerm.toLowerCase();
         const matchesSearch =
             (req.id?.toLowerCase() ?? '').includes(searchTermLower) ||
@@ -147,7 +130,7 @@ export function ClosedRequestsList() {
 
       return matchesSearch && matchesFilters;
     });
-  }, [requests, searchTerm, filters]);
+  }, [requests, searchTerm, filters, user, claims]);
 
   const sortedRequests = React.useMemo(() => {
     let sortableItems = [...filteredRequests];
@@ -203,33 +186,6 @@ export function ClosedRequestsList() {
       </CardContent>
     </Card>
   );
-
-  const headers: { key: keyof CKCRequest; label: string; }[] = [
-    { key: 'id', label: 'Request ID' },
-    { key: 'companyName', label: 'Company Name' },
-    { key: 'companyId', label: 'Company ID' },
-    { key: 'financialInputSector', label: 'Financial Input Sector' },
-    { key: 'listed', label: 'Listed' },
-    { key: 'rating', label: 'Rating' },
-    { key: 'hoRoName', label: 'HO/RO Name' },
-    { key: 'dealingAnalyst', label: 'Dealing Analyst' },
-    { key: 'groupHead', label: 'Group Head' },
-    { key: 'assignedTo', label: 'Assigned To' },
-    { key: 'checker', label: 'Checker' },
-    { key: 'status', label: 'Status' },
-    { key: 'auditedFY', label: 'Audited FY' },
-    { key: 'provisionalFY', label: 'Provisional FY' },
-    { key: 'projectionFY', label: 'Projection FY' },
-    { key: 'remarks', label: 'Remarks' },
-    { key: 'receiptDateTime', label: 'Receipt Date & Time' },
-    { key: 'entryCompletedDateTime', label: 'Entry Completed' },
-    { key: 'checkingCompletedDateTime', label: 'Checking Completed' },
-    { key: 'overallStatus', label: 'Overall Status' },
-    { key: 'itemType', label: 'Item Type' },
-    { key: 'resultType', label: 'Result Type' },
-    { key: 'ckcAnalystName', label: 'CKC Analyst Name' },
-    { key: 'cycle', label: 'Cycle' },
-  ];
 
   const visibleHeaders = [
     { key: 'id', label: 'Request ID' },
@@ -352,13 +308,13 @@ export function ClosedRequestsList() {
                         </Badge>
                       </TableCell>
                       <TableCell>{req.cycle}</TableCell>
-                      <TableCell>{formatFirestoreTimestamp(req.receiptDateTime)}</TableCell>
+                      <TableCell>{formatTimestamp(req.receiptDateTime)}</TableCell>
                       <TableCell>{Array.isArray(req.auditedFY) ? req.auditedFY.join(', ') : ''}</TableCell>
                       <TableCell>{req.ckcAnalystName || 'N/A'}</TableCell>
                       <TableCell>
                          <Badge variant="secondary">{req.overallStatus || 'N/A'}</Badge>
                       </TableCell>
-                      <TableCell>{formatFirestoreTimestamp(req.checkingCompletedDateTime)}</TableCell>
+                      <TableCell>{formatTimestamp(req.checkingCompletedDateTime)}</TableCell>
                     </TableRow>
                   ))
                 ) : (

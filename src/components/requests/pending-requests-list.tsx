@@ -1,17 +1,10 @@
+
 'use client';
 
 import * as React from 'react';
 import Link from 'next/link';
-import {
-  collection,
-  query,
-  where,
-  doc,
-  writeBatch,
-  Timestamp,
-  serverTimestamp,
-} from 'firebase/firestore';
-import { useAuth, useCollection, useFirestore, useUser, useMemoFirebase } from '@/firebase';
+import useSWR, { useSWRConfig } from 'swr';
+import { useAuth } from '@/hooks/use-auth';
 import {
   Check,
   Download,
@@ -65,9 +58,11 @@ type SortConfig = {
   direction: 'ascending' | 'descending';
 } | null;
 
-const formatFirestoreTimestamp = (timestamp: Timestamp) => {
+const fetcher = (url: string) => fetch(url).then(res => res.json());
+
+const formatTimestamp = (timestamp: string | Date | undefined | null) => {
   if (!timestamp) return 'N/A';
-  return timestamp.toDate().toLocaleDateString('en-US', {
+  return new Date(timestamp).toLocaleDateString('en-US', {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
@@ -84,19 +79,13 @@ export function PendingRequestsList() {
   const [sortConfig, setSortConfig] = React.useState<SortConfig>({ key: 'receiptDateTime', direction: 'descending' });
   const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 10 });
   const { toast } = useToast();
-  const firestore = useFirestore();
-  const { user, isUserLoading } = useUser();
-  const auth = useAuth();
-  
-  const pendingRequestsQuery = useMemoFirebase(() => {
-    if (!firestore || isUserLoading) return null; // Wait for user to be loaded
-    return query(collection(firestore, 'ckc_operational_requests'), where('status', '==', 'PENDING'));
-  }, [firestore, isUserLoading]);
+  const { user, isLoading: isUserLoading } = useAuth();
+  const { mutate } = useSWRConfig();
 
-  const { data: requests, isLoading } = useCollection<CKCRequest>(pendingRequestsQuery);
+  const { data: requests, isLoading } = useSWR<CKCRequest[]>('/api/requests?status=PENDING', fetcher);
 
   const handleAccept = async (requestId: string) => {
-    if (!firestore || !user) {
+    if (!user) {
       toast({
         variant: 'destructive',
         title: 'Error',
@@ -105,17 +94,25 @@ export function PendingRequestsList() {
       return;
     }
 
-    const requestRef = doc(firestore, 'ckc_operational_requests', requestId);
-
     try {
-      const batch = writeBatch(firestore);
-      batch.update(requestRef, {
-        status: 'ACCEPTED',
-        assignedTo: user.uid,
-        ckcAnalystName: user.displayName || user.email || 'Unnamed Analyst',
-        entryAllottedDateTime: serverTimestamp(),
+      const res = await fetch(`/api/requests/${requestId}/accept`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          userId: user.uid,
+          userName: user.displayName || user.email || 'Unnamed Analyst'
+        }),
       });
-      await batch.commit();
+
+      if (!res.ok) {
+        throw new Error('Failed to accept request');
+      }
+
+      // Revalidate the data for all request lists
+      mutate('/api/requests?status=PENDING');
+      mutate('/api/requests?status=ACCEPTED');
 
       toast({
         title: 'Success',
@@ -155,7 +152,9 @@ export function PendingRequestsList() {
     let sortableItems = [...filteredRequests];
     if (sortConfig !== null) {
       sortableItems.sort((a, b) => {
+        // @ts-ignore
         const aValue = a[sortConfig.key];
+        // @ts-ignore
         const bValue = b[sortConfig.key];
 
         if (aValue < bValue) {
@@ -327,7 +326,7 @@ export function PendingRequestsList() {
                       <TableCell>{req.companyId}</TableCell>
                       <TableCell><Badge variant={req.listed === 'Yes' ? 'default' : 'secondary'}>{req.listed}</Badge></TableCell>
                       <TableCell>{req.cycle}</TableCell>
-                      <TableCell>{formatFirestoreTimestamp(req.receiptDateTime)}</TableCell>
+                      <TableCell>{formatTimestamp(req.receiptDateTime)}</TableCell>
                       <TableCell>{req.auditedFY.join(', ')}</TableCell>
                       <TableCell>
                         <Button variant="ghost" size="icon" onClick={() => handleAccept(req.id)} aria-label={`Accept request ${req.id}`}>
