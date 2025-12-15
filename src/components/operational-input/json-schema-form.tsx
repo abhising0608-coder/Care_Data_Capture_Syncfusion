@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useForm, useFieldArray, Controller } from 'react-hook-form';
@@ -18,9 +19,10 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useDoc, useFirestore, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Skeleton } from '../ui/skeleton';
-import { PlusCircle, Trash2 } from 'lucide-react';
+import { PlusCircle, Trash2, Check, RefreshCw, Pencil, X } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 // Helper to generate a single field schema for Zod
 const generateZodField = (prop: any) => {
@@ -29,18 +31,12 @@ const generateZodField = (prop: any) => {
   switch (prop.type) {
     case 'string':
       fieldSchema = z.string();
-      if (prop.format === 'email') {
-        fieldSchema = fieldSchema.email({ message: "Invalid email address." });
-      }
-      if (prop.format === 'uri') {
-          fieldSchema = fieldSchema.url({ message: "Invalid URL." });
-      }
-      // Allow empty strings
+      if (prop.format === 'email') fieldSchema = fieldSchema.email({ message: "Invalid email address." });
+      if (prop.format === 'uri') fieldSchema = fieldSchema.url({ message: "Invalid URL." });
+      if (prop.enum) fieldSchema = z.enum(prop.enum);
       fieldSchema = fieldSchema.optional().or(z.literal(''));
       break;
     case 'number':
-      // Preprocess converts empty string or null/undefined to undefined, making it optional.
-      // Otherwise, it parses the value to a float.
       fieldSchema = z.preprocess(
         (a) => {
             if (a === '' || a === null || a === undefined) return undefined;
@@ -83,7 +79,6 @@ const generateZodSchema = (schema: any): z.ZodObject<any> => {
   return z.object(zodSchema);
 };
 
-
 interface JsonSchemaFormProps {
   schema: any;
   onSubmit: (data: any) => void;
@@ -112,22 +107,45 @@ export function JsonSchemaForm({ schema, onSubmit, onCancel, requestId, dataKey 
     if (existingData && existingData[dataKey]) {
       form.reset(existingData[dataKey]);
     } else {
-      // Initialize form with default values based on schema
       const defaultValues: {[key: string]: any} = {};
       Object.keys(schema.properties).forEach(sectionKey => {
         const sectionProp = schema.properties[sectionKey];
-        if (sectionProp.type === 'object') {
-          defaultValues[sectionKey] = {};
-        } else if (sectionProp.type === 'array') {
-          defaultValues[sectionKey] = [];
-        }
+        if (sectionProp.type === 'object') defaultValues[sectionKey] = {};
+        else if (sectionProp.type === 'array') defaultValues[sectionKey] = [];
       });
       form.reset(defaultValues);
     }
   }, [existingData, form, dataKey, schema]);
 
   const renderField = (name: string, prop: any, control: any) => {
-    const { title, type, format } = prop;
+    const { title, type, format, enum: options } = prop;
+    
+    if (options) {
+      return (
+        <FormField
+          key={name}
+          control={control}
+          name={name}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{title || name}</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger><SelectValue placeholder={`Select ${title || name}`} /></SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {options.map((option: string) => (
+                    <SelectItem key={option} value={option}>{option}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      );
+    }
+
     let inputType = 'text';
     if (type === 'number') inputType = 'number';
     if (format === 'email') inputType = 'email';
@@ -160,14 +178,61 @@ export function JsonSchemaForm({ schema, onSubmit, onCancel, requestId, dataKey 
     );
   };
 
-  const renderTableSection = (sectionKey: string, sectionProp: any) => {
-    const { fields, append, remove } = useFieldArray({
-        control: form.control,
-        name: sectionKey,
-    });
-
+  const renderInlineEditableTable = (sectionKey: string, sectionProp: any) => {
+    const { fields, append, remove, update } = useFieldArray({ control: form.control, name: sectionKey });
     const itemProperties = sectionProp.items.properties;
     const headers = Object.keys(itemProperties);
+
+    const [newRow, setNewRow] = useState<Record<string, any>>({});
+    const [editingIndex, setEditingIndex] = useState<number | null>(null);
+
+    const handleAddNew = () => {
+      // Basic validation can be added here if needed
+      append(newRow);
+      setNewRow({});
+    };
+
+    const handleUpdate = () => {
+      if (editingIndex === null) return;
+      update(editingIndex, newRow);
+      setNewRow({});
+      setEditingIndex(null);
+    };
+
+    const handleEdit = (index: number) => {
+      setEditingIndex(index);
+      setNewRow(fields[index] as Record<string, any>);
+    };
+
+    const handleCancelEdit = () => {
+      setEditingIndex(null);
+      setNewRow({});
+    };
+
+    const renderInputForCell = (item: Record<string, any>, header: string, isNewRow: boolean) => {
+      const prop = itemProperties[header];
+      const value = item[header] ?? '';
+
+      if (prop.enum) {
+        return (
+          <Select value={value} onValueChange={(val) => setNewRow(prev => ({ ...prev, [header]: val }))}>
+            <SelectTrigger><SelectValue placeholder={prop.title} /></SelectTrigger>
+            <SelectContent>
+              {prop.enum.map((option: string) => <SelectItem key={option} value={option}>{option}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        );
+      }
+
+      return (
+        <Input
+          placeholder={prop.title}
+          value={value}
+          onChange={(e) => setNewRow(prev => ({ ...prev, [header]: e.target.value }))}
+          type={prop.type === 'number' ? 'number' : 'text'}
+        />
+      );
+    };
 
     return (
       <div className="space-y-4">
@@ -175,30 +240,45 @@ export function JsonSchemaForm({ schema, onSubmit, onCancel, requestId, dataKey 
           <TableHeader>
             <TableRow>
               {headers.map(header => <TableHead key={header}>{itemProperties[header].title}</TableHead>)}
-              <TableHead className="w-[50px]"></TableHead>
+              <TableHead className="w-[150px]">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
+            {/* New/Editing Row */}
+            <TableRow>
+              {headers.map(header => (
+                <TableCell key={`new-${header}`}>
+                  {renderInputForCell(newRow, header, true)}
+                </TableCell>
+              ))}
+              <TableCell className="flex items-center gap-1">
+                {editingIndex !== null ? (
+                  <>
+                    <Button variant="ghost" size="icon" onClick={handleUpdate}><Check className="h-4 w-4 text-green-500" /></Button>
+                    <Button variant="ghost" size="icon" onClick={handleCancelEdit}><X className="h-4 w-4 text-red-500" /></Button>
+                  </>
+                ) : (
+                  <>
+                    <Button variant="ghost" size="icon" onClick={handleAddNew}><Check className="h-4 w-4 text-green-500" /></Button>
+                    <Button variant="ghost" size="icon" onClick={() => setNewRow({})}><RefreshCw className="h-4 w-4 text-blue-500" /></Button>
+                  </>
+                )}
+              </TableCell>
+            </TableRow>
+
+            {/* Existing Rows */}
             {fields.map((item, index) => (
               <TableRow key={item.id}>
                 {headers.map(header => (
                   <TableCell key={`${item.id}-${header}`}>
-                    <FormField
-                      control={form.control}
-                      name={`${sectionKey}.${index}.${header}` as const}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormControl>
-                            <Input {...field} placeholder={itemProperties[header].title} value={field.value ?? ''} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                    {(item as Record<string, any>)[header]}
                   </TableCell>
                 ))}
-                <TableCell>
-                  <Button variant="ghost" size="icon" onClick={() => remove(index)}>
+                <TableCell className="flex items-center gap-1">
+                  <Button variant="ghost" size="icon" onClick={() => handleEdit(index)} disabled={editingIndex !== null}>
+                    <Pencil className="h-4 w-4 text-blue-500" />
+                  </Button>
+                  <Button variant="ghost" size="icon" onClick={() => remove(index)} disabled={editingIndex !== null}>
                     <Trash2 className="h-4 w-4 text-destructive" />
                   </Button>
                 </TableCell>
@@ -206,19 +286,6 @@ export function JsonSchemaForm({ schema, onSubmit, onCancel, requestId, dataKey 
             ))}
           </TableBody>
         </Table>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={() => {
-            const newRow: Record<string, any> = {};
-            headers.forEach(header => newRow[header] = '');
-            append(newRow);
-          }}
-        >
-          <PlusCircle className="mr-2 h-4 w-4" />
-          Add Row
-        </Button>
       </div>
     );
   };
@@ -270,7 +337,7 @@ export function JsonSchemaForm({ schema, onSubmit, onCancel, requestId, dataKey 
                         </div>
                       )}
                       {sectionProp.type === 'array' && (
-                        renderTableSection(sectionKey, sectionProp)
+                        renderInlineEditableTable(sectionKey, sectionProp)
                       )}
                     </AccordionContent>
                   </AccordionItem>

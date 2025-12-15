@@ -44,7 +44,16 @@ export const companyDetailsSchema = {
         "properties": {
           "name": { "type": "string", "title": "Name" },
           "designation": { "type": "string", "title": "Designation" },
-          "din": { "type": "string", "title": "DIN" }
+          "yearsOfExperience": { "type": "number", "title": "Years of Experience" },
+          "directorshipsHeld": { "type": "number", "title": "Directorships Held" },
+          "directorType": { 
+            "type": "string", 
+            "title": "Exec/Non-Exec/Promoter",
+            "enum": ["Executive", "Non-Executive", "Promoter"]
+          },
+          "functionsLookedAfter": { "type": "string", "title": "Functions Looked After" },
+          "age": { "type": "number", "title": "Age" },
+          "qualification": { "type": "string", "title": "Qualification" }
         }
       }
     },
