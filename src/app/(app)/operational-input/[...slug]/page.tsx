@@ -63,28 +63,24 @@ export default function OperationalInputFlowPage() {
     }, [firestore, requestId]);
 
     const { data: operationalInputData, isLoading: isOperationalInputLoading } = useDoc(operationalInputRef);
-
-    const financialSector = useMemo(() => operationalInputData?.initiation?.financialInputSector || 'Pharma', [operationalInputData]);
     
-    const tabs = useMemo(() => [
-        { id: 'basic-info', label: 'Basic Info', schema: basicInfoSchema, schemaType: 'form' },
-        { id: 'company-details', label: 'Company Details', schema: companyDetailsSchema, schemaType: 'form' },
-        { id: 'common-details', label: 'Common Details', schema: commonDetailsSchema, schemaType: 'form' },
-        { id: 'sectorial-operational-data', label: `${financialSector} Operational Data`, schema: pharmaSchema, schemaType: 'spreadsheet' },
-        { id: 'other-details', label: 'Other Details', schema: otherDetailsSchema, schemaType: 'form' },
-    ], [financialSector]);
+    const tabs = useMemo(() => {
+        const financialSector = operationalInputData?.initiation?.financialInputSector || 'Pharma';
+        return [
+            { id: 'basic-info', label: 'Basic Info', schema: basicInfoSchema, schemaType: 'form' },
+            { id: 'company-details', label: 'Company Details', schema: companyDetailsSchema, schemaType: 'form' },
+            { id: 'common-details', label: 'Common Details', schema: commonDetailsSchema, schemaType: 'form' },
+            { id: 'sectorial-operational-data', label: `${financialSector} Operational Data`, schema: pharmaSchema, schemaType: 'spreadsheet' },
+            { id: 'other-details', label: 'Other Details', schema: otherDetailsSchema, schemaType: 'form' },
+        ];
+    }, [operationalInputData]);
 
     const currentTabIndex = useMemo(() => {
         const index = tabs.findIndex(tab => tab.id === activeTab);
-        return index;
+        return index === -1 ? 0 : index;
     }, [tabs, activeTab]);
 
-    const currentTab = useMemo(() => {
-        if (currentTabIndex !== -1) {
-            return tabs[currentTabIndex];
-        }
-        return tabs[0];
-    }, [tabs, currentTabIndex]);
+    const currentTab = tabs[currentTabIndex];
 
     useEffect(() => {
         if (!requestId) {
