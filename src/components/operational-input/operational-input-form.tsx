@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -60,7 +60,7 @@ export function OperationalInputForm() {
   const [clientUuid, setClientUuid] = useState<string | null>(null);
 
   useEffect(() => {
-    // Generate UUID only on the client side after mount
+    // Generate UUID only on the client side after mount to avoid hydration errors
     setClientUuid(uuidv4());
   }, []);
 
@@ -199,7 +199,7 @@ export function OperationalInputForm() {
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select an approach" />
-                        </Trigger>
+                        </SelectTrigger>
                       </FormControl>
                       <SelectContent>
                         <SelectItem value="Standalone">Standalone</SelectItem>
@@ -220,7 +220,7 @@ export function OperationalInputForm() {
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select financial year" />
-                        </Trigger>
+                        </SelectTrigger>
                       </FormControl>
                       <SelectContent>
                         {financialYears.map(fy => (
@@ -242,7 +242,7 @@ export function OperationalInputForm() {
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select amount scale" />
-                        </Trigger>
+                        </SelectTrigger>
                       </FormControl>
                       <SelectContent>
                         <SelectItem value="Hundreds">Hundreds</SelectItem>
@@ -266,7 +266,7 @@ export function OperationalInputForm() {
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select currency" />
-                        </Trigger>
+                        </SelectTrigger>
                       </FormControl>
                       <SelectContent>
                         <SelectItem value="INR">INR (₹)</SelectItem>
