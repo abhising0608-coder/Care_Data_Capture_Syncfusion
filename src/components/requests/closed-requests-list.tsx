@@ -61,14 +61,23 @@ type SortConfig = {
   direction: 'ascending' | 'descending';
 } | null;
 
-const formatFirestoreTimestamp = (timestamp: Timestamp | null) => {
+const formatFirestoreTimestamp = (timestamp: Timestamp | null | undefined): string => {
   if (!timestamp) return 'N/A';
-  return timestamp.toDate().toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  });
+  // Check if it's a Firestore Timestamp and has the toDate method
+  if (timestamp && typeof timestamp.toDate === 'function') {
+    return timestamp.toDate().toLocaleString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    });
+  }
+  // Fallback for strings or other types
+  return String(timestamp);
 };
+
 
 export function ClosedRequestsList() {
   const [searchTerm, setSearchTerm] = React.useState('');
@@ -111,15 +120,23 @@ export function ClosedRequestsList() {
   const filteredRequests = React.useMemo(() => {
     if (!requests) return [];
     return requests.filter((req) => {
-      const searchTermLower = searchTerm.toLowerCase();
-      const matchesSearch =
-        req.id.toLowerCase().includes(searchTermLower) ||
-        req.companyName.toLowerCase().includes(searchTermLower) ||
-        req.companyId.toLowerCase().includes(searchTermLower) ||
-        (req.ckcAnalystName || '').toLowerCase().includes(searchTermLower) ||
-        req.cycle.toLowerCase().includes(searchTermLower) ||
-        (req.overallStatus || '').toLowerCase().includes(searchTermLower) ||
-        req.auditedFY.some((fy) => fy.includes(searchTermLower));
+        const searchTermLower = searchTerm.toLowerCase();
+        const matchesSearch =
+            (req.id?.toLowerCase() ?? '').includes(searchTermLower) ||
+            (req.companyName?.toLowerCase() ?? '').includes(searchTermLower) ||
+            (req.companyId?.toLowerCase() ?? '').includes(searchTermLower) ||
+            (req.ckcAnalystName?.toLowerCase() ?? '').includes(searchTermLower) ||
+            (req.cycle?.toLowerCase() ?? '').includes(searchTermLower) ||
+            (req.overallStatus?.toLowerCase() ?? '').includes(searchTermLower) ||
+            (req.auditedFY?.some((fy) => fy.toLowerCase().includes(searchTermLower))) ||
+            (req.financialInputSector?.toLowerCase() ?? '').includes(searchTermLower) ||
+            (req.rating?.toLowerCase() ?? '').includes(searchTermLower) ||
+            (req.hoRoName?.toLowerCase() ?? '').includes(searchTermLower) ||
+            (req.dealingAnalyst?.toLowerCase() ?? '').includes(searchTermLower) ||
+            (req.groupHead?.toLowerCase() ?? '').includes(searchTermLower) ||
+            (req.checker?.toLowerCase() ?? '').includes(searchTermLower) ||
+            (req.itemType?.toLowerCase() ?? '').includes(searchTermLower) ||
+            (req.resultType?.toLowerCase() ?? '').includes(searchTermLower);
 
       const matchesFilters =
         (filters.cycle.length === 0 || filters.cycle.includes(req.cycle)) &&
@@ -191,6 +208,33 @@ export function ClosedRequestsList() {
     { key: 'id', label: 'Request ID' },
     { key: 'companyName', label: 'Company Name' },
     { key: 'companyId', label: 'Company ID' },
+    { key: 'financialInputSector', label: 'Financial Input Sector' },
+    { key: 'listed', label: 'Listed' },
+    { key: 'rating', label: 'Rating' },
+    { key: 'hoRoName', label: 'HO/RO Name' },
+    { key: 'dealingAnalyst', label: 'Dealing Analyst' },
+    { key: 'groupHead', label: 'Group Head' },
+    { key: 'assignedTo', label: 'Assigned To' },
+    { key: 'checker', label: 'Checker' },
+    { key: 'status', label: 'Status' },
+    { key: 'auditedFY', label: 'Audited FY' },
+    { key: 'provisionalFY', label: 'Provisional FY' },
+    { key: 'projectionFY', label: 'Projection FY' },
+    { key: 'remarks', label: 'Remarks' },
+    { key: 'receiptDateTime', label: 'Receipt Date & Time' },
+    { key: 'entryCompletedDateTime', label: 'Entry Completed' },
+    { key: 'checkingCompletedDateTime', label: 'Checking Completed' },
+    { key: 'overallStatus', label: 'Overall Status' },
+    { key: 'itemType', label: 'Item Type' },
+    { key: 'resultType', label: 'Result Type' },
+    { key: 'ckcAnalystName', label: 'CKC Analyst Name' },
+    { key: 'cycle', label: 'Cycle' },
+  ];
+
+  const visibleHeaders = [
+    { key: 'id', label: 'Request ID' },
+    { key: 'companyName', label: 'Company Name' },
+    { key: 'companyId', label: 'Company ID' },
     { key: 'listed', label: 'Listed' },
     { key: 'cycle', label: 'Cycle' },
     { key: 'receiptDateTime', label: 'Received Date' },
@@ -200,9 +244,10 @@ export function ClosedRequestsList() {
     { key: 'checkingCompletedDateTime', label: 'Closed Date' },
   ];
 
-  const uniqueAnalysts = Array.from(new Set(requests?.map(r => r.ckcAnalystName).filter(Boolean)));
-  const uniqueAuditedFYs = Array.from(new Set(requests?.flatMap(r => r.auditedFY)));
-  const uniqueOverallStatus = Array.from(new Set(requests?.map(r => r.overallStatus).filter(Boolean)));
+  const uniqueAnalysts = Array.from(new Set(requests?.map(r => r.ckcAnalystName).filter(Boolean) as string[]));
+  const uniqueAuditedFYs = Array.from(new Set(requests?.flatMap(r => r.auditedFY) || []));
+  const uniqueOverallStatus = Array.from(new Set(requests?.map(r => r.overallStatus).filter(Boolean) as string[]));
+  
   const myClosedCount = React.useMemo(() => {
     if (!requests || !user) return 0;
     return requests.filter(r => r.assignedTo === user.uid).length;
@@ -213,7 +258,7 @@ export function ClosedRequestsList() {
     <>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <KpiCard title="My Closed Requests" value={myClosedCount} description="Requests you have completed." />
-        <KpiCard title="Total Closed" value={requests?.length || 0} description="All completed requests." />
+        <KpiCard title="Total Closed" value={requests?.length ?? 0} description="All completed requests." />
         <KpiCard title="Completed On Time" value="N/A" description="Within service-level agreement." />
         <KpiCard title="Average Turnaround" value="N/A" description="Average time to close a request." />
       </div>
@@ -252,9 +297,11 @@ export function ClosedRequestsList() {
                     <DropdownMenuSeparator />
                     <DropdownMenuLabel>Audited FY</DropdownMenuLabel>
                     {uniqueAuditedFYs.map(fy => <DropdownMenuCheckboxItem key={fy} checked={filters.auditedFY.includes(fy)} onCheckedChange={(checked) => setFilters(f => ({...f, auditedFY: checked ? [...f.auditedFY, fy] : f.auditedFY.filter(i => i !== fy)}))}>{fy}</DropdownMenuCheckboxItem>)}
-                    <DropdownMenuSeparator />
-                    <DropdownMenuLabel>CKC Analyst</DropdownMenuLabel>
-                    {uniqueAnalysts.map(analyst => <DropdownMenuCheckboxItem key={analyst} checked={filters.ckcAnalystName.includes(analyst)} onCheckedChange={(checked) => setFilters(f => ({...f, ckcAnalystName: checked ? [...f.ckcAnalystName, analyst] : f.ckcAnalystName.filter(i => i !== analyst)}))}>{analyst}</DropdownMenuCheckboxItem>)}
+                    {claims?.isAdmin && <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuLabel>CKC Analyst</DropdownMenuLabel>
+                      {uniqueAnalysts.map(analyst => <DropdownMenuCheckboxItem key={analyst} checked={filters.ckcAnalystName.includes(analyst)} onCheckedChange={(checked) => setFilters(f => ({...f, ckcAnalystName: checked ? [...f.ckcAnalystName, analyst] : f.ckcAnalystName.filter(i => i !== analyst)}))}>{analyst}</DropdownMenuCheckboxItem>)}
+                    </>}
                     <DropdownMenuSeparator />
                     <DropdownMenuLabel>Overall Status</DropdownMenuLabel>
                     {uniqueOverallStatus.map(status => <DropdownMenuCheckboxItem key={status} checked={filters.overallStatus.includes(status)} onCheckedChange={(checked) => setFilters(f => ({...f, overallStatus: checked ? [...f.overallStatus, status] : f.overallStatus.filter(i => i !== status)}))}>{status}</DropdownMenuCheckboxItem>)}
@@ -270,9 +317,9 @@ export function ClosedRequestsList() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  {headers.map((header) => (
+                  {visibleHeaders.map((header) => (
                     <TableHead key={header.key}>
-                      <Button variant="ghost" onClick={() => requestSort(header.key)}>
+                      <Button variant="ghost" onClick={() => requestSort(header.key as keyof CKCRequest)}>
                         {header.label}
                         <ArrowUpDown className="ml-2 h-4 w-4" />
                       </Button>
@@ -284,7 +331,7 @@ export function ClosedRequestsList() {
                 {isLoading || isUserLoading ? (
                   Array.from({ length: pagination.pageSize }).map((_, i) => (
                     <TableRow key={i}>
-                      <TableCell colSpan={headers.length}>
+                      <TableCell colSpan={visibleHeaders.length}>
                         <Skeleton className="h-8 w-full" />
                       </TableCell>
                     </TableRow>
@@ -306,7 +353,7 @@ export function ClosedRequestsList() {
                       </TableCell>
                       <TableCell>{req.cycle}</TableCell>
                       <TableCell>{formatFirestoreTimestamp(req.receiptDateTime)}</TableCell>
-                      <TableCell>{req.auditedFY.join(', ')}</TableCell>
+                      <TableCell>{Array.isArray(req.auditedFY) ? req.auditedFY.join(', ') : ''}</TableCell>
                       <TableCell>{req.ckcAnalystName || 'N/A'}</TableCell>
                       <TableCell>
                          <Badge variant="secondary">{req.overallStatus || 'N/A'}</Badge>
@@ -317,7 +364,7 @@ export function ClosedRequestsList() {
                 ) : (
                   <TableRow>
                     <TableCell
-                      colSpan={headers.length}
+                      colSpan={visibleHeaders.length}
                       className="h-24 text-center"
                     >
                       No closed requests found.
@@ -329,12 +376,9 @@ export function ClosedRequestsList() {
           </div>
           <div className="flex items-center justify-between">
             <div className="text-sm text-muted-foreground">
-              {Math.min(pagination.pageIndex * pagination.pageSize + 1, sortedRequests.length)}-
-              {Math.min(
-                (pagination.pageIndex + 1) * pagination.pageSize,
-                sortedRequests.length
-              )}{' '}
-              of {sortedRequests.length} requests
+              Page {sortedRequests.length > 0 ? pagination.pageIndex + 1 : 0} of {pageCount}
+              <span className="mx-2">|</span>
+              {sortedRequests.length} total rows
             </div>
             <div className="flex items-center space-x-6 lg:space-x-8">
               <div className="flex items-center space-x-2">
@@ -361,9 +405,7 @@ export function ClosedRequestsList() {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="flex w-[100px] items-center justify-center text-sm font-medium">
-                Page {pagination.pageIndex + 1} of {pageCount}
-              </div>
+              
               <div className="flex items-center space-x-2">
                 <Button
                   variant="outline"
