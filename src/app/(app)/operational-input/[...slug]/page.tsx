@@ -49,11 +49,24 @@ const FormLoadingSkeleton = () => (
 );
 
 
-const OperationalInputFlowContent = ({ operationalInputData, requestId, activeTab }: { operationalInputData: any, requestId: string, activeTab: string | null }) => {
+export default function OperationalInputFlowPage() {
+    const params = useParams();
     const router = useRouter();
     const firestore = useFirestore();
     const { user } = useUser();
     const { toast } = useToast();
+
+    const [requestId, activeTab] = useMemo(() => {
+        const slug = params.slug || [];
+        return [slug[0] || null, slug[1] || null];
+    }, [params.slug]);
+
+    const operationalInputRef = useMemoFirebase(() => {
+        if (!firestore || !requestId) return null;
+        return doc(firestore, 'operational_input', requestId);
+    }, [firestore, requestId]);
+
+    const { data: operationalInputData, isLoading: isOperationalInputLoading } = useDoc(operationalInputRef);
 
     const financialSector = useMemo(() => operationalInputData?.initiation?.financialInputSector || 'Pharma', [operationalInputData]);
     
@@ -67,15 +80,21 @@ const OperationalInputFlowContent = ({ operationalInputData, requestId, activeTa
 
     const currentTabIndex = useMemo(() => {
         if (!activeTab) return -1;
-        return tabs.findIndex(tab => tab.id === activeTab);
+        const index = tabs.findIndex(tab => tab.id === activeTab);
+        return index;
     }, [tabs, activeTab]);
 
-    const currentTab = currentTabIndex !== -1 ? tabs[currentTabIndex] : null;
+    const currentTab = useMemo(() => {
+        if (currentTabIndex !== -1) {
+            return tabs[currentTabIndex];
+        }
+        return null;
+    }, [tabs, currentTabIndex]);
 
     useEffect(() => {
         if (!requestId) {
             router.replace('/ckc-requests');
-        } else if (!activeTab || !tabs.some(t => t.id === activeTab)) {
+        } else if (requestId && (!activeTab || !tabs.some(t => t.id === activeTab))) {
             router.replace(`/operational-input/${requestId}/${tabs[0].id}`);
         }
     }, [activeTab, tabs, requestId, router]);
@@ -121,6 +140,10 @@ const OperationalInputFlowContent = ({ operationalInputData, requestId, activeTa
         }
     };
 
+    if (isOperationalInputLoading || !requestId || !operationalInputData) {
+        return <FormLoadingSkeleton />;
+    }
+
     return (
         <div className="flex min-h-screen w-full flex-col">
             <div className="flex flex-col sm:gap-4 sm:py-4">
@@ -154,7 +177,7 @@ const OperationalInputFlowContent = ({ operationalInputData, requestId, activeTa
                         </div>
                         {currentTab ? (
                             <TabsContent value={activeTab || ''} forceMount>
-                                <Suspense fallback={<div>Loading form...</div>}>
+                                <Suspense fallback={<FormLoadingSkeleton />}>
                                     <JsonSchemaForm
                                         key={activeTab}
                                         schema={currentTab.schema}
@@ -176,38 +199,5 @@ const OperationalInputFlowContent = ({ operationalInputData, requestId, activeTa
                 </main>
             </div>
         </div>
-    );
-};
-
-export default function OperationalInputFlowPage() {
-    const params = useParams();
-    const firestore = useFirestore();
-
-    const [requestId, activeTab] = useMemo(() => {
-        const slug = params.slug || [];
-        return [slug[0] || null, slug[1] || null];
-    }, [params.slug]);
-
-    const operationalInputRef = useMemoFirebase(() => {
-        if (!firestore || !requestId) return null;
-        return doc(firestore, 'operational_input', requestId);
-    }, [firestore, requestId]);
-
-    const { data: operationalInputData, isLoading: isOperationalInputLoading } = useDoc(operationalInputRef);
-
-    if (isOperationalInputLoading || !requestId) {
-        return <FormLoadingSkeleton />;
-    }
-
-    if (!operationalInputData) {
-        return <div>Request data not found.</div>;
-    }
-
-    return (
-        <OperationalInputFlowContent 
-            operationalInputData={operationalInputData}
-            requestId={requestId}
-            activeTab={activeTab}
-        />
     );
 }
