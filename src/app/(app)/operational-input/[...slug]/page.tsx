@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 
 import { JsonSchemaForm } from '@/components/operational-input/json-schema-form';
 import { basicInfoSchema } from '@/lib/schemas/basic-info-schema';
