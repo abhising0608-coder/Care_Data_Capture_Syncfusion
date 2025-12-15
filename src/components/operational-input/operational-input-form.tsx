@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
@@ -35,6 +36,7 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import type { CKCRequest } from '@/lib/definitions';
 import { Skeleton } from '../ui/skeleton';
+import { v4 as uuidv4 } from 'uuid';
 
 const formSchema = z.object({
   companyName: z.string().min(1, 'Company Name is required.'),
@@ -52,24 +54,18 @@ const financialYears = Array.from({ length: 10 }, (_, i) => `${currentYear - i -
 export function OperationalInputForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const requestId = searchParams.get('requestId');
+  const requestIdFromQuery = searchParams.get('requestId');
   const firestore = useFirestore();
   const { user } = useUser();
 
   const [prefilledData, setPrefilledData] = useState<{ companyName: string; approach: string; } | null>(null);
 
-  const requestQuery = useMemoFirebase(() => {
-    if (!firestore || !requestId) return null;
-    // Query by document ID (which is what we call requestId in the UI)
-    return doc(firestore, 'ckc_operational_requests', requestId);
-  }, [firestore, requestId]);
-  
   // We should use useDoc here, but for now we keep useCollection to avoid breaking changes
   const singleDocQuery = useMemoFirebase(() => {
-      if (!firestore || !requestId) return null;
-      return query(collection(firestore, 'ckc_operational_requests'), where('id', '==', requestId));
+      if (!firestore || !requestIdFromQuery) return null;
+      return query(collection(firestore, 'ckc_operational_requests'), where('id', '==', requestIdFromQuery));
 
-  }, [firestore, requestId]);
+  }, [firestore, requestIdFromQuery]);
 
   const { data: requestData, isLoading: isRequestLoading } = useCollection<CKCRequest>(singleDocQuery);
 
@@ -105,17 +101,19 @@ export function OperationalInputForm() {
   const { toast } = useToast();
 
   const onSubmit = async (data: OperationalInputFormValues) => {
-    if (!firestore || !user || !requestId) {
-        toast({ title: "Error", description: "Missing required information to proceed.", variant: "destructive" });
+    if (!firestore || !user) {
+        toast({ title: "Error", description: "Authentication failed. Please try again.", variant: "destructive" });
         return;
     }
 
     try {
-        const operationalInputRef = doc(firestore, 'operational_input', requestId);
+        // If a requestId comes from the URL, use it. Otherwise, generate a new one.
+        const entryId = requestIdFromQuery || uuidv4();
+        const operationalInputRef = doc(firestore, 'operational_input', entryId);
         
         await setDoc(operationalInputRef, {
             ...data,
-            requestId: requestId,
+            requestId: entryId,
             createdBy: user.uid,
             createdAt: new Date(),
             status: 'initiated'
@@ -126,7 +124,7 @@ export function OperationalInputForm() {
             description: 'Redirecting to the Basic Info screen...',
         });
         
-        router.push(`/operational-input/${requestId}/basic-info`);
+        router.push(`/operational-input/${entryId}/basic-info`);
 
     } catch (error) {
         console.error("Error saving initiation data:", error);
@@ -138,7 +136,7 @@ export function OperationalInputForm() {
     }
   };
   
-  if (isRequestLoading && requestId) {
+  if (isRequestLoading && requestIdFromQuery) {
     return <Skeleton className="h-96 w-full" />;
   }
 
@@ -161,7 +159,7 @@ export function OperationalInputForm() {
                   <FormItem>
                     <FormLabel>Company Name</FormLabel>
                     <FormControl>
-                        {requestId ? (
+                        {requestIdFromQuery ? (
                              <Input {...field} readOnly placeholder="Loading company name..." />
                         ) : (
                             <Select onValueChange={field.onChange} defaultValue={field.value}>

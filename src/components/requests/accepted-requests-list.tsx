@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -100,14 +101,14 @@ export function AcceptedRequestsList() {
   const { user, claims, isUserLoading } = useUser();
 
   const acceptedRequestsQuery = useMemoFirebase(() => {
-    if (!firestore || isUserLoading || !user) return null;
+    if (!firestore || isUserLoading) return null;
 
     const requestsRef = collection(firestore, 'ckc_operational_requests');
     
     // Base query for accepted requests
     let q = query(requestsRef, where('status', '==', 'ACCEPTED'));
     
-    // If user is not an admin, filter by their UID
+    // If user exists and is not an admin, filter by their UID
     if (user && claims && !claims.isAdmin) {
       q = query(q, where('assignedTo', '==', user.uid));
     }
@@ -218,8 +219,10 @@ export function AcceptedRequestsList() {
 
   const myAcceptedCount = React.useMemo(() => {
     if (!requests || !user) return 0;
+    // If admin, show all. If not, filter by assignedTo.
+    if (claims?.isAdmin) return requests.length;
     return requests.filter(r => r.assignedTo === user.uid).length;
-  }, [requests, user]);
+  }, [requests, user, claims]);
 
 
   return (
