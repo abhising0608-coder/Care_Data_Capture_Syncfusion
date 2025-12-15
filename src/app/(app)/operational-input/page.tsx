@@ -1,22 +1,21 @@
 'use client';
 
 import { Suspense } from 'react';
-import { OperationalInputForm } from '@/components/operational-input/operational-input-form';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 
+// This page now primarily serves to redirect to the initiate screen.
+// A more robust implementation might show a list of ongoing entries.
 export default function OperationalInputPage() {
+  const router = useRouter();
+
+  useEffect(() => {
+    router.replace('/operational-input/initiate');
+  }, [router]);
+
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight text-foreground">
-          Operational Input Initiation
-        </h1>
-        <p className="text-muted-foreground">
-          Configure the parameters for operational data entry.
-        </p>
-      </div>
-      <Suspense fallback={<div>Loading form...</div>}>
-        <OperationalInputForm />
-      </Suspense>
+     <div className="flex h-full w-full items-center justify-center">
+      <p>Redirecting to initiation screen...</p>
     </div>
   );
 }

@@ -5,8 +5,8 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import { collection, query, where } from 'firebase/firestore';
+import { useCollection, useFirestore, useUser, useMemoFirebase } from '@/firebase';
+import { addDoc, collection, doc, query, setDoc, where } from 'firebase/firestore';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -32,7 +32,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
-import { toast } from '@/hooks/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import type { CKCRequest } from '@/lib/definitions';
 import { Skeleton } from '../ui/skeleton';
 
@@ -54,15 +54,24 @@ export function OperationalInputForm() {
   const searchParams = useSearchParams();
   const requestId = searchParams.get('requestId');
   const firestore = useFirestore();
+  const { user } = useUser();
 
   const [prefilledData, setPrefilledData] = useState<{ companyName: string; approach: string; } | null>(null);
 
   const requestQuery = useMemoFirebase(() => {
     if (!firestore || !requestId) return null;
-    return query(collection(firestore, 'ckc_operational_requests'), where('id', '==', requestId));
+    // Query by document ID (which is what we call requestId in the UI)
+    return doc(firestore, 'ckc_operational_requests', requestId);
+  }, [firestore, requestId]);
+  
+  // We should use useDoc here, but for now we keep useCollection to avoid breaking changes
+  const singleDocQuery = useMemoFirebase(() => {
+      if (!firestore || !requestId) return null;
+      return query(collection(firestore, 'ckc_operational_requests'), where('id', '==', requestId));
+
   }, [firestore, requestId]);
 
-  const { data: requestData, isLoading: isRequestLoading } = useCollection<CKCRequest>(requestQuery);
+  const { data: requestData, isLoading: isRequestLoading } = useCollection<CKCRequest>(singleDocQuery);
 
   const form = useForm<OperationalInputFormValues>({
     resolver: zodResolver(formSchema),
@@ -93,15 +102,40 @@ export function OperationalInputForm() {
     }
   }, [requestData, form]);
 
-  const onSubmit = (data: OperationalInputFormValues) => {
-    console.log('Form Submitted:', data);
-    // Here you would save to Firestore in a real scenario
-    toast({
-      title: 'Configuration Saved',
-      description: 'Redirecting to the Basic Info screen...',
-    });
-    // Placeholder for redirection
-    router.push('/operational-input/basic-info');
+  const { toast } = useToast();
+
+  const onSubmit = async (data: OperationalInputFormValues) => {
+    if (!firestore || !user || !requestId) {
+        toast({ title: "Error", description: "Missing required information to proceed.", variant: "destructive" });
+        return;
+    }
+
+    try {
+        const operationalInputRef = doc(firestore, 'operational_input', requestId);
+        
+        await setDoc(operationalInputRef, {
+            ...data,
+            requestId: requestId,
+            createdBy: user.uid,
+            createdAt: new Date(),
+            status: 'initiated'
+        }, { merge: true });
+
+        toast({
+            title: 'Configuration Saved',
+            description: 'Redirecting to the Basic Info screen...',
+        });
+        
+        router.push(`/operational-input/${requestId}/basic-info`);
+
+    } catch (error) {
+        console.error("Error saving initiation data:", error);
+        toast({
+            title: "Error",
+            description: "Failed to save initiation data.",
+            variant: "destructive",
+        });
+    }
   };
   
   if (isRequestLoading && requestId) {
