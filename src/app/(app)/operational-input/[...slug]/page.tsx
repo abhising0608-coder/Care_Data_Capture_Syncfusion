@@ -56,7 +56,7 @@ const OperationalInputFlowContent = ({ operationalInputData, requestId, activeTa
     const { toast } = useToast();
 
     const financialSector = useMemo(() => operationalInputData?.initiation?.financialInputSector || 'Pharma', [operationalInputData]);
-
+    
     const tabs = useMemo(() => [
         { id: 'basic-info', label: 'Basic Info', schema: basicInfoSchema, schemaType: 'form' },
         { id: 'company-details', label: 'Company Details', schema: companyDetailsSchema, schemaType: 'form' },
@@ -65,8 +65,12 @@ const OperationalInputFlowContent = ({ operationalInputData, requestId, activeTa
         { id: 'other-details', label: 'Other Details', schema: otherDetailsSchema, schemaType: 'form' },
     ], [financialSector]);
 
-    const currentTabIndex = useMemo(() => tabs.findIndex(tab => tab.id === activeTab), [tabs, activeTab]);
-    const currentTab = useMemo(() => (currentTabIndex !== -1 ? tabs[currentTabIndex] : null), [tabs, currentTabIndex]);
+    const currentTabIndex = useMemo(() => {
+        if (!activeTab) return -1;
+        return tabs.findIndex(tab => tab.id === activeTab);
+    }, [tabs, activeTab]);
+
+    const currentTab = currentTabIndex !== -1 ? tabs[currentTabIndex] : null;
 
     useEffect(() => {
         if (!requestId) {
