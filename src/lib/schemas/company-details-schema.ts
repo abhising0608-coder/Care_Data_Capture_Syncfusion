@@ -78,8 +78,14 @@ export const companyDetailsSchema = {
         "items": {
             "type": "object",
             "properties": {
-                "entityName": { "type": "string", "title": "Name of Entity" },
-                "holdingPercentage": { "type": "number", "title": "% Holding" }
+                "srNo": { "type": "string", "title": "Sr. No" },
+                "entityName": { "type": "string", "title": "Name of the Company" },
+                "extentOfConsolidation": { 
+                    "type": "string", 
+                    "title": "Extent of Consolidation",
+                    "enum": ["Full Consolidation", "Moderate Consolidation", "Proportionate Consolidation", "Other"]
+                },
+                "rationaleForConsolidation": { "type": "string", "title": "Rationale for Consolidation" }
             }
         }
     }
