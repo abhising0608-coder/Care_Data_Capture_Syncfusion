@@ -44,14 +44,14 @@ export const companyDetailsSchema = {
         "properties": {
           "name": { "type": "string", "title": "Name" },
           "designation": { "type": "string", "title": "Designation" },
-          "yearsOfExperience": { "type": "number", "title": "Years of Experience" },
-          "directorshipsHeld": { "type": "number", "title": "Directorships Held" },
+          "yearsOfExperience": { "type": "number", "title": "Years of Exp." },
+          "directorshipsHeld": { "type": "number", "title": "Directorships" },
           "directorType": { 
             "type": "string", 
-            "title": "Exec/Non-Exec/Promoter",
+            "title": "Type",
             "enum": ["Executive", "Non-Executive", "Promoter"]
           },
-          "functionsLookedAfter": { "type": "string", "title": "Functions Looked After" },
+          "functionsLookedAfter": { "type": "string", "title": "Functions" },
           "age": { "type": "number", "title": "Age" },
           "qualification": { "type": "string", "title": "Qualification" }
         }
@@ -64,7 +64,11 @@ export const companyDetailsSchema = {
             "type": "object",
             "properties": {
                 "name": { "type": "string", "title": "Name" },
-                "designation": { "type": "string", "title": "Designation" }
+                "designation": { "type": "string", "title": "Designation" },
+                "yearsOfExperience": { "type": "number", "title": "Years of Exp." },
+                "briefProfile": { "type": "string", "title": "Brief Profile" },
+                "age": { "type": "number", "title": "Age" },
+                "qualification": { "type": "string", "title": "Qualification" }
             }
         }
     },
