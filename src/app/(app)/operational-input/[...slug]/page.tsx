@@ -24,27 +24,22 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 const FormLoadingSkeleton = () => (
     <div className="p-4 sm:p-6 lg:p-8 space-y-6">
-        <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
-          <Skeleton className="h-9 w-9 sm:hidden" />
-          <div>
-            <Skeleton className="h-8 w-64" />
-            <Skeleton className="h-4 w-48 mt-2" />
-          </div>
-        </header>
-        <main className="grid flex-1 items-start gap-4 px-4 sm:px-6 sm:py-0 md:gap-8">
-            <div className="flex items-center">
-              <div className="flex gap-1">
-                <Skeleton className="h-10 w-24" />
-                <Skeleton className="h-10 w-24" />
-                <Skeleton className="h-10 w-24" />
-                <Skeleton className="h-10 w-24" />
-              </div>
-              <div className="ml-auto flex items-center gap-2">
-                <Skeleton className="h-8 w-24" />
-              </div>
-            </div>
-            <Skeleton className="h-[600px] w-full" />
-        </main>
+        <Card>
+            <CardHeader>
+                <Skeleton className="h-8 w-3/4" />
+                <Skeleton className="h-4 w-1/2" />
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Skeleton className="h-12 w-full" />
+              <Skeleton className="h-12 w-full" />
+              <Skeleton className="h-12 w-full" />
+              <Skeleton className="h-12 w-full" />
+               <div className="flex justify-end gap-4 mt-8">
+                    <Skeleton className="h-10 w-24" />
+                    <Skeleton className="h-10 w-24" />
+               </div>
+            </CardContent>
+        </Card>
     </div>
 );
 
@@ -58,7 +53,7 @@ export default function OperationalInputFlowPage() {
 
     const [requestId, activeTab] = useMemo(() => {
         const slug = Array.isArray(params.slug) ? params.slug : [params.slug];
-        return [slug[0] || null, slug[1] || null];
+        return [slug[0] || null, slug[1] || 'basic-info'];
     }, [params.slug]);
 
     const operationalInputRef = useMemoFirebase(() => {
@@ -79,7 +74,6 @@ export default function OperationalInputFlowPage() {
     ], [financialSector]);
 
     const currentTabIndex = useMemo(() => {
-        if (!activeTab) return -1;
         const index = tabs.findIndex(tab => tab.id === activeTab);
         return index;
     }, [tabs, activeTab]);
@@ -88,13 +82,13 @@ export default function OperationalInputFlowPage() {
         if (currentTabIndex !== -1) {
             return tabs[currentTabIndex];
         }
-        return null;
+        return tabs[0];
     }, [tabs, currentTabIndex]);
 
     useEffect(() => {
         if (!requestId) {
             router.replace('/ckc-requests');
-        } else if (requestId && (!activeTab || !tabs.some(t => t.id === activeTab))) {
+        } else if (requestId && !tabs.some(t => t.id === activeTab)) {
             router.replace(`/operational-input/${requestId}/${tabs[0].id}`);
         }
     }, [activeTab, tabs, requestId, router]);
@@ -171,26 +165,24 @@ export default function OperationalInputFlowPage() {
                                 </Button>
                             </div>
                         </div>
-                        {isOperationalInputLoading || !currentTab || !operationalInputData ? (
-                            <TabsContent value={activeTab || ''} forceMount>
-                               <FormLoadingSkeleton />
-                            </TabsContent>
-                        ) : (
-                            <TabsContent value={activeTab || ''} forceMount>
-                                <Suspense fallback={<FormLoadingSkeleton />}>
+                        <TabsContent value={activeTab || ''} forceMount>
+                            <Suspense fallback={<FormLoadingSkeleton />}>
+                                {isOperationalInputLoading || !operationalInputData ? (
+                                    <FormLoadingSkeleton />
+                                ) : (
                                     <JsonSchemaForm
                                         key={activeTab}
                                         schema={currentTab.schema}
                                         schemaType={currentTab.schemaType as any}
                                         onSubmit={handleNext}
                                         onCancel={handleBack}
-                                        requestId={requestId}
+                                        requestId={requestId!}
                                         dataKey={currentTab.id.replace(/-/g, '_')}
                                         isLastStep={currentTabIndex === tabs.length - 1}
                                     />
-                                </Suspense>
-                            </TabsContent>
-                        )}
+                                )}
+                            </Suspense>
+                        </TabsContent>
                     </Tabs>
                 </main>
             </div>
