@@ -66,7 +66,7 @@ const OperationalInputFlowContent = ({ operationalInputData, requestId, activeTa
     ], [financialSector]);
 
     const currentTabIndex = useMemo(() => tabs.findIndex(tab => tab.id === activeTab), [tabs, activeTab]);
-    const currentTab = useMemo(() => tabs[currentTabIndex], [tabs, currentTabIndex]);
+    const currentTab = useMemo(() => (currentTabIndex !== -1 ? tabs[currentTabIndex] : null), [tabs, currentTabIndex]);
 
     useEffect(() => {
         if (!requestId) {
@@ -96,7 +96,7 @@ const OperationalInputFlowContent = ({ operationalInputData, requestId, activeTa
             if (nextTab) {
                 router.push(`/operational-input/${requestId}/${nextTab.id}`);
             } else {
-                router.push('/ckc-requests');
+                 router.push('/ckc-requests');
             }
         } catch (error) {
             console.error("Failed to save data:", error);
@@ -118,7 +118,7 @@ const OperationalInputFlowContent = ({ operationalInputData, requestId, activeTa
     };
 
     if (!currentTab) {
-        return <FormLoadingSkeleton />;
+      return <FormLoadingSkeleton />;
     }
 
     return (
@@ -136,7 +136,7 @@ const OperationalInputFlowContent = ({ operationalInputData, requestId, activeTa
                     </div>
                 </header>
                 <main className="grid flex-1 items-start gap-4 px-4 sm:px-6 sm:py-0 md:gap-8">
-                    <Tabs value={activeTab}>
+                    <Tabs value={activeTab || ''}>
                         <div className="flex items-center">
                             <TabsList>
                                 {tabs.map(tab => (
@@ -152,7 +152,7 @@ const OperationalInputFlowContent = ({ operationalInputData, requestId, activeTa
                                 </Button>
                             </div>
                         </div>
-                        <TabsContent value={activeTab} forceMount>
+                        <TabsContent value={activeTab || ''} forceMount>
                             <Suspense fallback={<div>Loading form...</div>}>
                                 <JsonSchemaForm
                                     key={activeTab}
@@ -189,8 +189,12 @@ export default function OperationalInputFlowPage() {
 
     const { data: operationalInputData, isLoading: isOperationalInputLoading } = useDoc(operationalInputRef);
 
-    if (isOperationalInputLoading || !requestId || !operationalInputData) {
+    if (isOperationalInputLoading || !requestId) {
         return <FormLoadingSkeleton />;
+    }
+
+    if (!operationalInputData) {
+        return <div>Request data not found.</div>;
     }
 
     return (
