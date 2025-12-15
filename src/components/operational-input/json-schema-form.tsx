@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useForm, useFieldArray, Controller } from 'react-hook-form';
+import { useForm, useFieldArray, Controller, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import {
@@ -19,13 +19,13 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useDoc, useFirestore, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useCallback } from 'react';
 import { Skeleton } from '../ui/skeleton';
-import { PlusCircle, Trash2, Check, RefreshCw, Pencil, X } from 'lucide-react';
+import { PlusCircle, Trash2, Check, RefreshCw, Pencil, X, ChevronsUp, ChevronsDown } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 // Helper to generate a single field schema for Zod
-const generateZodField = (prop: any) => {
+const generateZodField = (prop: any): z.ZodTypeAny => {
   let fieldSchema: z.ZodTypeAny;
 
   switch (prop.type) {
@@ -33,7 +33,7 @@ const generateZodField = (prop: any) => {
       fieldSchema = z.string();
       if (prop.format === 'email') fieldSchema = fieldSchema.email({ message: "Invalid email address." });
       if (prop.format === 'uri') fieldSchema = fieldSchema.url({ message: "Invalid URL." });
-      if (prop.enum) fieldSchema = z.enum(prop.enum);
+      if (prop.enum) fieldSchema = z.enum(prop.enum as [string, ...string[]]);
       fieldSchema = fieldSchema.optional().or(z.literal(''));
       break;
     case 'number':
@@ -50,16 +50,16 @@ const generateZodField = (prop: any) => {
       fieldSchema = z.boolean().optional();
       break;
     case 'array':
-        if (prop.items && prop.items.type === 'object') {
-            const itemSchema = generateZodSchema(prop.items);
-            fieldSchema = z.array(itemSchema).optional();
-        } else {
-            fieldSchema = z.any().optional();
-        }
-        break;
+      if (prop.items && prop.items.type === 'object') {
+        const itemSchema = generateZodSchema(prop.items);
+        fieldSchema = z.array(itemSchema).optional();
+      } else {
+        fieldSchema = z.any().optional();
+      }
+      break;
     case 'object':
-        fieldSchema = generateZodSchema(prop).optional();
-        break;
+      fieldSchema = generateZodSchema(prop).optional();
+      break;
     default:
       fieldSchema = z.any().optional();
       break;
@@ -110,7 +110,21 @@ export function JsonSchemaForm({ schema, onSubmit, onCancel, requestId, dataKey 
       const defaultValues: {[key: string]: any} = {};
       Object.keys(schema.properties).forEach(sectionKey => {
         const sectionProp = schema.properties[sectionKey];
-        if (sectionProp.type === 'object') defaultValues[sectionKey] = {};
+        if (sectionProp.type === 'object') {
+          const sectionDefaults: {[key: string]: any} = {};
+           if (sectionProp.properties) {
+            Object.keys(sectionProp.properties).forEach(fieldKey => {
+                const fieldProp = sectionProp.properties[fieldKey];
+                if (fieldProp.type === 'array') {
+                    sectionDefaults[fieldKey] = [];
+                }
+                if (fieldProp.default) {
+                  sectionDefaults[fieldKey] = fieldProp.default;
+                }
+            });
+           }
+           defaultValues[sectionKey] = sectionDefaults;
+        }
         else if (sectionProp.type === 'array') defaultValues[sectionKey] = [];
       });
       form.reset(defaultValues);
@@ -129,7 +143,7 @@ export function JsonSchemaForm({ schema, onSubmit, onCancel, requestId, dataKey 
           render={({ field }) => (
             <FormItem>
               <FormLabel>{title || name}</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <Select onValueChange={field.onChange} value={field.value || ''}>
                 <FormControl>
                   <SelectTrigger><SelectValue placeholder={`Select ${title || name}`} /></SelectTrigger>
                 </FormControl>
@@ -177,17 +191,23 @@ export function JsonSchemaForm({ schema, onSubmit, onCancel, requestId, dataKey 
       />
     );
   };
-
-  const renderInlineEditableTable = (sectionKey: string, sectionProp: any) => {
-    const { fields, append, remove, update } = useFieldArray({ control: form.control, name: sectionKey });
-    const itemProperties = sectionProp.items.properties;
+  
+  const renderInlineEditableTable = ({
+    sectionKey,
+    itemProperties,
+    control,
+  }: {
+    sectionKey: string;
+    itemProperties: any;
+    control: any;
+  }) => {
+    const { fields, append, remove, update } = useFieldArray({ control, name: sectionKey });
     const headers = Object.keys(itemProperties);
 
     const [newRow, setNewRow] = useState<Record<string, any>>({});
     const [editingIndex, setEditingIndex] = useState<number | null>(null);
 
     const handleAddNew = () => {
-      // Basic validation can be added here if needed
       append(newRow);
       setNewRow({});
     };
@@ -209,7 +229,7 @@ export function JsonSchemaForm({ schema, onSubmit, onCancel, requestId, dataKey 
       setNewRow({});
     };
 
-    const renderInputForCell = (item: Record<string, any>, header: string, isNewRow: boolean) => {
+    const renderInputForCell = (item: Record<string, any>, header: string) => {
       const prop = itemProperties[header];
       const value = item[header] ?? '';
 
@@ -248,7 +268,7 @@ export function JsonSchemaForm({ schema, onSubmit, onCancel, requestId, dataKey 
             <TableRow>
               {headers.map(header => (
                 <TableCell key={`new-${header}`}>
-                  {renderInputForCell(newRow, header, true)}
+                  {renderInputForCell(newRow, header)}
                 </TableCell>
               ))}
               <TableCell className="flex items-center gap-1">
@@ -289,6 +309,48 @@ export function JsonSchemaForm({ schema, onSubmit, onCancel, requestId, dataKey 
       </div>
     );
   };
+  
+  const AccordionSectionContent = ({ sectionKey, sectionProp, control }: { sectionKey: string, sectionProp: any, control: any }) => {
+    const dataAvailabilityPath = `${sectionKey}.dataAvailability`;
+    const dataAvailability = useWatch({ control, name: dataAvailabilityPath });
+  
+    return (
+      <div className="space-y-4">
+        <div className="w-1/3">
+          <FormField
+            control={control}
+            name={dataAvailabilityPath}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{sectionProp.properties.dataAvailability.title}</FormLabel>
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select availability" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {sectionProp.properties.dataAvailability.enum.map((option: string) => (
+                      <SelectItem key={option} value={option}>{option}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+  
+        {dataAvailability === 'Available' && sectionProp.properties.tableData && (
+           renderInlineEditableTable({
+            sectionKey: `${sectionKey}.tableData`,
+            itemProperties: sectionProp.properties.tableData.items.properties,
+            control,
+          })
+        )}
+      </div>
+    );
+  };
 
   if (isLoading) {
     return (
@@ -312,33 +374,61 @@ export function JsonSchemaForm({ schema, onSubmit, onCancel, requestId, dataKey 
   }
   
   const sectionKeys = Object.keys(schema.properties);
+  const [openAccordions, setOpenAccordions] = useState<string[]>(sectionKeys);
+
+  const toggleAll = (state: 'expand' | 'collapse') => {
+    if (state === 'expand') {
+      setOpenAccordions(sectionKeys);
+    } else {
+      setOpenAccordions([]);
+    }
+  }
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{schema.title}</CardTitle>
-        <CardDescription>{schema.description}</CardDescription>
+        <div className="flex justify-between items-center">
+            <div>
+                <CardTitle>{schema.title}</CardTitle>
+                <CardDescription>{schema.description}</CardDescription>
+            </div>
+            <div className="flex items-center gap-2">
+                <Button variant="outline" size="sm" onClick={() => toggleAll('expand')}>
+                    <ChevronsDown className="h-4 w-4 mr-2" /> Expand All
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => toggleAll('collapse')}>
+                    <ChevronsUp className="h-4 w-4 mr-2" /> Collapse All
+                </Button>
+            </div>
+        </div>
       </CardHeader>
       <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-            <Accordion type="multiple" defaultValue={sectionKeys} className="w-full">
+            <Accordion type="multiple" value={openAccordions} onValueChange={setOpenAccordions} className="w-full">
               {sectionKeys.map(sectionKey => {
                 const sectionProp = schema.properties[sectionKey];
+                const uiVariant = sectionProp['x-ui-variant'];
+
                 return(
                   <AccordionItem value={sectionKey} key={sectionKey}>
                     <AccordionTrigger>{sectionProp.title}</AccordionTrigger>
                     <AccordionContent className="p-4">
-                      {sectionProp.type === 'object' && (
+                      {uiVariant === 'accordion' ? (
+                        <AccordionSectionContent sectionKey={sectionKey} sectionProp={sectionProp} control={form.control} />
+                      ) : sectionProp.type === 'object' ? (
                         <div className="grid md:grid-cols-2 gap-8">
                           {Object.keys(sectionProp.properties).map(fieldKey => 
                             renderField(`${sectionKey}.${fieldKey}`, sectionProp.properties[fieldKey], form.control)
                           )}
                         </div>
-                      )}
-                      {sectionProp.type === 'array' && (
-                        renderInlineEditableTable(sectionKey, sectionProp)
-                      )}
+                      ) : sectionProp.type === 'array' ? (
+                        renderInlineEditableTable({
+                          sectionKey: sectionKey,
+                          itemProperties: sectionProp.items.properties,
+                          control: form.control,
+                        })
+                      ) : null}
                     </AccordionContent>
                   </AccordionItem>
                 )

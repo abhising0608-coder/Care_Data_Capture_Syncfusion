@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Suspense } from 'react';
@@ -29,6 +30,7 @@ import { Button } from '@/components/ui/button';
 import { JsonSchemaForm } from '@/components/operational-input/json-schema-form';
 import { basicInfoSchema } from '@/lib/schemas/basic-info-schema';
 import { companyDetailsSchema } from '@/lib/schemas/company-details-schema';
+import { commonDetailsSchema } from '@/lib/schemas/common-details-schema';
 import { addDoc, collection, doc, setDoc } from 'firebase/firestore';
 import { useFirestore, useUser } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
@@ -45,7 +47,7 @@ export default function OperationalInputFlowPage() {
   const tabs = [
     { id: 'basic-info', label: 'Basic Info', schema: basicInfoSchema },
     { id: 'company-details', label: 'Company Details', schema: companyDetailsSchema },
-    { id: 'common-details', label: 'Common Details', schema: {} },
+    { id: 'common-details', label: 'Common Details', schema: commonDetailsSchema },
     { id: 'sectorial-operational-data', label: 'Sectorial Operational Data', schema: {} },
     { id: 'other-details', label: 'Other Details', schema: {} },
   ];
@@ -96,7 +98,13 @@ export default function OperationalInputFlowPage() {
   };
 
   if (!currentTab) {
-    return <div>Invalid tab selected.</div>;
+    // This can happen if the slug is invalid, redirect to the first tab
+    if(requestId) {
+        router.replace(`/operational-input/${requestId}/${tabs[0].id}`);
+    } else {
+        router.replace('/ckc-requests');
+    }
+    return <div>Loading...</div>;
   }
 
   return (
