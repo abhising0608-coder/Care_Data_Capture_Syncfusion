@@ -76,5 +76,18 @@ service cloud.firestore {
       allow update: if false;
       allow delete: if false;
     }
+
+    /**
+     * @description Rules for the operational input data collection.
+     * @path /operational_input/{entryId}
+     * @allow (get, create, update) An authenticated user can manage their own data entry documents.
+     * @deny (delete) Deletion is not allowed.
+     */
+    match /operational_input/{entryId} {
+      allow get: if isSignedIn();
+      allow create: if isSignedIn() && isOwner(request.resource.data.createdBy);
+      allow update: if isSignedIn() && isOwner(resource.data.createdBy);
+      allow delete: if false;
+    }
   }
 }
