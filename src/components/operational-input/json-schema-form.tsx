@@ -1,12 +1,11 @@
 'use client';
 
-import { useForm } from 'react-hook-form';
+import { useForm, useFieldArray, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -15,45 +14,71 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useDoc, useFirestore, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { Skeleton } from '../ui/skeleton';
+import { PlusCircle, Trash2 } from 'lucide-react';
 
-// Helper function to generate Zod schema from JSON schema
-const generateZodSchema = (schema: any) => {
+// Helper to generate a single field schema for Zod
+const generateZodField = (prop: any) => {
+  let fieldSchema: z.ZodTypeAny;
+
+  switch (prop.type) {
+    case 'string':
+      fieldSchema = z.string();
+      if (prop.format === 'email') {
+        fieldSchema = fieldSchema.email({ message: "Invalid email address." });
+      }
+      if (prop.format === 'uri') {
+          fieldSchema = fieldSchema.url({ message: "Invalid URL." });
+      }
+      // Allow empty strings
+      fieldSchema = fieldSchema.optional().or(z.literal(''));
+      break;
+    case 'number':
+      // Preprocess converts empty string or null/undefined to undefined, making it optional.
+      // Otherwise, it parses the value to a float.
+      fieldSchema = z.preprocess(
+        (a) => {
+            if (a === '' || a === null || a === undefined) return undefined;
+            const num = parseFloat(String(a));
+            return isNaN(num) ? undefined : num;
+        },
+        z.number().optional()
+      );
+      break;
+    case 'boolean':
+      fieldSchema = z.boolean().optional();
+      break;
+    case 'array':
+        if (prop.items && prop.items.type === 'object') {
+            const itemSchema = generateZodSchema(prop.items);
+            fieldSchema = z.array(itemSchema).optional();
+        } else {
+            fieldSchema = z.any().optional();
+        }
+        break;
+    case 'object':
+        fieldSchema = generateZodSchema(prop).optional();
+        break;
+    default:
+      fieldSchema = z.any().optional();
+      break;
+  }
+  return fieldSchema;
+};
+
+// Recursive helper to generate Zod schema from JSON schema
+const generateZodSchema = (schema: any): z.ZodObject<any> => {
   const zodSchema: any = {};
-  for (const key in schema.properties) {
-    const prop = schema.properties[key];
-    let fieldSchema: z.ZodTypeAny;
-
-    switch (prop.type) {
-      case 'string':
-        fieldSchema = z.string();
-        if (prop.format === 'email') {
-          fieldSchema = fieldSchema.email({ message: "Invalid email address." });
-        }
-        if (prop.format === 'uri') {
-            fieldSchema = fieldSchema.url({ message: "Invalid URL." });
-        }
-        // All fields are optional as per requirement
-        fieldSchema = fieldSchema.optional().or(z.literal(''));
-        break;
-      case 'number':
-        // For numbers, we accept a string and transform it, or just a number
-        fieldSchema = z.preprocess(
-          (a) => (a === '' || a === undefined || a === null) ? undefined : (typeof a === 'string' ? parseFloat(a) : a),
-          z.number().optional()
-        );
-        break;
-      case 'boolean':
-        fieldSchema = z.boolean().optional();
-        break;
-      default:
-        fieldSchema = z.any().optional();
-        break;
+  if (schema.properties) {
+    for (const key in schema.properties) {
+      const prop = schema.properties[key];
+      zodSchema[key] = generateZodField(prop);
     }
-    zodSchema[key] = fieldSchema;
   }
   return z.object(zodSchema);
 };
@@ -87,15 +112,21 @@ export function JsonSchemaForm({ schema, onSubmit, onCancel, requestId, dataKey 
     if (existingData && existingData[dataKey]) {
       form.reset(existingData[dataKey]);
     } else {
+      // Initialize form with default values based on schema
       const defaultValues: {[key: string]: any} = {};
-      Object.keys(schema.properties).forEach(key => {
-        defaultValues[key] = '';
+      Object.keys(schema.properties).forEach(sectionKey => {
+        const sectionProp = schema.properties[sectionKey];
+        if (sectionProp.type === 'object') {
+          defaultValues[sectionKey] = {};
+        } else if (sectionProp.type === 'array') {
+          defaultValues[sectionKey] = [];
+        }
       });
       form.reset(defaultValues);
     }
-  }, [existingData, form, dataKey, schema.properties]);
+  }, [existingData, form, dataKey, schema]);
 
-  const renderField = (key: string, prop: any) => {
+  const renderField = (name: string, prop: any, control: any) => {
     const { title, type, format } = prop;
     let inputType = 'text';
     if (type === 'number') inputType = 'number';
@@ -104,19 +135,22 @@ export function JsonSchemaForm({ schema, onSubmit, onCancel, requestId, dataKey 
     
     return (
       <FormField
-        key={key}
-        control={form.control}
-        name={key}
+        key={name}
+        control={control}
+        name={name}
         render={({ field }) => (
           <FormItem>
-            <FormLabel>{title || key}</FormLabel>
+            <FormLabel>{title || name}</FormLabel>
             <FormControl>
               <Input
                 {...field}
                 type={inputType}
-                placeholder={`Enter ${title || key}`}
-                // Ensure value is a string for the input component
+                placeholder={`Enter ${title || name}`}
                 value={field.value ?? ''}
+                onChange={e => {
+                  const val = type === 'number' ? e.target.valueAsNumber : e.target.value;
+                  field.onChange(isNaN(val as number) ? '' : val);
+                }}
               />
             </FormControl>
             <FormMessage />
@@ -125,31 +159,92 @@ export function JsonSchemaForm({ schema, onSubmit, onCancel, requestId, dataKey 
       />
     );
   };
-  
+
+  const renderTableSection = (sectionKey: string, sectionProp: any) => {
+    const { fields, append, remove } = useFieldArray({
+        control: form.control,
+        name: sectionKey,
+    });
+
+    const itemProperties = sectionProp.items.properties;
+    const headers = Object.keys(itemProperties);
+
+    return (
+      <div className="space-y-4">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              {headers.map(header => <TableHead key={header}>{itemProperties[header].title}</TableHead>)}
+              <TableHead className="w-[50px]"></TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {fields.map((item, index) => (
+              <TableRow key={item.id}>
+                {headers.map(header => (
+                  <TableCell key={`${item.id}-${header}`}>
+                    <FormField
+                      control={form.control}
+                      name={`${sectionKey}.${index}.${header}` as const}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <Input {...field} placeholder={itemProperties[header].title} value={field.value ?? ''} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </TableCell>
+                ))}
+                <TableCell>
+                  <Button variant="ghost" size="icon" onClick={() => remove(index)}>
+                    <Trash2 className="h-4 w-4 text-destructive" />
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => {
+            const newRow: Record<string, any> = {};
+            headers.forEach(header => newRow[header] = '');
+            append(newRow);
+          }}
+        >
+          <PlusCircle className="mr-2 h-4 w-4" />
+          Add Row
+        </Button>
+      </div>
+    );
+  };
+
   if (isLoading) {
-      return (
-          <Card>
-              <CardHeader>
-                  <Skeleton className="h-8 w-3/4" />
-                  <Skeleton className="h-4 w-1/2" />
-              </CardHeader>
-              <CardContent className="space-y-8">
-                  <div className="grid md:grid-cols-2 gap-8">
-                      {Object.keys(schema.properties).map(key => (
-                          <div key={key} className="space-y-2">
-                            <Skeleton className="h-5 w-1/4" />
-                            <Skeleton className="h-10 w-full" />
-                          </div>
-                      ))}
-                  </div>
-                   <div className="flex justify-end gap-4">
-                        <Skeleton className="h-10 w-24" />
-                        <Skeleton className="h-10 w-24" />
-                   </div>
-              </CardContent>
-          </Card>
-      )
+    return (
+        <Card>
+            <CardHeader>
+                <Skeleton className="h-8 w-3/4" />
+                <Skeleton className="h-4 w-1/2" />
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Skeleton className="h-12 w-full" />
+              <Skeleton className="h-12 w-full" />
+              <Skeleton className="h-12 w-full" />
+              <Skeleton className="h-12 w-full" />
+               <div className="flex justify-end gap-4 mt-8">
+                    <Skeleton className="h-10 w-24" />
+                    <Skeleton className="h-10 w-24" />
+               </div>
+            </CardContent>
+        </Card>
+    )
   }
+  
+  const sectionKeys = Object.keys(schema.properties);
 
   return (
     <Card>
@@ -160,11 +255,28 @@ export function JsonSchemaForm({ schema, onSubmit, onCancel, requestId, dataKey 
       <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-            <div className="grid md:grid-cols-2 gap-8">
-              {Object.keys(schema.properties).map((key) =>
-                renderField(key, schema.properties[key])
-              )}
-            </div>
+            <Accordion type="multiple" defaultValue={sectionKeys} className="w-full">
+              {sectionKeys.map(sectionKey => {
+                const sectionProp = schema.properties[sectionKey];
+                return(
+                  <AccordionItem value={sectionKey} key={sectionKey}>
+                    <AccordionTrigger>{sectionProp.title}</AccordionTrigger>
+                    <AccordionContent className="p-4">
+                      {sectionProp.type === 'object' && (
+                        <div className="grid md:grid-cols-2 gap-8">
+                          {Object.keys(sectionProp.properties).map(fieldKey => 
+                            renderField(`${sectionKey}.${fieldKey}`, sectionProp.properties[fieldKey], form.control)
+                          )}
+                        </div>
+                      )}
+                      {sectionProp.type === 'array' && (
+                        renderTableSection(sectionKey, sectionProp)
+                      )}
+                    </AccordionContent>
+                  </AccordionItem>
+                )
+              })}
+            </Accordion>
             <div className="flex justify-end gap-4">
               <Button type="button" variant="outline" onClick={onCancel}>
                 Back
