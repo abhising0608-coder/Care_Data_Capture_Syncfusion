@@ -5,17 +5,18 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { SidebarTrigger } from '@/components/ui/sidebar';
-import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
+import { useCollection, useFirestore, useMemoFirebase, useUser } from '@/firebase';
 import { collection, query, where } from 'firebase/firestore';
 
 export function AppHeader() {
   const firestore = useFirestore();
+  const { isUserLoading } = useUser();
   const pendingRequestsQuery = useMemoFirebase(
     () => {
-      if (!firestore) return null;
+      if (!firestore || isUserLoading) return null;
       return query(collection(firestore, 'ckc_operational_requests'), where('status', '==', 'PENDING'));
     },
-    [firestore]
+    [firestore, isUserLoading]
   );
   const { data: pendingRequests } = useCollection(pendingRequestsQuery);
 

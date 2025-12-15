@@ -85,15 +85,15 @@ export function PendingRequestsList() {
   const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 10 });
   const { toast } = useToast();
   const firestore = useFirestore();
-  const { user } = useUser();
+  const { user, isUserLoading } = useUser();
   const auth = useAuth();
   
   const pendingRequestsQuery = useMemoFirebase(() => {
-    if (!firestore) return null;
+    if (!firestore || isUserLoading) return null; // Wait for user to be loaded
     return query(collection(firestore, 'ckc_operational_requests'), where('status', '==', 'PENDING'));
-  }, [firestore]);
+  }, [firestore, isUserLoading]);
 
-  const { data: requests, isLoading: loading } = useCollection<CKCRequest>(pendingRequestsQuery);
+  const { data: requests, isLoading } = useCollection<CKCRequest>(pendingRequestsQuery);
 
   const handleAccept = async (requestId: string) => {
     if (!firestore || !user) {
@@ -193,7 +193,7 @@ export function PendingRequestsList() {
         <CardTitle className="text-sm font-medium">{title}</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="text-2xl font-bold">{loading ? <Skeleton className="h-8 w-1/2" /> : value}</div>
+        <div className="text-2xl font-bold">{isLoading || isUserLoading ? <Skeleton className="h-8 w-1/2" /> : value}</div>
         <p className="text-xs text-muted-foreground">{description}</p>
       </CardContent>
     </Card>
@@ -307,7 +307,7 @@ export function PendingRequestsList() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {loading ? (
+                {isLoading || isUserLoading ? (
                   Array.from({ length: pagination.pageSize }).map((_, i) => (
                     <TableRow key={i}>
                       <TableCell colSpan={headers.length + 1}>

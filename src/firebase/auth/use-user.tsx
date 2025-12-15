@@ -6,11 +6,12 @@ import {
   FirebaseContextState,
 } from '@/firebase/provider';
 import { User } from 'firebase/auth';
+import { AppClaims } from './use-claims';
 
 // This is the shape of the data returned by the useUser() hook.
 export interface UserAuthHookResult {
   user: User | null;
-  claims: Record<string, any> | null;
+  claims: AppClaims | null;
   isUserLoading: boolean;
   userError: Error | null;
 }
@@ -21,7 +22,7 @@ export interface UserAuthHookResult {
  * This hook must be used within a FirebaseProvider.
  * @returns {UserAuthHookResult} - The user's authentication state.
  */
-export const useUser = () => {
+export const useUser = (): UserAuthHookResult => {
   // We get the full context, but we will only return user-related state.
   const context = useContext(FirebaseContext);
 

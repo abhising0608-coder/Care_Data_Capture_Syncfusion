@@ -10,7 +10,7 @@ import {
   onSnapshot,
   Timestamp,
 } from 'firebase/firestore';
-import { useAuth, useFirestore, useUser } from '@/firebase';
+import { useAuth, useFirestore, useUser, useMemoFirebase } from '@/firebase';
 import {
   Download,
   Filter,
@@ -58,6 +58,7 @@ import { useToast } from '@/hooks/use-toast';
 import type { CKCRequest } from '@/lib/definitions';
 import { Badge } from '../ui/badge';
 import { Skeleton } from '../ui/skeleton';
+import { useCollection } from '@/firebase/firestore/use-collection';
 
 type SortConfig = {
   key: keyof CKCRequest;
@@ -74,8 +75,6 @@ const formatFirestoreTimestamp = (timestamp: Timestamp) => {
 };
 
 export function AcceptedRequestsList() {
-  const [requests, setRequests] = React.useState<CKCRequest[]>([]);
-  const [loading, setLoading] = React.useState(true);
   const [searchTerm, setSearchTerm] = React.useState('');
   const [filters, setFilters] = React.useState<{
     cycle: string[];
@@ -98,42 +97,25 @@ export function AcceptedRequestsList() {
   const { toast } = useToast();
   const router = useRouter();
   const firestore = useFirestore();
-  const { user, claims } = useUser();
+  const { user, claims, isUserLoading } = useUser();
 
-  React.useEffect(() => {
-    if (!firestore || !user) return;
-    setLoading(true);
+  const acceptedRequestsQuery = useMemoFirebase(() => {
+    if (!firestore || isUserLoading) return null; // Wait for user info
 
     const requestsRef = collection(firestore, 'ckc_operational_requests');
+    
+    // Base query for accepted requests
     let q = query(requestsRef, where('status', '==', 'ACCEPTED'));
     
     // If user is not an admin, filter by their UID
-    if (claims && !claims.isAdmin) {
+    if (user && claims && !claims.isAdmin) {
       q = query(q, where('assignedTo', '==', user.uid));
     }
+    
+    return q;
+  }, [firestore, user, claims, isUserLoading]);
 
-    const unsubscribe = onSnapshot(
-      q,
-      (snapshot) => {
-        const acceptedRequests = snapshot.docs.map(
-          (doc) => ({ ...doc.data(), id: doc.id } as CKCRequest)
-        );
-        setRequests(acceptedRequests);
-        setLoading(false);
-      },
-      (error) => {
-        console.error('Error fetching accepted requests:', error);
-        toast({
-          variant: 'destructive',
-          title: 'Error',
-          description: 'Could not fetch accepted requests.',
-        });
-        setLoading(false);
-      }
-    );
-
-    return () => unsubscribe();
-  }, [firestore, user, claims, toast]);
+  const { data: requests, isLoading } = useCollection<CKCRequest>(acceptedRequestsQuery);
   
   const handleContinue = (requestId: string) => {
     toast({
@@ -144,6 +126,7 @@ export function AcceptedRequestsList() {
   };
 
   const filteredRequests = React.useMemo(() => {
+    if (!requests) return [];
     return requests.filter((req) => {
       const searchTermLower = searchTerm.toLowerCase();
       const matchesSearch =
@@ -212,7 +195,7 @@ export function AcceptedRequestsList() {
         <CardTitle className="text-sm font-medium">{title}</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="text-2xl font-bold">{loading ? <Skeleton className="h-8 w-1/2" /> : value}</div>
+        <div className="text-2xl font-bold">{isLoading || isUserLoading ? <Skeleton className="h-8 w-1/2" /> : value}</div>
         <p className="text-xs text-muted-foreground">{description}</p>
       </CardContent>
     </Card>
@@ -230,15 +213,21 @@ export function AcceptedRequestsList() {
     { key: 'status', label: 'Status' },
   ];
 
-  const uniqueAnalysts = Array.from(new Set(requests.map(r => r.ckcAnalystName).filter(Boolean)));
-  const uniqueAuditedFYs = Array.from(new Set(requests.flatMap(r => r.auditedFY)));
+  const uniqueAnalysts = Array.from(new Set(requests?.map(r => r.ckcAnalystName).filter(Boolean)));
+  const uniqueAuditedFYs = Array.from(new Set(requests?.flatMap(r => r.auditedFY)));
+
+  const myAcceptedCount = React.useMemo(() => {
+    if (!requests || !user) return 0;
+    return requests.filter(r => r.assignedTo === user.uid).length;
+  }, [requests, user]);
+
 
   return (
     <>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <KpiCard title="My Accepted Requests" value={requests.length} description="Requests you are currently working on." />
-        <KpiCard title="Initial Cycle" value={requests.filter(r => r.cycle === 'Initial').length} description="Initial rating requests." />
-        <KpiCard title="Surveillance Cycle" value={requests.filter(r => r.cycle === 'Surveillance').length} description="Surveillance requests." />
+        <KpiCard title="My Accepted Requests" value={myAcceptedCount} description="Requests you are currently working on." />
+        <KpiCard title="Initial Cycle" value={requests?.filter(r => r.cycle === 'Initial').length || 0} description="Initial rating requests." />
+        <KpiCard title="Surveillance Cycle" value={requests?.filter(r => r.cycle === 'Surveillance').length || 0} description="Surveillance requests." />
         <KpiCard title="Overdue" value="0" description="Tasks past their due date." />
       </div>
       <Card>
@@ -293,7 +282,7 @@ export function AcceptedRequestsList() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {loading ? (
+                {isLoading || isUserLoading ? (
                   Array.from({ length: pagination.pageSize }).map((_, i) => (
                     <TableRow key={i}>
                       <TableCell colSpan={headers.length + 1}>
