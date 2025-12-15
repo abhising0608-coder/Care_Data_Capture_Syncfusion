@@ -1,8 +1,8 @@
 
 'use client';
 
-import { Suspense, useMemo } from 'react';
-import { useParams, useRouter, useSearchParams } from 'next/navigation';
+import { Suspense, useMemo, useEffect } from 'react';
+import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
   FileSpreadsheet,
@@ -22,14 +22,41 @@ import { useDoc, useFirestore, useUser, useMemoFirebase } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 
+const FormLoadingSkeleton = () => (
+    <div className="p-4 sm:p-6 lg:p-8 space-y-6">
+        <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
+          <Skeleton className="h-9 w-9 sm:hidden" />
+          <div>
+            <Skeleton className="h-8 w-64" />
+            <Skeleton className="h-4 w-48 mt-2" />
+          </div>
+        </header>
+        <main className="grid flex-1 items-start gap-4 px-4 sm:px-6 sm:py-0 md:gap-8">
+            <div className="flex items-center">
+              <div className="flex gap-1">
+                <Skeleton className="h-10 w-24" />
+                <Skeleton className="h-10 w-24" />
+                <Skeleton className="h-10 w-24" />
+                <Skeleton className="h-10 w-24" />
+              </div>
+              <div className="ml-auto flex items-center gap-2">
+                <Skeleton className="h-8 w-24" />
+              </div>
+            </div>
+            <Skeleton className="h-[600px] w-full" />
+        </main>
+    </div>
+);
+
+
 export default function OperationalInputFlowPage() {
   const params = useParams();
   const router = useRouter();
   const firestore = useFirestore();
   const { user } = useUser();
   const { toast } = useToast();
-  
-  const [requestId, activeTab] = params.slug || [];
+
+  const [requestId, activeTab] = useMemo(() => params.slug || [], [params.slug]);
 
   const operationalInputRef = useMemoFirebase(() => {
     if (!firestore || !requestId) return null;
@@ -37,7 +64,7 @@ export default function OperationalInputFlowPage() {
   }, [firestore, requestId]);
 
   const { data: operationalInputData, isLoading: isOperationalInputLoading } = useDoc(operationalInputRef);
-  const financialSector = operationalInputData?.initiation?.financialInputSector || 'Pharma'; // Default to Pharma for now
+  const financialSector = useMemo(() => operationalInputData?.initiation?.financialInputSector || 'Pharma', [operationalInputData]);
 
   const tabs = useMemo(() => [
     { id: 'basic-info', label: 'Basic Info', schema: basicInfoSchema, schemaType: 'form' },
@@ -47,8 +74,20 @@ export default function OperationalInputFlowPage() {
     { id: 'other-details', label: 'Other Details', schema: otherDetailsSchema, schemaType: 'form' },
   ], [financialSector]);
 
-  const currentTabIndex = tabs.findIndex(tab => tab.id === activeTab);
-  const currentTab = tabs[currentTabIndex];
+  const currentTabIndex = useMemo(() => tabs.findIndex(tab => tab.id === activeTab), [tabs, activeTab]);
+  const currentTab = useMemo(() => tabs[currentTabIndex], [tabs, currentTabIndex]);
+
+  useEffect(() => {
+    // If the slug is invalid or missing, redirect to the first tab or a default page.
+    if (!currentTab) {
+      if(requestId) {
+        router.replace(`/operational-input/${requestId}/${tabs[0].id}`);
+      } else {
+        router.replace('/ckc-requests');
+      }
+    }
+  }, [currentTab, requestId, router, tabs]);
+  
 
   const handleNext = async (data: any) => {
     if (!firestore || !user || !requestId || !currentTab) return;
@@ -91,48 +130,11 @@ export default function OperationalInputFlowPage() {
       router.push('/ckc-requests');
     }
   };
+
+  if (isOperationalInputLoading || !currentTab) {
+    return <FormLoadingSkeleton />;
+  }
   
-  const FormLoadingSkeleton = () => (
-    <div className="p-4 sm:p-6 lg:p-8 space-y-6">
-        <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
-          <Skeleton className="h-9 w-9 sm:hidden" />
-          <div>
-            <Skeleton className="h-8 w-64" />
-            <Skeleton className="h-4 w-48 mt-2" />
-          </div>
-        </header>
-        <main className="grid flex-1 items-start gap-4 px-4 sm:px-6 sm:py-0 md:gap-8">
-            <div className="flex items-center">
-              <div className="flex gap-1">
-                <Skeleton className="h-10 w-24" />
-                <Skeleton className="h-10 w-24" />
-                <Skeleton className="h-10 w-24" />
-                <Skeleton className="h-10 w-24" />
-              </div>
-              <div className="ml-auto flex items-center gap-2">
-                <Skeleton className="h-8 w-24" />
-              </div>
-            </div>
-            <Skeleton className="h-[600px] w-full" />
-        </main>
-    </div>
-  );
-
-
-  if (isOperationalInputLoading) {
-    return <FormLoadingSkeleton />;
-  }
-
-  if (!currentTab) {
-    // This can happen if the slug is invalid, redirect to the first tab
-    if(requestId) {
-        router.replace(`/operational-input/${requestId}/${tabs[0].id}`);
-    } else {
-        router.replace('/ckc-requests');
-    }
-    return <FormLoadingSkeleton />;
-  }
-
   return (
     <div className="flex min-h-screen w-full flex-col">
       <div className="flex flex-col sm:gap-4 sm:py-4">
