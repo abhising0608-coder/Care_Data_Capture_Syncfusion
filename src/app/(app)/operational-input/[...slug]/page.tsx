@@ -1,28 +1,12 @@
 
 'use client';
 
-import { Suspense } from 'react';
+import { Suspense, useMemo } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import {
-  File,
-  Home,
-  LineChart,
-  Package,
-  PanelLeft,
-  PlusCircle,
-  Search,
-  Settings,
-  ShoppingCart,
-  Upload,
-  Users2,
-  ChevronLeft,
-  ChevronRight,
-  Copy,
-  CreditCard,
-  MoreVertical,
-  Truck,
   FileSpreadsheet,
+  ChevronLeft,
 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -31,9 +15,11 @@ import { JsonSchemaForm } from '@/components/operational-input/json-schema-form'
 import { basicInfoSchema } from '@/lib/schemas/basic-info-schema';
 import { companyDetailsSchema } from '@/lib/schemas/company-details-schema';
 import { commonDetailsSchema } from '@/lib/schemas/common-details-schema';
-import { addDoc, collection, doc, setDoc } from 'firebase/firestore';
-import { useFirestore, useUser } from '@/firebase';
+import { pharmaSchema } from '@/lib/schemas/sectorial-schemas/pharma-schema';
+import { doc, setDoc } from 'firebase/firestore';
+import { useDoc, useFirestore, useUser, useMemoFirebase } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function OperationalInputFlowPage() {
   const params = useParams();
@@ -44,13 +30,21 @@ export default function OperationalInputFlowPage() {
   
   const [requestId, activeTab] = params.slug || [];
 
-  const tabs = [
-    { id: 'basic-info', label: 'Basic Info', schema: basicInfoSchema },
-    { id: 'company-details', label: 'Company Details', schema: companyDetailsSchema },
-    { id: 'common-details', label: 'Common Details', schema: commonDetailsSchema },
-    { id: 'sectorial-operational-data', label: 'Sectorial Operational Data', schema: {} },
-    { id: 'other-details', label: 'Other Details', schema: {} },
-  ];
+  const operationalInputRef = useMemoFirebase(() => {
+    if (!firestore || !requestId) return null;
+    return doc(firestore, 'operational_input', requestId);
+  }, [firestore, requestId]);
+
+  const { data: operationalInputData, isLoading: isOperationalInputLoading } = useDoc(operationalInputRef);
+  const financialSector = operationalInputData?.initiation?.financialInputSector || 'Pharma'; // Default to Pharma for now
+
+  const tabs = useMemo(() => [
+    { id: 'basic-info', label: 'Basic Info', schema: basicInfoSchema, schemaType: 'form' },
+    { id: 'company-details', label: 'Company Details', schema: companyDetailsSchema, schemaType: 'form' },
+    { id: 'common-details', label: 'Common Details', schema: commonDetailsSchema, schemaType: 'form' },
+    { id: 'sectorial-operational-data', label: `${financialSector} Operational Data`, schema: pharmaSchema, schemaType: 'spreadsheet' },
+    { id: 'other-details', label: 'Other Details', schema: {}, schemaType: 'form' },
+  ], [financialSector]);
 
   const currentTabIndex = tabs.findIndex(tab => tab.id === activeTab);
   const currentTab = tabs[currentTabIndex];
@@ -96,6 +90,37 @@ export default function OperationalInputFlowPage() {
       router.push('/ckc-requests');
     }
   };
+  
+  const FormLoadingSkeleton = () => (
+    <div className="p-4 sm:p-6 lg:p-8 space-y-6">
+        <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
+          <Skeleton className="h-9 w-9 sm:hidden" />
+          <div>
+            <Skeleton className="h-8 w-64" />
+            <Skeleton className="h-4 w-48 mt-2" />
+          </div>
+        </header>
+        <main className="grid flex-1 items-start gap-4 px-4 sm:px-6 sm:py-0 md:gap-8">
+            <div className="flex items-center">
+              <div className="flex gap-1">
+                <Skeleton className="h-10 w-24" />
+                <Skeleton className="h-10 w-24" />
+                <Skeleton className="h-10 w-24" />
+                <Skeleton className="h-10 w-24" />
+              </div>
+              <div className="ml-auto flex items-center gap-2">
+                <Skeleton className="h-8 w-24" />
+              </div>
+            </div>
+            <Skeleton className="h-[600px] w-full" />
+        </main>
+    </div>
+  );
+
+
+  if (isOperationalInputLoading) {
+    return <FormLoadingSkeleton />;
+  }
 
   if (!currentTab) {
     // This can happen if the slug is invalid, redirect to the first tab
@@ -104,7 +129,7 @@ export default function OperationalInputFlowPage() {
     } else {
         router.replace('/ckc-requests');
     }
-    return <div>Loading...</div>;
+    return <FormLoadingSkeleton />;
   }
 
   return (
@@ -143,6 +168,7 @@ export default function OperationalInputFlowPage() {
                     <JsonSchemaForm
                         key={activeTab} // Ensures re-render on tab change
                         schema={currentTab.schema}
+                        schemaType={currentTab.schemaType as any}
                         onSubmit={handleNext}
                         onCancel={handleBack}
                         requestId={requestId}

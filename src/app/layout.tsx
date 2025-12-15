@@ -1,17 +1,21 @@
+'use client';
 import type {Metadata} from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
-
-export const metadata: Metadata = {
-  title: 'CareEdge Operational Data Input',
-  description: 'Operational Data Input for CareEdge',
-};
+import { useEffect } from 'react';
+import { registerLicense } from '@syncfusion/ej2-base';
 
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+
+  useEffect(() => {
+    // Register the Syncfusion license key
+    registerLicense('Ngo9BigBOggjHTQxAR8/V1NBaF5cWWJCe0x3Q3xbf1x0ZFNMyV5bQXVPMyBoS35RdURhW35ednBRR2BeWUJ1');
+  }, []);
+
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
