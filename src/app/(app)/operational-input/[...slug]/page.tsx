@@ -117,10 +117,6 @@ const OperationalInputFlowContent = ({ operationalInputData, requestId, activeTa
         }
     };
 
-    if (!currentTab) {
-      return <FormLoadingSkeleton />;
-    }
-
     return (
         <div className="flex min-h-screen w-full flex-col">
             <div className="flex flex-col sm:gap-4 sm:py-4">
@@ -152,20 +148,26 @@ const OperationalInputFlowContent = ({ operationalInputData, requestId, activeTa
                                 </Button>
                             </div>
                         </div>
-                        <TabsContent value={activeTab || ''} forceMount>
-                            <Suspense fallback={<div>Loading form...</div>}>
-                                <JsonSchemaForm
-                                    key={activeTab}
-                                    schema={currentTab.schema}
-                                    schemaType={currentTab.schemaType as any}
-                                    onSubmit={handleNext}
-                                    onCancel={handleBack}
-                                    requestId={requestId}
-                                    dataKey={currentTab.id.replace(/-/g, '_')}
-                                    isLastStep={currentTabIndex === tabs.length - 1}
-                                />
-                            </Suspense>
-                        </TabsContent>
+                        {currentTab ? (
+                            <TabsContent value={activeTab || ''} forceMount>
+                                <Suspense fallback={<div>Loading form...</div>}>
+                                    <JsonSchemaForm
+                                        key={activeTab}
+                                        schema={currentTab.schema}
+                                        schemaType={currentTab.schemaType as any}
+                                        onSubmit={handleNext}
+                                        onCancel={handleBack}
+                                        requestId={requestId}
+                                        dataKey={currentTab.id.replace(/-/g, '_')}
+                                        isLastStep={currentTabIndex === tabs.length - 1}
+                                    />
+                                </Suspense>
+                            </TabsContent>
+                        ) : (
+                           <TabsContent value={activeTab || ''} forceMount>
+                               <FormLoadingSkeleton />
+                           </TabsContent>
+                        )}
                     </Tabs>
                 </main>
             </div>
