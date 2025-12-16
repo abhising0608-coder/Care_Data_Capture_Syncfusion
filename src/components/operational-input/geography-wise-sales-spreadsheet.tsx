@@ -220,18 +220,6 @@ export function GeographyWiseSalesSpreadsheet({ data, onSave }: GeographyWiseSal
     applyFormattingAndFormulas(spreadsheet);
   }, [constructSheet, applyFormattingAndFormulas]);
 
-  useEffect(() => {
-    const spreadsheet = spreadsheetRef.current;
-    // Ensure the component is fully mounted and ready
-    if (spreadsheet && spreadsheet.element.parentElement) {
-      // Logic to update data without full reconstruction could go here
-      // For now, we reconstruct, but in a more controlled way than before
-      constructSheet(spreadsheet);
-      applyFormattingAndFormulas(spreadsheet);
-    }
-  }, [activeData, constructSheet, applyFormattingAndFormulas]);
-
-
   const handleSave = async () => {
     const spreadsheet = spreadsheetRef.current;
     if (spreadsheet) {
