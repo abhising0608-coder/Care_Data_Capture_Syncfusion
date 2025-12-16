@@ -2,19 +2,17 @@
 import type {Metadata} from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
-import { useEffect } from 'react';
 import { registerLicense } from '@syncfusion/ej2-base';
+
+// Register the Syncfusion license key at the module level
+registerLicense('Ngo9BigBOggjHTQxAR8/V1JGaF5cXGpCf0x3QXxbf1x2ZFRHal5ZTndbUj0eQnxTdEBiW35bcndXTmFVV01/VkleYQ==');
+
 
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-
-  useEffect(() => {
-    // Register the Syncfusion license key
-    registerLicense('Ngo9BigBOggjHTQxAR8/V1JGaF5cXGpCf0x3QXxbf1x2ZFRHal5ZTndbUj0eQnxTdEBiW35bcndXTmFVV01/VkleYQ==');
-  }, []);
 
   return (
     <html lang="en" suppressHydrationWarning>
