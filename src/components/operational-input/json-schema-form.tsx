@@ -23,6 +23,7 @@ import { Skeleton } from '../ui/skeleton';
 import { PlusCircle, Trash2, Check, RefreshCw, Pencil, X, ChevronsUp, ChevronsDown } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { SyncfusionSpreadsheet } from './syncfusion-spreadsheet';
+import { GeographyWiseSalesSpreadsheet } from './geography-wise-sales-spreadsheet';
 
 // Helper to generate a single field schema for Zod
 const generateZodField = (prop: any): z.ZodTypeAny => {
@@ -320,12 +321,14 @@ export function JsonSchemaForm({ schema, onSubmit, onCancel, requestId, dataKey,
     const dataAvailability = useWatch({ control: form.control, name: dataAvailabilityPath });
 
     const uiVariant = sectionProp['x-ui-variant'];
+    const spreadsheetType = sectionProp['x-ui-spreadsheet-type'];
+
 
     const renderContent = () => {
         if (dataAvailability !== 'Available') return null;
 
         if (uiVariant === 'spreadsheet') {
-             const versionsPath = `${sectionKey}.versions`;
+            const versionsPath = `${sectionKey}.versions`;
             const activeVersionPath = `${sectionKey}.activeVersion`;
 
             const handleSave = (newData: any[]) => {
@@ -345,14 +348,28 @@ export function JsonSchemaForm({ schema, onSubmit, onCancel, requestId, dataKey,
             const handleRollback = (versionNumber: number) => {
                 form.setValue(activeVersionPath as any, versionNumber);
             };
+
+            const spreadsheetData = form.getValues(sectionKey as any);
             
-            return (
-              <SyncfusionSpreadsheet
-                data={form.getValues(sectionKey as any)}
-                onSave={handleSave}
-                onRollback={handleRollback}
-              />
-            );
+            switch (spreadsheetType) {
+              case 'geography-sales':
+                return (
+                  <GeographyWiseSalesSpreadsheet
+                    data={spreadsheetData}
+                    onSave={handleSave}
+                    onRollback={handleRollback}
+                  />
+                );
+              case 'simple-table':
+              default:
+                return (
+                  <SyncfusionSpreadsheet
+                    data={spreadsheetData}
+                    onSave={handleSave}
+                    onRollback={handleRollback}
+                  />
+                );
+            }
         }
 
         if (sectionProp.properties.tableData) {

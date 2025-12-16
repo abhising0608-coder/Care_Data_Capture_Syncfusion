@@ -7,6 +7,7 @@ export const pharmaSchema = {
       "type": "object",
       "title": "Manufacturing Facilities",
       "x-ui-variant": "spreadsheet",
+      "x-ui-spreadsheet-type": "simple-table",
       "properties": {
         "dataAvailability": {
           "type": "string",
@@ -34,6 +35,7 @@ export const pharmaSchema = {
       "type": "object",
       "title": "Geography-wise Sales",
       "x-ui-variant": "spreadsheet",
+      "x-ui-spreadsheet-type": "geography-sales",
       "properties": {
         "dataAvailability": {
           "type": "string",
@@ -41,9 +43,19 @@ export const pharmaSchema = {
           "enum": ["Available", "Not Available", "Not Applicable"],
           "default": "Not Applicable"
         },
-        "spreadsheetData": {
+        "versions": {
+          "type": "array",
+          "items": {
             "type": "object",
-            "title": "Spreadsheet Data"
+            "properties": {
+              "version": { "type": "number" },
+              "timestamp": { "type": "string" },
+              "data": { "type": "array" }
+            }
+          }
+        },
+        "activeVersion": {
+          "type": "number"
         }
       }
     },

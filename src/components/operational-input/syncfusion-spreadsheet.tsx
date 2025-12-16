@@ -10,6 +10,7 @@ import { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import { Button } from '../ui/button';
 import { Save, Plus, Trash2, History, Undo } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+import { registerLicense } from '@syncfusion/ej2-base';
 
 interface Version {
   version: number;
@@ -32,7 +33,7 @@ const HEADERS = ['Sr. No.', 'Location', 'Product Segment', 'Regulatory Approvals
 
 export function SyncfusionSpreadsheet({ data, onSave, onRollback }: SyncfusionSpreadsheetProps) {
   const spreadsheetRef = useRef<SpreadsheetComponent>(null);
-
+  registerLicense('Ngo9BigBOggjHTQxAR8/V1JGaF5cXGpCf0x3QXxbf1x2ZFRHal5ZTndbUj0eQnxTdEBiW35bcndXTmFVV01/VkleYQ==');
   const activeData = useMemo(() => {
     // Always show the active version's data
     if (!data || !data.versions) {
