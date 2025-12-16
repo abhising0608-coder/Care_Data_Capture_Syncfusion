@@ -222,7 +222,10 @@ export function GeographyWiseSalesSpreadsheet({ data, onSave }: GeographyWiseSal
 
   useEffect(() => {
     const spreadsheet = spreadsheetRef.current;
+    // Ensure the component is fully mounted and ready
     if (spreadsheet && spreadsheet.element.parentElement) {
+      // Logic to update data without full reconstruction could go here
+      // For now, we reconstruct, but in a more controlled way than before
       constructSheet(spreadsheet);
       applyFormattingAndFormulas(spreadsheet);
     }
