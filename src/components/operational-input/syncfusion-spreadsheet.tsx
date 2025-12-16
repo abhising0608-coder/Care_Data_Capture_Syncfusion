@@ -1,3 +1,4 @@
+
 'use client';
 import {
   SpreadsheetComponent,
@@ -34,9 +35,10 @@ export function SyncfusionSpreadsheet({ data, onSave, onRollback }: SyncfusionSp
   const [selectedVersion, setSelectedVersion] = useState<number>(data.activeVersion);
 
   const activeData = useMemo(() => {
-    const versionData = data.versions.find(v => v.version === selectedVersion);
+    // Always show the active version's data
+    const versionData = data.versions.find(v => v.version === data.activeVersion);
     return versionData ? versionData.data : [];
-  }, [data.versions, selectedVersion]);
+  }, [data.versions, data.activeVersion]);
 
 
   useEffect(() => {
@@ -165,38 +167,9 @@ export function SyncfusionSpreadsheet({ data, onSave, onRollback }: SyncfusionSp
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between gap-4 p-2 border rounded-md">
-        <div className='flex items-center gap-2'>
-            <Button onClick={handleAddRow} size="sm" variant="outline"><Plus className="mr-2 h-4 w-4" /> Add Row</Button>
-            <Button onClick={handleSave} size="sm"><Save className="mr-2 h-4 w-4" /> Save as New Version</Button>
-            <Button onClick={handleClear} size="sm" variant="destructive"><Trash2 className="mr-2 h-4 w-4" /> Clear Sheet</Button>
-        </div>
-        <div className="flex items-center gap-2">
-            <History className="h-5 w-5 text-muted-foreground" />
-            <Select 
-                value={selectedVersion?.toString()}
-                onValueChange={(val) => setSelectedVersion(Number(val))}
-            >
-                <SelectTrigger className="w-[280px]">
-                    <SelectValue placeholder="Select a version to view" />
-                </SelectTrigger>
-                <SelectContent>
-                    {data.versions.slice().reverse().map(v => (
-                        <SelectItem key={v.version} value={v.version.toString()}>
-                           Version {v.version} ({formatTimestamp(v.timestamp)}) {v.version === data.activeVersion ? '(Active)' : ''}
-                        </SelectItem>
-                    ))}
-                </SelectContent>
-            </Select>
-            <Button 
-                onClick={handleRollback} 
-                size="sm" 
-                variant="secondary" 
-                disabled={selectedVersion === data.activeVersion}
-            >
-                <Undo className="mr-2 h-4 w-4" /> Rollback to Selected
-            </Button>
-        </div>
+      <div className="flex items-center justify-start gap-2 p-2 border rounded-md">
+        <Button onClick={handleAddRow} size="sm" variant="outline"><Plus className="mr-2 h-4 w-4" /> Add Row</Button>
+        <Button onClick={handleSave} size="sm"><Save className="mr-2 h-4 w-4" /> Save as New Version</Button>
       </div>
       <div className="h-[600px] w-full">
           <style>
