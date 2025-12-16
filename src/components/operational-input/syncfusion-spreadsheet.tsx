@@ -32,19 +32,17 @@ const HEADERS = ['Sr. No.', 'Location', 'Product Segment', 'Regulatory Approvals
 
 export function SyncfusionSpreadsheet({ data, onSave, onRollback }: SyncfusionSpreadsheetProps) {
   const spreadsheetRef = useRef<SpreadsheetComponent>(null);
-  const [selectedVersion, setSelectedVersion] = useState<number>(data.activeVersion);
 
   const activeData = useMemo(() => {
     // Always show the active version's data
+    if (!data || !data.versions) {
+      return [];
+    }
     const versionData = data.versions.find(v => v.version === data.activeVersion);
     return versionData ? versionData.data : [];
-  }, [data.versions, data.activeVersion]);
+  }, [data]);
 
 
-  useEffect(() => {
-    setSelectedVersion(data.activeVersion);
-  }, [data.activeVersion]);
-  
   const loadSheetData = useCallback((spreadsheet: SpreadsheetComponent | null) => {
     if (!spreadsheet) return;
 
@@ -139,32 +137,6 @@ export function SyncfusionSpreadsheet({ data, onSave, onRollback }: SyncfusionSp
     }
   };
   
-  const handleClear = () => {
-    const spreadsheet = spreadsheetRef.current;
-    if (spreadsheet) {
-        const rowCount = spreadsheet.sheets[0].rows?.length || 0;
-        if(rowCount > 1) {
-            spreadsheet.deleteRow(1, rowCount - 1);
-        }
-    }
-  };
-
-  const handleRollback = () => {
-    if (selectedVersion) {
-      onRollback(selectedVersion);
-    }
-  };
-  
-  const formatTimestamp = (timestamp: string) => {
-    return new Date(timestamp).toLocaleString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  }
-
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-start gap-2 p-2 border rounded-md">
