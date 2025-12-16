@@ -142,7 +142,6 @@ export function GeographyWiseSalesSpreadsheet({ data, onSave }: GeographyWiseSal
     
     spreadsheet.lockCells(`A1:${String.fromCharCode(65 + (sheet.columns?.length || 1) )}${sheet.rows.length}`, true);
     spreadsheet.lockCells(`A1:${String.fromCharCode(65 + (sheet.columns?.length || 1) )}2`, true);
-    spreadsheet.element.focus(); // Refresh UI
   }, [dynamicPeriods]);
 
   const constructSheet = useCallback((spreadsheet: SpreadsheetComponent) => {
@@ -216,8 +215,10 @@ export function GeographyWiseSalesSpreadsheet({ data, onSave }: GeographyWiseSal
   const onCreated = useCallback(() => {
     const spreadsheet = spreadsheetRef.current;
     if (!spreadsheet) return;
+    spreadsheet.element.style.height = '400px';
     constructSheet(spreadsheet);
     applyFormattingAndFormulas(spreadsheet);
+    spreadsheet.element.focus();
   }, [constructSheet, applyFormattingAndFormulas]);
 
   const handleSave = async () => {
@@ -262,7 +263,7 @@ export function GeographyWiseSalesSpreadsheet({ data, onSave }: GeographyWiseSal
           <Save className="mr-2 h-4 w-4" /> Save as New Version
         </Button>
       </div>
-      <div className="h-[400px] w-full">
+      <div className="w-full">
         <style>
           {`@import url('https://cdn.syncfusion.com/ej2/material.css');`}
         </style>
@@ -274,8 +275,7 @@ export function GeographyWiseSalesSpreadsheet({ data, onSave }: GeographyWiseSal
           showRibbon={false}
           allowSave={true}
           allowOpen={false}
-          cellEdit={(args) => {
-              // After a cell is edited, re-apply formulas to ensure dependent cells are updated
+          cellEdit={() => {
               if (spreadsheetRef.current) {
                   setTimeout(() => applyFormattingAndFormulas(spreadsheetRef.current!), 100);
               }
@@ -285,3 +285,5 @@ export function GeographyWiseSalesSpreadsheet({ data, onSave }: GeographyWiseSal
     </div>
   );
 }
+
+    
