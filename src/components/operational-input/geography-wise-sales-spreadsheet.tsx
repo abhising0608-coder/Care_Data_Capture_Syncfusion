@@ -6,15 +6,10 @@ import {
   SheetModel,
   ColumnModel,
   CellModel,
-  getRangeAddress,
-  RangeModel,
 } from '@syncfusion/ej2-react-spreadsheet';
 import { useEffect, useRef, useMemo, useCallback } from 'react';
 import { Button } from '../ui/button';
 import { Save } from 'lucide-react';
-import { create, all } from 'mathjs';
-
-const math = create(all);
 
 interface Version {
   version: number;
@@ -66,7 +61,19 @@ export function GeographyWiseSalesSpreadsheet({ data, onSave }: GeographyWiseSal
     return versionData ? versionData.data : {};
   }, [data]);
 
-  const applyFormattingAndFormulas = (spreadsheet: SpreadsheetComponent) => {
+    const applyFormattingAndFormulas = useCallback((spreadsheet: SpreadsheetComponent) => {
+    const sheet = spreadsheet.sheets[0];
+    if (!sheet || !sheet.rows) return;
+
+    // Dynamically find row indices
+    const findRowIndex = (name: string) => sheet.rows!.findIndex(r => r.cells?.[0]?.value === name);
+    const domesticRow = findRowIndex('Domestic') + 1;
+    const exportRow = findRowIndex('Export') + 1;
+    const totalSalesRow = findRowIndex('Total Sales') + 1;
+    const exportChildStartRow = exportRow + 1;
+    const exportChildEndRow = totalSalesRow -1;
+
+
     // Merge header cells
     spreadsheet.merge('A1:A2');
     const fullFyPeriods = dynamicPeriods.filter(p => p.startsWith('FY'));
@@ -82,70 +89,60 @@ export function GeographyWiseSalesSpreadsheet({ data, onSave }: GeographyWiseSal
         spreadsheet.merge(`${yoyCol}1:${yoyCol}2`);
     }
 
-    // Apply formulas and locks
-    ROW_CONFIG.forEach((rowConfig, rowIndex) => {
-      const r = rowIndex + 3; // 1-based index, accounting for 2 header rows
-      
-      // Lock non-editable value rows
-      if (!rowConfig.isEditable) {
-        const lockRange = `B${r}:${String.fromCharCode(65 + dynamicPeriods.length * 2)}${r}`;
-        spreadsheet.lockCells(lockRange, true);
-      } else {
-        dynamicPeriods.forEach((period, i) => {
+    // Apply formulas and locks for all data rows
+    for (let r = 3; r <= sheet.rows.length; r++) {
+        const rowConfig = ROW_CONFIG.find(rc => rc.name === sheet.rows![r-1].cells![0].value);
+
+        if (!rowConfig) continue;
+
+        if (!rowConfig.isEditable) {
+             const lockRange = `B${r}:${String.fromCharCode(65 + dynamicPeriods.length * 2 + (fullFyPeriods.length > 1 ? 1 : 0))}${r}`;
+             spreadsheet.lockCells(lockRange, true);
+        }
+
+        dynamicPeriods.forEach((_period, i) => {
             const valCol = String.fromCharCode(66 + i * 2);
-            spreadsheet.lockCells(`${valCol}${r}`, false);
+            const shareCol = String.fromCharCode(67 + i * 2);
+
+            // % Share Formula
+            const shareFormula = `=IFERROR(${valCol}${r}/${valCol}${totalSalesRow}, 0)`;
+            spreadsheet.updateCell({ formula: shareFormula }, `${shareCol}${r}`);
+            spreadsheet.lockCells(`${shareCol}${r}`, true);
         });
-      }
-
-
-      const totalSalesRow = ROW_CONFIG.findIndex(c => c.name === 'Total Sales') + 3;
-
-      dynamicPeriods.forEach((_period, i) => {
-        const valCol = String.fromCharCode(66 + i * 2);
-        const shareCol = String.fromCharCode(67 + i * 2);
-
-        // % Share Formula
-        const shareFormula = `=IFERROR(${valCol}${r}/${valCol}${totalSalesRow}, 0)`;
-        spreadsheet.updateCell({ formula: shareFormula }, `${shareCol}${r}`);
-        spreadsheet.lockCells(`${shareCol}${r}`, true);
-      });
       
-      // Y-o-Y Growth Formula
-      if (fullFyPeriods.length > 1) {
-        const yoyCol = String.fromCharCode(66 + fullFyPeriods.length * 2);
-        const latestFyValCol = String.fromCharCode(66 + (fullFyPeriods.length - 1) * 2);
-        const prevFyValCol = String.fromCharCode(66 + (fullFyPeriods.length - 2) * 2);
-        
-        const yoyFormula = `=IFERROR((${latestFyValCol}${r}-${prevFyValCol}${r})/${prevFyValCol}${r}, 0)`;
-        spreadsheet.updateCell({ formula: yoyFormula }, `${yoyCol}${r}`);
-        spreadsheet.lockCells(`${yoyCol}${r}`, true);
-      }
-
-    });
+        // Y-o-Y Growth Formula
+        if (fullFyPeriods.length > 1) {
+            const yoyCol = String.fromCharCode(66 + fullFyPeriods.length * 2);
+            const latestFyValCol = String.fromCharCode(66 + (fullFyPeriods.length - 1) * 2);
+            const prevFyValCol = String.fromCharCode(66 + (fullFyPeriods.length - 2) * 2);
+            
+            const yoyFormula = `=IFERROR((${latestFyValCol}${r}-${prevFyValCol}${r})/${prevFyValCol}${r}, 0)`;
+            spreadsheet.updateCell({ formula: yoyFormula }, `${yoyCol}${r}`);
+            spreadsheet.lockCells(`${yoyCol}${r}`, true);
+        }
+    }
     
     // Derived row formulas (Export, Total Sales)
-    const exportRow = ROW_CONFIG.findIndex(c => c.name === 'Export') + 3;
-    const usaRow = ROW_CONFIG.findIndex(c => c.name === 'USA') + 3;
-    const rotwRow = ROW_CONFIG.findIndex(c => c.name === 'Rest of the World') + 3;
-    const othersRow = ROW_CONFIG.findIndex(c => c.name === 'Others') + 3;
-    const totalSalesRow = ROW_CONFIG.findIndex(c => c.name === 'Total Sales') + 3;
-    const domesticRow = ROW_CONFIG.findIndex(c => c.name === 'Domestic') + 3;
-
     dynamicPeriods.forEach((_period, i) => {
       const valCol = String.fromCharCode(66 + i * 2);
 
-      // Export = USA + Rest of the World + Others
-      const exportFormula = `=SUM(${valCol}${usaRow},${valCol}${rotwRow},${valCol}${othersRow})`;
-      spreadsheet.updateCell({ formula: exportFormula }, `${valCol}${exportRow}`);
+      // Export = SUM of children
+      if (exportChildEndRow >= exportChildStartRow) {
+        const exportFormula = `=SUM(${valCol}${exportChildStartRow}:${valCol}${exportChildEndRow})`;
+        spreadsheet.updateCell({ formula: exportFormula }, `${valCol}${exportRow}`);
+      } else {
+        spreadsheet.updateCell({ value: '0' }, `${valCol}${exportRow}`);
+      }
+
 
       // Total Sales = Domestic + Export
       const totalSalesFormula = `=SUM(${valCol}${domesticRow},${valCol}${exportRow})`;
       spreadsheet.updateCell({ formula: totalSalesFormula }, `${valCol}${totalSalesRow}`);
     });
     
-    spreadsheet.lockCells(`A1:${String.fromCharCode(65 + (spreadsheet.sheets[0].columns?.length || 1) )}2`, true);
+    spreadsheet.lockCells(`A1:${String.fromCharCode(65 + (sheet.columns?.length || 1) )}2`, true);
     spreadsheet.element.focus(); // Refresh UI
-  };
+  }, [dynamicPeriods]);
 
   const constructSheet = useCallback((spreadsheet: SpreadsheetComponent) => {
     const fullFyPeriods = dynamicPeriods.filter(p => p.startsWith('FY'));
@@ -225,34 +222,41 @@ export function GeographyWiseSalesSpreadsheet({ data, onSave }: GeographyWiseSal
 
   useEffect(() => {
     const spreadsheet = spreadsheetRef.current;
-    if (spreadsheet) {
+    if (spreadsheet && spreadsheet.element.parentElement) {
       constructSheet(spreadsheet);
     }
   }, [activeData, constructSheet]);
+
 
   const handleSave = async () => {
     const spreadsheet = spreadsheetRef.current;
     if (spreadsheet) {
       const dataToSave: Record<string, Record<string, number | string>> = {};
-      
-      for (const rowConfig of ROW_CONFIG) {
-        if (rowConfig.isEditable) {
-          const rowIndex = ROW_CONFIG.findIndex(c => c.name === rowConfig.name) + 2; // 0-based index
-          dataToSave[rowConfig.name] = {};
-          
-          for (let i = 0; i < dynamicPeriods.length; i++) {
-            const period = dynamicPeriods[i];
-            const colIndex = 1 + i * 2; // 0-based index for value column
-            const cell = await spreadsheet.getCell(rowIndex, colIndex);
-            let value = cell.value;
+      const sheet = spreadsheet.sheets[spreadsheet.activeSheetIndex];
+      if (!sheet || !sheet.rows) return;
+
+      for(let i = 0; i < sheet.rows.length; i++) {
+        const row = sheet.rows[i];
+        const rowConfig = ROW_CONFIG.find(c => c.name === row.cells?.[0].value)
+        if (rowConfig && rowConfig.isEditable) {
+            const rowName = row.cells?.[0].value as string;
+            if(!rowName) continue;
             
-            if (typeof value === 'string' && !isNaN(parseFloat(value))) {
-              value = parseFloat(value);
+            dataToSave[rowName] = {};
+
+            for (let j = 0; j < dynamicPeriods.length; j++) {
+                const period = dynamicPeriods[j];
+                const colIndex = 1 + j * 2;
+                const cell = await spreadsheet.getCell(i, colIndex);
+                let value = cell.value;
+                
+                if (typeof value === 'string' && !isNaN(parseFloat(value))) {
+                  value = parseFloat(value);
+                } else if (value === '' || value === undefined || value === null) {
+                  continue;
+                }
+                dataToSave[rowName][period] = value as number | string;
             }
-            if (value !== undefined && value !== null && value !== '') {
-              dataToSave[rowConfig.name][period] = value as number | string;
-            }
-          }
         }
       }
       onSave(dataToSave);
@@ -278,6 +282,12 @@ export function GeographyWiseSalesSpreadsheet({ data, onSave }: GeographyWiseSal
           showRibbon={false}
           allowSave={true}
           allowOpen={false}
+          cellEdit={(args) => {
+              // After a cell is edited, re-apply formulas to ensure dependent cells are updated
+              if (spreadsheetRef.current) {
+                  setTimeout(() => applyFormattingAndFormulas(spreadsheetRef.current!), 100);
+              }
+          }}
         ></SpreadsheetComponent>
       </div>
     </div>
