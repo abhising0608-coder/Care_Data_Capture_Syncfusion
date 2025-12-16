@@ -62,17 +62,27 @@ export function GeographyWiseSalesSpreadsheet({ data, onSave }: GeographyWiseSal
   }, [data]);
 
     const applyFormattingAndFormulas = useCallback((spreadsheet: SpreadsheetComponent) => {
+    if (!spreadsheet) return;
     const sheet = spreadsheet.sheets[0];
     if (!sheet || !sheet.rows) return;
 
     // Dynamically find row indices
-    const findRowIndex = (name: string) => sheet.rows!.findIndex(r => r.cells?.[0]?.value === name);
+    const findRowIndex = (name: string): number => {
+        if (!sheet.rows) return -1;
+        for(let i = 0; i < sheet.rows.length; i++) {
+            const row = sheet.rows[i];
+            if (row && row.cells && row.cells[0] && row.cells[0].value === name) {
+                return i;
+            }
+        }
+        return -1;
+    };
+    
     const domesticRow = findRowIndex('Domestic') + 1;
     const exportRow = findRowIndex('Export') + 1;
     const totalSalesRow = findRowIndex('Total Sales') + 1;
     const exportChildStartRow = exportRow + 1;
     const exportChildEndRow = totalSalesRow -1;
-
 
     // Merge header cells
     spreadsheet.merge('A1:A2');
@@ -91,7 +101,7 @@ export function GeographyWiseSalesSpreadsheet({ data, onSave }: GeographyWiseSal
 
     // Apply formulas and locks for all data rows
     for (let r = 3; r <= sheet.rows.length; r++) {
-        const rowConfig = ROW_CONFIG.find(rc => rc.name === sheet.rows![r-1].cells![0].value);
+        const rowConfig = ROW_CONFIG.find(rc => rc.name === (sheet.rows![r-1] as any).cells[0].value);
 
         if (!rowConfig) continue;
 
@@ -105,7 +115,7 @@ export function GeographyWiseSalesSpreadsheet({ data, onSave }: GeographyWiseSal
             const shareCol = String.fromCharCode(67 + i * 2);
 
             // % Share Formula
-            const shareFormula = `=IFERROR(${valCol}${r}/${valCol}${totalSalesRow}, 0)`;
+            const shareFormula = `=IFERROR((${valCol}${r}/${valCol}${totalSalesRow}), 0)`;
             spreadsheet.updateCell({ formula: shareFormula }, `${shareCol}${r}`);
             spreadsheet.lockCells(`${shareCol}${r}`, true);
         });
@@ -140,8 +150,9 @@ export function GeographyWiseSalesSpreadsheet({ data, onSave }: GeographyWiseSal
       spreadsheet.updateCell({ formula: totalSalesFormula }, `${valCol}${totalSalesRow}`);
     });
     
-    spreadsheet.lockCells(`A1:${String.fromCharCode(65 + (sheet.columns?.length || 1) )}${sheet.rows.length}`, true);
-    spreadsheet.lockCells(`A1:${String.fromCharCode(65 + (sheet.columns?.length || 1) )}2`, true);
+    const maxCol = String.fromCharCode(65 + (sheet.columns?.length || 1) );
+    // Lock all headers
+    spreadsheet.lockCells(`A1:${maxCol}2`, true);
   }, [dynamicPeriods]);
 
   const constructSheet = useCallback((spreadsheet: SpreadsheetComponent) => {
@@ -196,12 +207,12 @@ export function GeographyWiseSalesSpreadsheet({ data, onSave }: GeographyWiseSal
       dynamicPeriods.forEach(period => {
         const value = activeData[rowConfig.name]?.[period] ?? '';
         dataCells.push({ value: value.toString(), format: '#,##0' }); // Value
-        dataCells.push({ format: '0.00"%"' }); // % Share (formula)
+        dataCells.push({ format: '0.00%' }); // % Share (formula)
       });
       
       // Add placeholder for YoY growth
       if (fullFyPeriods.length > 1) {
-         dataCells.splice(1 + fullFyPeriods.length * 2, 0, { format: '0.00"%"' }); // YoY Growth
+         dataCells.splice(1 + fullFyPeriods.length * 2, 0, { format: '0.00%' }); // YoY Growth
       }
 
       rows.push({ cells: dataCells });
@@ -228,9 +239,11 @@ export function GeographyWiseSalesSpreadsheet({ data, onSave }: GeographyWiseSal
       const sheet = spreadsheet.sheets[spreadsheet.activeSheetIndex];
       if (!sheet || !sheet.rows) return;
 
-      for(let i = 0; i < sheet.rows.length; i++) {
+      for(let i = 2; i < sheet.rows.length; i++) { // Start from row 3 (index 2)
         const row = sheet.rows[i];
-        const rowConfig = ROW_CONFIG.find(c => c.name === row.cells?.[0].value)
+        if(!row || !row.cells) continue;
+
+        const rowConfig = ROW_CONFIG.find(c => c.name === row.cells![0].value)
         if (rowConfig && rowConfig.isEditable) {
             const rowName = row.cells?.[0].value as string;
             if(!rowName) continue;
@@ -285,5 +298,3 @@ export function GeographyWiseSalesSpreadsheet({ data, onSave }: GeographyWiseSal
     </div>
   );
 }
-
-    
