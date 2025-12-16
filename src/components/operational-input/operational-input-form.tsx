@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useId } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -36,7 +36,6 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import type { CKCRequest } from '@/lib/definitions';
 import { Skeleton } from '../ui/skeleton';
-import { v4 as uuidv4 } from 'uuid';
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
 
@@ -58,12 +57,7 @@ export function OperationalInputForm() {
   const searchParams = useSearchParams();
   const requestIdFromQuery = searchParams.get('requestId');
   const { user } = useAuth();
-  const [clientUuid, setClientUuid] = useState<string | null>(null);
-
-  useEffect(() => {
-    // Generate UUID only on the client side after mount to avoid hydration errors
-    setClientUuid(uuidv4());
-  }, []);
+  const clientUuid = useId();
 
   const { data: requestData, isLoading: isRequestLoading } = useSWR<CKCRequest[]>(
     requestIdFromQuery ? `/api/requests?id=${requestIdFromQuery}` : null,
