@@ -13,7 +13,7 @@ export default function RootLayout({
 
   useEffect(() => {
     // Register the Syncfusion license key
-    registerLicense('Ngo9BigBOggjHTQxAR8/V1NBaF5cWWJCe0x3Q3xbf1x0ZFNMyV5bQXVPMyBoS35RdURhW35ednBRR2BeWUJ1');
+    registerLicense('Ngo9BigBOggjHTQxAR8/V1JGaF5cXGpCf0x3QXxbf1x2ZFRHal5ZTndbUj0eQnxTdEBiW35bcndXTmFVV01/VkleYQ==');
   }, []);
 
   return (
