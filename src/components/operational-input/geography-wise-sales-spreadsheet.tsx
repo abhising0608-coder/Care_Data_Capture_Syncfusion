@@ -140,6 +140,7 @@ export function GeographyWiseSalesSpreadsheet({ data, onSave }: GeographyWiseSal
       spreadsheet.updateCell({ formula: totalSalesFormula }, `${valCol}${totalSalesRow}`);
     });
     
+    spreadsheet.lockCells(`A1:${String.fromCharCode(65 + (sheet.columns?.length || 1) )}${sheet.rows.length}`, true);
     spreadsheet.lockCells(`A1:${String.fromCharCode(65 + (sheet.columns?.length || 1) )}2`, true);
     spreadsheet.element.focus(); // Refresh UI
   }, [dynamicPeriods]);
@@ -210,22 +211,22 @@ export function GeographyWiseSalesSpreadsheet({ data, onSave }: GeographyWiseSal
     spreadsheet.sheets = [{ rows, columns, showGridLines: false, protectSettings: { selectUnLockedCells: true } }];
     spreadsheet.activeSheetIndex = 0;
     
-    setTimeout(() => applyFormattingAndFormulas(spreadsheet), 0);
-
-  }, [dynamicPeriods, activeData, applyFormattingAndFormulas]);
+  }, [dynamicPeriods, activeData]);
 
   const onCreated = useCallback(() => {
     const spreadsheet = spreadsheetRef.current;
     if (!spreadsheet) return;
     constructSheet(spreadsheet);
-  }, [constructSheet]);
+    applyFormattingAndFormulas(spreadsheet);
+  }, [constructSheet, applyFormattingAndFormulas]);
 
   useEffect(() => {
     const spreadsheet = spreadsheetRef.current;
     if (spreadsheet && spreadsheet.element.parentElement) {
       constructSheet(spreadsheet);
+      applyFormattingAndFormulas(spreadsheet);
     }
-  }, [activeData, constructSheet]);
+  }, [activeData, constructSheet, applyFormattingAndFormulas]);
 
 
   const handleSave = async () => {
