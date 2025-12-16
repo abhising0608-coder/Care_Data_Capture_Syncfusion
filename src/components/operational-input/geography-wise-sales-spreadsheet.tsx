@@ -7,6 +7,7 @@ import {
   ColumnModel,
   CellModel,
   getRangeAddress,
+  RangeModel,
 } from '@syncfusion/ej2-react-spreadsheet';
 import { useEffect, useRef, useMemo, useCallback } from 'react';
 import { Button } from '../ui/button';
@@ -33,33 +34,29 @@ interface GeographyWiseSalesSpreadsheetProps {
 }
 
 const ROW_CONFIG = [
-  { name: 'Domestic', isEditable: true, isBold: false, parent: null },
-  { name: 'Export', isEditable: false, isBold: true, parent: null, formula: (usa: number, row: number) => usa + row },
+  { name: 'Domestic', isEditable: true, isBold: true, parent: null, indent: 0 },
+  { name: 'Export', isEditable: false, isBold: true, parent: null, indent: 0 },
   { name: 'USA', isEditable: true, isBold: false, parent: 'Export', indent: 1 },
   { name: 'Rest of the World', isEditable: true, isBold: false, parent: 'Export', indent: 1 },
   { name: 'Others', isEditable: true, isBold: false, parent: 'Export', indent: 1 },
-  { name: 'Total Sales', isEditable: false, isBold: true, parent: null, formula: (dom: number, exp: number) => dom + exp },
+  { name: 'Total Sales', isEditable: false, isBold: true, parent: null, indent: 0 },
 ];
-
-const DERIVED_ROWS = ['% Share', 'YoY Growth'];
-const ROW_COUNT = ROW_CONFIG.length + DERIVED_ROWS.length * ROW_CONFIG.length;
-
 
 export function GeographyWiseSalesSpreadsheet({ data, onSave }: GeographyWiseSalesSpreadsheetProps) {
   const spreadsheetRef = useRef<SpreadsheetComponent>(null);
 
-  const getDynamicColumns = () => {
+  const getDynamicPeriods = useCallback(() => {
     const currentYear = new Date().getFullYear();
     const lastFYEnd = new Date().getMonth() < 3 ? currentYear : currentYear + 1;
     const periods = [];
     for (let i = 3; i > 0; i--) {
-      periods.push(`FY${(lastFYEnd - i - 1).toString().slice(2)}-${(lastFYEnd - i).toString().slice(2)}`);
+      periods.push(`FY${(lastFYEnd - i).toString().slice(2)}`);
     }
-    periods.push(`Interim`);
+    periods.push(`Interim`); // Or a more dynamic name like 6MFY25
     return periods;
-  };
+  }, []);
 
-  const dynamicPeriods = useMemo(getDynamicColumns, []);
+  const dynamicPeriods = useMemo(getDynamicPeriods, [getDynamicPeriods]);
 
   const activeData = useMemo(() => {
     if (!data || !data.versions || data.versions.length === 0) {
@@ -68,173 +65,197 @@ export function GeographyWiseSalesSpreadsheet({ data, onSave }: GeographyWiseSal
     const versionData = data.versions.find(v => v.version === data.activeVersion);
     return versionData ? versionData.data : {};
   }, [data]);
-  
+
   const onCreated = useCallback(() => {
     const spreadsheet = spreadsheetRef.current;
     if (!spreadsheet) return;
-    spreadsheet.off('cellSave', onCellSave);
-    spreadsheet.on('cellSave', onCellSave, this);
     constructSheet(spreadsheet);
-  }, [activeData, dynamicPeriods]);
-  
+  }, [activeData, dynamicPeriods, constructSheet]);
+
   useEffect(() => {
-      const spreadsheet = spreadsheetRef.current;
-      if (spreadsheet) {
-          constructSheet(spreadsheet);
-      }
-  }, [activeData]);
+    const spreadsheet = spreadsheetRef.current;
+    if (spreadsheet) {
+      constructSheet(spreadsheet);
+    }
+  }, [activeData, constructSheet]);
 
 
-  const constructSheet = (spreadsheet: SpreadsheetComponent) => {
-    const columns: ColumnModel[] = [
-      { width: 200 },
-      ...dynamicPeriods.map(() => ({ width: 120 })),
-    ];
+  const constructSheet = useCallback((spreadsheet: SpreadsheetComponent) => {
+    const fullFyPeriods = dynamicPeriods.filter(p => p.startsWith('FY'));
+    const interimPeriod = dynamicPeriods.find(p => !p.startsWith('FY'));
+
+    const columns: ColumnModel[] = [{ width: 180 }]; // Region column
+    dynamicPeriods.forEach(() => {
+      columns.push({ width: 100 }); // Value column
+      columns.push({ width: 80 });  // % Share column
+    });
+    // Add Y-o-Y growth column
+    if (fullFyPeriods.length > 1) {
+      columns.splice(1 + fullFyPeriods.length * 2, 0, { width: 120 });
+    }
 
     const rows: any[] = [];
-    
-    // Header Row
-    const headerCells: CellModel[] = [{ value: 'Particulars', style: { fontWeight: 'bold', backgroundColor: '#f0f0f0' } }];
-    dynamicPeriods.forEach(period => {
-      headerCells.push({ value: period, style: { fontWeight: 'bold', backgroundColor: '#f0f0f0' } });
-    });
-    rows.push({ cells: headerCells });
+    const headerRow1: CellModel[] = [{ value: 'Region', style: { fontWeight: 'bold', verticalAlign: 'middle', textAlign: 'center' } }];
+    const headerRow2: CellModel[] = [{ value: '' }];
 
-    // Data and Formula Rows
+    fullFyPeriods.forEach(period => {
+      headerRow1.push({ value: period, style: { fontWeight: 'bold', textAlign: 'center' } });
+      headerRow1.push({ value: '' }); // Placeholder for merging
+      headerRow2.push({ value: 'Value', style: { fontWeight: 'bold', textAlign: 'center' } });
+      headerRow2.push({ value: '% Share', style: { fontWeight: 'bold', textAlign: 'center' } });
+    });
+
+    if (fullFyPeriods.length > 1) {
+      headerRow1.splice(1 + fullFyPeriods.length * 2, 0, { value: 'Y-o-Y Growth (%)', style: { fontWeight: 'bold', verticalAlign: 'middle', textAlign: 'center' } });
+      headerRow2.splice(1 + fullFyPeriods.length * 2, 0, { value: '' });
+    }
+
+    if (interimPeriod) {
+      headerRow1.push({ value: interimPeriod, style: { fontWeight: 'bold', textAlign: 'center' } });
+      headerRow1.push({ value: '' }); // Placeholder for merging
+      headerRow2.push({ value: 'Value', style: { fontWeight: 'bold', textAlign: 'center' } });
+      headerRow2.push({ value: '% Share', style: { fontWeight: 'bold', textAlign: 'center' } });
+    }
+
+    rows.push({ cells: headerRow1, height: 30 }, { cells: headerRow2, height: 30 });
+
     ROW_CONFIG.forEach(rowConfig => {
-      const dataCells: CellModel[] = [{ value: rowConfig.name, style: { fontWeight: rowConfig.isBold ? 'bold' : 'normal', textIndent: `${(rowConfig.indent || 0) * 20}px` } }];
+      const dataCells: CellModel[] = [{
+        value: rowConfig.name,
+        style: {
+          fontWeight: rowConfig.isBold ? 'bold' : 'normal',
+          textIndent: `${rowConfig.indent * 20}px`,
+          fontStyle: rowConfig.indent > 0 ? 'italic' : 'normal',
+        }
+      }];
+
       dynamicPeriods.forEach(period => {
         const value = activeData[rowConfig.name]?.[period] ?? '';
-        dataCells.push({ value: value.toString() });
+        dataCells.push({ value: value.toString(), format: '#,##0' }); // Value
+        dataCells.push({ format: '0.00"%"' }); // % Share (formula)
       });
-      rows.push({ cells: dataCells });
+      
+      // Add placeholder for YoY growth
+      if (fullFyPeriods.length > 1) {
+         dataCells.splice(1 + fullFyPeriods.length * 2, 0, { format: '0.00"%"' }); // YoY Growth
+      }
 
-      DERIVED_ROWS.forEach(derived => {
-        const derivedCells: CellModel[] = [{ value: `${rowConfig.name} ${derived}`, style: { fontStyle: 'italic', textIndent: `${(rowConfig.indent || 0) * 20}px` } }];
-        dynamicPeriods.forEach(() => derivedCells.push({ value: '' })); // Placeholder for formulas
-        rows.push({ cells: derivedCells });
-      });
+      rows.push({ cells: dataCells });
     });
 
-    const sheet: SheetModel = { rows, columns, protectSettings: { selectUnLockedCells: true } };
-    spreadsheet.sheets = [sheet];
+    spreadsheet.sheets = [{ rows, columns, showGridLines: false, protectSettings: { selectUnLockedCells: true } }];
     spreadsheet.activeSheetIndex = 0;
     
-    // Apply formulas and locks after rendering
-    spreadsheet.merge('A1:A1'); // Placeholder to trigger refresh
-    setTimeout(() => applyFormulasAndLocks(spreadsheet), 0);
-  };
-  
-  const getRowIndex = (name: string) => {
-    let baseIndex = -1;
-    let foundIndex = -1;
-    ROW_CONFIG.forEach((cfg, idx) => {
-      if (cfg.name === name) {
-        baseIndex = idx;
-      }
+    setTimeout(() => applyFormattingAndFormulas(spreadsheet), 0);
+
+  }, [dynamicPeriods, activeData]);
+
+  const applyFormattingAndFormulas = (spreadsheet: SpreadsheetComponent) => {
+    // Merge header cells
+    spreadsheet.merge('A1:A2');
+    const fullFyPeriods = dynamicPeriods.filter(p => p.startsWith('FY'));
+    
+    dynamicPeriods.forEach((_period, i) => {
+      const col = String.fromCharCode(66 + i * 2);
+      const nextCol = String.fromCharCode(67 + i * 2);
+      spreadsheet.merge(`${col}1:${nextCol}1`);
     });
 
-    if (baseIndex !== -1) {
-      foundIndex = 1 + baseIndex * (1 + DERIVED_ROWS.length);
+    if (fullFyPeriods.length > 1) {
+        const yoyCol = String.fromCharCode(66 + fullFyPeriods.length * 2);
+        spreadsheet.merge(`${yoyCol}1:${yoyCol}2`);
     }
-    return foundIndex;
-  }
-  
-  const getCellAddress = (rowName: string, period: string) => {
-      const rowIndex = getRowIndex(rowName);
-      const colIndex = dynamicPeriods.indexOf(period) + 1;
-      if (rowIndex === -1 || colIndex === 0) return null;
-      return getRangeAddress([rowIndex, colIndex]);
-  }
 
-
-  const applyFormulasAndLocks = (spreadsheet: SpreadsheetComponent) => {
-    spreadsheet.lockCells('A1:' + getRangeAddress([0, dynamicPeriods.length]), true);
-
-    ROW_CONFIG.forEach((rowConfig) => {
-        const baseRowIdx = getRowIndex(rowConfig.name);
-        if (baseRowIdx === -1) return;
-
-        // Lock/Unlock data entry rows
-        const lockRange = `B${baseRowIdx + 1}:${getRangeAddress([baseRowIdx, dynamicPeriods.length])}`;
-        spreadsheet.lockCells(lockRange, !rowConfig.isEditable);
-
-        dynamicPeriods.forEach((period, colIdx) => {
-            const currentCol = String.fromCharCode(66 + colIdx); // B, C, D...
-
-            // Export formula
-            if (rowConfig.name === 'Export') {
-                const usaAddr = getCellAddress('USA', period);
-                const rowAddr = getCellAddress('Rest of the World', period);
-                const othersAddr = getCellAddress('Others', period);
-                if (usaAddr && rowAddr && othersAddr) {
-                    spreadsheet.updateCell({ formula: `=SUM(${usaAddr},${rowAddr},${othersAddr})` }, `${currentCol}${baseRowIdx + 1}`);
-                }
-            }
-
-            // Total Sales formula
-            if (rowConfig.name === 'Total Sales') {
-                const domAddr = getCellAddress('Domestic', period);
-                const expAddr = getCellAddress('Export', period);
-                if (domAddr && expAddr) {
-                    spreadsheet.updateCell({ formula: `=SUM(${domAddr},${expAddr})` }, `${currentCol}${baseRowIdx + 1}`);
-                }
-            }
-
-            // % Share formula
-            const shareRowIdx = baseRowIdx + 1;
-            const totalSalesAddr = getCellAddress('Total Sales', period);
-            if (totalSalesAddr) {
-                const formula = `=IFERROR((${currentCol}${baseRowIdx + 1}/${totalSalesAddr})*100, 0)`;
-                spreadsheet.updateCell({ formula, format: '0.00"%"' }, `${currentCol}${shareRowIdx + 1}`);
-                spreadsheet.lockCells(`${currentCol}${shareRowIdx + 1}`, true);
-            }
-
-            // YoY Growth formula
-            const yoyRowIdx = baseRowIdx + 2;
-            if (colIdx > 0) {
-                const prevCol = String.fromCharCode(65 + colIdx);
-                const formula = `=IFERROR(((${currentCol}${baseRowIdx+1}-${prevCol}${baseRowIdx+1})/${prevCol}${baseRowIdx+1})*100, 0)`;
-                spreadsheet.updateCell({ formula, format: '0.00"%"' }, `${currentCol}${yoyRowIdx + 1}`);
-            } else {
-                 spreadsheet.updateCell({ value: 'N/A' }, `${currentCol}${yoyRowIdx + 1}`);
-            }
-            spreadsheet.lockCells(`${currentCol}${yoyRowIdx + 1}`, true);
+    // Apply formulas and locks
+    ROW_CONFIG.forEach((rowConfig, rowIndex) => {
+      const r = rowIndex + 3; // 1-based index, accounting for 2 header rows
+      
+      // Lock non-editable value rows
+      if (!rowConfig.isEditable) {
+        const lockRange = `B${r}:${String.fromCharCode(65 + dynamicPeriods.length * 2)}${r}`;
+        spreadsheet.lockCells(lockRange, true);
+      } else {
+        dynamicPeriods.forEach((period, i) => {
+            const valCol = String.fromCharCode(66 + i * 2);
+            spreadsheet.lockCells(`${valCol}${r}`, false);
         });
+      }
+
+
+      const totalSalesRow = ROW_CONFIG.findIndex(c => c.name === 'Total Sales') + 3;
+
+      dynamicPeriods.forEach((_period, i) => {
+        const valCol = String.fromCharCode(66 + i * 2);
+        const shareCol = String.fromCharCode(67 + i * 2);
+
+        // % Share Formula
+        const shareFormula = `=IFERROR(${valCol}${r}/${valCol}${totalSalesRow}, 0)`;
+        spreadsheet.updateCell({ formula: shareFormula }, `${shareCol}${r}`);
+        spreadsheet.lockCells(`${shareCol}${r}`, true);
+      });
+      
+      // Y-o-Y Growth Formula
+      if (fullFyPeriods.length > 1) {
+        const yoyCol = String.fromCharCode(66 + fullFyPeriods.length * 2);
+        const latestFyValCol = String.fromCharCode(66 + (fullFyPeriods.length - 1) * 2);
+        const prevFyValCol = String.fromCharCode(66 + (fullFyPeriods.length - 2) * 2);
+        
+        const yoyFormula = `=IFERROR((${latestFyValCol}${r}-${prevFyValCol}${r})/${prevFyValCol}${r}, 0)`;
+        spreadsheet.updateCell({ formula: yoyFormula }, `${yoyCol}${r}`);
+        spreadsheet.lockCells(`${yoyCol}${r}`, true);
+      }
+
     });
-  };
+    
+    // Derived row formulas (Export, Total Sales)
+    const exportRow = ROW_CONFIG.findIndex(c => c.name === 'Export') + 3;
+    const usaRow = ROW_CONFIG.findIndex(c => c.name === 'USA') + 3;
+    const rotwRow = ROW_CONFIG.findIndex(c => c.name === 'Rest of the World') + 3;
+    const othersRow = ROW_CONFIG.findIndex(c => c.name === 'Others') + 3;
+    const totalSalesRow = ROW_CONFIG.findIndex(c => c.name === 'Total Sales') + 3;
+    const domesticRow = ROW_CONFIG.findIndex(c => c.name === 'Domestic') + 3;
 
-  const onCellSave = (args: any) => {
-    const spreadsheet = spreadsheetRef.current;
-    if (spreadsheet && args.isFormula) {
-        spreadsheet.refresh();
-    }
-  };
+    dynamicPeriods.forEach((_period, i) => {
+      const valCol = String.fromCharCode(66 + i * 2);
 
+      // Export = USA + Rest of the World + Others
+      const exportFormula = `=SUM(${valCol}${usaRow},${valCol}${rotwRow},${valCol}${othersRow})`;
+      spreadsheet.updateCell({ formula: exportFormula }, `${valCol}${exportRow}`);
+
+      // Total Sales = Domestic + Export
+      const totalSalesFormula = `=SUM(${valCol}${domesticRow},${valCol}${exportRow})`;
+      spreadsheet.updateCell({ formula: totalSalesFormula }, `${valCol}${totalSalesRow}`);
+    });
+    
+    spreadsheet.lockCells(`A1:${String.fromCharCode(65 + columns.length)}2`, true);
+    spreadsheet.element.focus(); // Refresh UI
+  };
 
   const handleSave = async () => {
     const spreadsheet = spreadsheetRef.current;
     if (spreadsheet) {
       const dataToSave: Record<string, Record<string, number | string>> = {};
       
-      ROW_CONFIG.forEach(rowConfig => {
+      for (const rowConfig of ROW_CONFIG) {
         if (rowConfig.isEditable) {
-            const rowIndex = getRowIndex(rowConfig.name);
-            dataToSave[rowConfig.name] = {};
-            dynamicPeriods.forEach(async (period, colIndex) => {
-                const address = getRangeAddress([rowIndex, colIndex + 1]);
-                const cell = await spreadsheet.getCell(rowIndex, colIndex + 1);
-                let value = cell.value;
-                 if(typeof value === 'string' && !isNaN(parseFloat(value))) {
-                    value = parseFloat(value);
-                }
-                if (value !== undefined && value !== null && value !== '') {
-                    dataToSave[rowConfig.name][period] = value as number | string;
-                }
-            });
+          const rowIndex = ROW_CONFIG.findIndex(c => c.name === rowConfig.name) + 2; // 0-based index
+          dataToSave[rowConfig.name] = {};
+          
+          for (let i = 0; i < dynamicPeriods.length; i++) {
+            const period = dynamicPeriods[i];
+            const colIndex = 1 + i * 2; // 0-based index for value column
+            const cell = await spreadsheet.getCell(rowIndex, colIndex);
+            let value = cell.value;
+            
+            if (typeof value === 'string' && !isNaN(parseFloat(value))) {
+              value = parseFloat(value);
+            }
+            if (value !== undefined && value !== null && value !== '') {
+              dataToSave[rowConfig.name][period] = value as number | string;
+            }
+          }
         }
-      });
-      
+      }
       onSave(dataToSave);
     }
   };
@@ -246,7 +267,7 @@ export function GeographyWiseSalesSpreadsheet({ data, onSave }: GeographyWiseSal
           <Save className="mr-2 h-4 w-4" /> Save as New Version
         </Button>
       </div>
-      <div className="h-[600px] w-full">
+      <div className="h-[400px] w-full">
         <style>
           {`@import url('https://cdn.syncfusion.com/ej2/material.css');`}
         </style>
@@ -258,9 +279,10 @@ export function GeographyWiseSalesSpreadsheet({ data, onSave }: GeographyWiseSal
           showRibbon={false}
           allowSave={true}
           allowOpen={false}
-          cellSave={onCellSave}
         ></SpreadsheetComponent>
       </div>
     </div>
   );
 }
+
+    
