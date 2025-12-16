@@ -11,121 +11,209 @@ import {
   RowDirective,
   CellsDirective,
   CellDirective,
+  CellModel,
+  SheetModel,
 } from '@syncfusion/ej2-react-spreadsheet';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState, useMemo } from 'react';
+import { Button } from '../ui/button';
+import { Save, Plus, Trash2, History, Undo } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 
-// Make sure to have the correct CSS import in a global styles file or layout.
-// import '@syncfusion/ej2-base/styles/material.css';
-// import '@syncfusion/ej2-buttons/styles/material.css';
-// import '@syncfusion/ej2-dropdowns/styles/material.css';
-// import '@syncfusion/ej2-inputs/styles/material.css';
-// import '@syncfusion/ej2-lists/styles/material.css';
-// import '@syncfusion/ej2-navigations/styles/material.css';
-// import '@syncfusion/ej2-popups/styles  /material.css';
-// import '@syncfusion/ej2-splitbuttons/styles/material.css';
-// import '@syncfusion/ej2-grids/styles/material.css';
-// import '@syncfusion/ej2-react-spreadsheet/styles/material.css';
-
-interface SyncfusionSpreadsheetProps {
-  initialData: any[];
-  onSave: (data: any) => void;
+interface Version {
+  version: number;
+  timestamp: string;
+  data: any[];
 }
 
-export function SyncfusionSpreadsheet({ initialData, onSave }: SyncfusionSpreadsheetProps) {
+interface SpreadsheetData {
+  versions: Version[];
+  activeVersion: number;
+}
+
+interface SyncfusionSpreadsheetProps {
+  data: SpreadsheetData;
+  onSave: (data: any[]) => void;
+  onRollback: (version: number) => void;
+}
+
+const HEADERS = ['Sr. No.', 'Location', 'Product Segment', 'Regulatory Approvals', 'Last Audit (Month/Year)'];
+
+export function SyncfusionSpreadsheet({ data, onSave, onRollback }: SyncfusionSpreadsheetProps) {
   const spreadsheetRef = useRef<SpreadsheetComponent>(null);
+  const [selectedVersion, setSelectedVersion] = useState<number>(data.activeVersion);
+
+  const activeData = useMemo(() => {
+    const versionData = data.versions.find(v => v.version === selectedVersion);
+    return versionData ? versionData.data : [];
+  }, [data.versions, selectedVersion]);
+
+
+  useEffect(() => {
+    setSelectedVersion(data.activeVersion);
+  }, [data.activeVersion]);
 
   useEffect(() => {
     const spreadsheet = spreadsheetRef.current;
     if (spreadsheet) {
-      // You can interact with the spreadsheet API here if needed
-      // For example, to lock formula cells:
-      spreadsheet.cellFormat({ fontWeight: 'bold' }, 'A1:E1');
-      spreadsheet.lockCells('E2:E10', true); // Lock the formula column
+      // Clear previous data before loading new data
+      spreadsheet.clear();
+      
+      const sheet: SheetModel = {
+        rows: [],
+        columns: [
+          { width: 80 }, { width: 150 }, { width: 150 }, { width: 200 }, { width: 180 }
+        ]
+      };
+      
+      // Header Row
+      const headerRow: RowModel = {
+        cells: HEADERS.map(header => ({
+          value: header,
+          style: { fontWeight: 'bold', textAlign: 'center', verticalAlign: 'middle', backgroundColor: '#f0f0f0' }
+        }))
+      };
+      sheet.rows!.push(headerRow);
+      
+      // Data Rows
+      if(activeData && activeData.length > 0) {
+        activeData.forEach((rowData, index) => {
+          const cells: CellModel[] = HEADERS.map(header => ({
+            value: rowData[header] || ''
+          }));
+          sheet.rows!.push({ cells });
+        });
+      }
+      
+      spreadsheet.sheets = [sheet];
+      spreadsheet.lockCells('A1:E1', true); // Lock header
+      spreadsheet.activeSheetIndex = 0;
+      spreadsheet.dataBind();
     }
-  }, [spreadsheetRef]);
+  }, [activeData, spreadsheetRef]);
 
-  const handleSave = () => {
-    if (spreadsheetRef.current) {
-      spreadsheetRef.current.saveAsJson().then((json) => {
-        onSave(json.jsonData);
-      });
+
+  const handleAddRow = () => {
+    const spreadsheet = spreadsheetRef.current;
+    if (spreadsheet) {
+      const currentSheet = spreadsheet.sheets[spreadsheet.activeSheetIndex];
+      const lastSrNo = currentSheet.rows && currentSheet.rows.length > 1 
+        ? currentSheet.rows.length -1
+        : 0;
+
+      const newRow = {
+        index: currentSheet.rows ? currentSheet.rows.length : 1,
+        cells: [{ value: (lastSrNo + 1).toString() }, ...Array(HEADERS.length - 1).fill({ value: '' })]
+      };
+      spreadsheet.insertRow([newRow]);
     }
   };
 
-  // NOTE: The Syncfusion component is feature-rich. This is a basic setup.
-  // The data binding below is a simplified example. For a real application,
-  // you would dynamically generate these directives based on `initialData`.
+  const handleSave = async () => {
+    const spreadsheet = spreadsheetRef.current;
+    if (spreadsheet) {
+      const json = await spreadsheet.saveAsJson();
+      const sheetData = json.sheets[0];
+      const dataToSave: any[] = [];
+      
+      if (sheetData.rows) {
+        // Start from row 1 to skip header
+        for (let i = 1; i < sheetData.rows.length; i++) {
+          const row = sheetData.rows[i];
+          if (row && row.cells) {
+            const rowData: { [key: string]: any } = {};
+            let isRowEmpty = true;
+            HEADERS.forEach((header, j) => {
+              const cellValue = row.cells![j]?.value;
+              rowData[header] = cellValue || '';
+              if (cellValue) isRowEmpty = false;
+            });
+            if (!isRowEmpty) {
+              dataToSave.push(rowData);
+            }
+          }
+        }
+      }
+      onSave(dataToSave);
+    }
+  };
+  
+  const handleClear = () => {
+    const spreadsheet = spreadsheetRef.current;
+    if (spreadsheet) {
+        const rowCount = spreadsheet.sheets[0].rows?.length || 0;
+        if(rowCount > 1) {
+            spreadsheet.deleteRow(1, rowCount - 1);
+        }
+    }
+  };
+
+  const handleRollback = () => {
+    if (selectedVersion) {
+      onRollback(selectedVersion);
+    }
+  };
+  
+  const formatTimestamp = (timestamp: string) => {
+    return new Date(timestamp).toLocaleString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  }
 
   return (
-    <div className="h-[600px] w-full">
-        <style>
-            {`
-                @import url('https://cdn.syncfusion.com/ej2/material.css');
-            `}
-        </style>
-        <SpreadsheetComponent
-            ref={spreadsheetRef}
-            saveUrl="https://services.syncfusion.com/react/production/api/spreadsheet/save"
-            openUrl="https://services.syncfusion.com/react/production/api/spreadsheet/open"
-            allowSave={true}
-            allowOpen={true}
-            showFormulaBar={false}
-            showSheetTabs={false}
-            showRibbon={false}
-        >
-            <SheetsDirective>
-            <SheetDirective name="Manufacturing Facilities">
-                <RangesDirective>
-                <RangeDirective dataSource={initialData}></RangeDirective>
-                </RangesDirective>
-                <ColumnsDirective>
-                    <ColumnDirective width={150}></ColumnDirective>
-                    <ColumnDirective width={150}></ColumnDirective>
-                    <ColumnDirective width={120}></ColumnDirective>
-                    <ColumnDirective width={120}></ColumnDirective>
-                    <ColumnDirective width={150}></ColumnDirective>
-                </ColumnsDirective>
-                <RowsDirective>
-                    <RowDirective>
-                        <CellsDirective>
-                            <CellDirective value="Facility Name" style={{ fontWeight: 'bold', textAlign: 'center' }}></CellDirective>
-                            <CellDirective value="Location" style={{ fontWeight: 'bold', textAlign: 'center' }}></CellDirective>
-                            <CellDirective value="Capacity (Units)" style={{ fontWeight: 'bold', textAlign: 'center' }}></CellDirective>
-                            <CellDirective value="Utilization (%)" style={{ fontWeight: 'bold', textAlign: 'center' }}></CellDirective>
-                            <CellDirective value="Is WHO-GMP Certified" style={{ fontWeight: 'bold', textAlign: 'center' }}></CellDirective>
-                        </CellsDirective>
-                    </RowDirective>
-                     <RowDirective>
-                        <CellsDirective>
-                            <CellDirective value="Plant A"></CellDirective>
-                            <CellDirective value="Mumbai"></CellDirective>
-                            <CellDirective value="100000"></CellDirective>
-                            <CellDirective value="85"></CellDirective>
-                            <CellDirective value="Yes"></CellDirective>
-                        </CellsDirective>
-                    </RowDirective>
-                    <RowDirective>
-                        <CellsDirective>
-                            <CellDirective value="Plant B"></CellDirective>
-                            <CellDirective value="Pune"></CellDirective>
-                            <CellDirective value="50000"></CellDirective>
-                            <CellDirective value="92"></CellDirective>
-                            <CellDirective value="Yes"></CellDirective>
-                        </CellsDirective>
-                    </RowDirective>
-                     <RowDirective>
-                        <CellsDirective>
-                            <CellDirective value="Total" style={{ fontWeight: 'bold' }}></CellDirective>
-                            <CellDirective value=""></CellDirective>
-                            <CellDirective formula="=SUM(C2:C3)" style={{ fontWeight: 'bold' }} isLocked={true}></CellDirective>
-                            <CellDirective formula="=AVERAGE(D2:D3)" style={{ fontWeight: 'bold' }} isLocked={true}></CellDirective>
-                            <CellDirective value=""></CellDirective>
-                        </CellsDirective>
-                    </RowDirective>
-                </RowsDirective>
-            </SheetDirective>
-            </SheetsDirective>
-        </SpreadsheetComponent>
+    <div className="space-y-4">
+      <div className="flex items-center justify-between gap-4 p-2 border rounded-md">
+        <div className='flex items-center gap-2'>
+            <Button onClick={handleAddRow} size="sm" variant="outline"><Plus className="mr-2 h-4 w-4" /> Add Row</Button>
+            <Button onClick={handleSave} size="sm"><Save className="mr-2 h-4 w-4" /> Save as New Version</Button>
+            <Button onClick={handleClear} size="sm" variant="destructive"><Trash2 className="mr-2 h-4 w-4" /> Clear Sheet</Button>
+        </div>
+        <div className="flex items-center gap-2">
+            <History className="h-5 w-5 text-muted-foreground" />
+            <Select 
+                value={selectedVersion?.toString()}
+                onValueChange={(val) => setSelectedVersion(Number(val))}
+            >
+                <SelectTrigger className="w-[280px]">
+                    <SelectValue placeholder="Select a version to view" />
+                </SelectTrigger>
+                <SelectContent>
+                    {data.versions.slice().reverse().map(v => (
+                        <SelectItem key={v.version} value={v.version.toString()}>
+                           Version {v.version} ({formatTimestamp(v.timestamp)}) {v.version === data.activeVersion ? '(Active)' : ''}
+                        </SelectItem>
+                    ))}
+                </SelectContent>
+            </Select>
+            <Button 
+                onClick={handleRollback} 
+                size="sm" 
+                variant="secondary" 
+                disabled={selectedVersion === data.activeVersion}
+            >
+                <Undo className="mr-2 h-4 w-4" /> Rollback to Selected
+            </Button>
+        </div>
+      </div>
+      <div className="h-[600px] w-full">
+          <style>
+              {`
+                  @import url('https://cdn.syncfusion.com/ej2/material.css');
+              `}
+          </style>
+          <SpreadsheetComponent
+              ref={spreadsheetRef}
+              showFormulaBar={false}
+              showSheetTabs={false}
+              showRibbon={false}
+              allowSave={false}
+              allowOpen={false}
+          >
+          </SpreadsheetComponent>
+      </div>
     </div>
   );
 }

@@ -81,7 +81,6 @@ const generateZodSchema = (schema: any): z.ZodObject<any> => {
 
 interface JsonSchemaFormProps {
   schema: any;
-  schemaType: 'form' | 'spreadsheet';
   onSubmit: (data: any) => void;
   onCancel: () => void;
   requestId: string;
@@ -91,7 +90,7 @@ interface JsonSchemaFormProps {
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
 
-export function JsonSchemaForm({ schema, schemaType, onSubmit, onCancel, requestId, dataKey, isLastStep = false }: JsonSchemaFormProps) {
+export function JsonSchemaForm({ schema, onSubmit, onCancel, requestId, dataKey, isLastStep = false }: JsonSchemaFormProps) {
   const zodSchema = useMemo(() => generateZodSchema(schema), [schema]);
   
   const { data: existingData, isLoading } = useSWR(`/api/operational-input/${requestId}`, fetcher);
@@ -116,6 +115,12 @@ export function JsonSchemaForm({ schema, schemaType, onSubmit, onCancel, request
                     const fieldProp = sectionProp.properties[fieldKey];
                     if (fieldProp.type === 'array') {
                         sectionDefaults[fieldKey] = [];
+                    }
+                     if (fieldKey === 'versions') {
+                        sectionDefaults[fieldKey] = [];
+                    }
+                    if (fieldKey === 'activeVersion') {
+                        sectionDefaults[fieldKey] = 1;
                     }
                     if (fieldProp.default) {
                       sectionDefaults[fieldKey] = fieldProp.default;
@@ -310,22 +315,42 @@ export function JsonSchemaForm({ schema, schemaType, onSubmit, onCancel, request
     );
   };
   
-  const AccordionSectionContent = ({ sectionKey, sectionProp, control, schemaType }: { sectionKey: string, sectionProp: any, control: any, schemaType: 'form' | 'spreadsheet' }) => {
+ const AccordionSectionContent = ({ sectionKey, sectionProp }: { sectionKey: string, sectionProp: any }) => {
     const dataAvailabilityPath = `${sectionKey}.dataAvailability`;
-    const dataAvailability = useWatch({ control, name: dataAvailabilityPath });
-  
+    const dataAvailability = useWatch({ control: form.control, name: dataAvailabilityPath });
+
+    const uiVariant = sectionProp['x-ui-variant'];
+
     const renderContent = () => {
         if (dataAvailability !== 'Available') return null;
 
-        if (schemaType === 'spreadsheet') {
+        if (uiVariant === 'spreadsheet') {
+             const versionsPath = `${sectionKey}.versions`;
+            const activeVersionPath = `${sectionKey}.activeVersion`;
+
+            const handleSave = (newData: any[]) => {
+                const currentVersions = form.getValues(versionsPath as any) || [];
+                const newVersionNumber = currentVersions.length > 0 ? Math.max(...currentVersions.map((v: any) => v.version)) + 1 : 1;
+                
+                const newVersion = {
+                    version: newVersionNumber,
+                    timestamp: new Date().toISOString(),
+                    data: newData,
+                };
+                
+                form.setValue(versionsPath as any, [...currentVersions, newVersion]);
+                form.setValue(activeVersionPath as any, newVersionNumber);
+            };
+
+            const handleRollback = (versionNumber: number) => {
+                form.setValue(activeVersionPath as any, versionNumber);
+            };
+            
             return (
               <SyncfusionSpreadsheet
-                // This is a simplified approach; a real implementation would need
-                // a way to pass sheet-specific data and save it back.
-                initialData={sectionProp.spreadsheetData?.initialData || []}
-                onSave={(data) => {
-                  form.setValue(`${sectionKey}.spreadsheet_data`, data);
-                }}
+                data={form.getValues(sectionKey as any)}
+                onSave={handleSave}
+                onRollback={handleRollback}
               />
             );
         }
@@ -334,7 +359,7 @@ export function JsonSchemaForm({ schema, schemaType, onSubmit, onCancel, request
             return renderInlineEditableTable({
                 sectionKey: `${sectionKey}.tableData`,
                 itemProperties: sectionProp.properties.tableData.items.properties,
-                control,
+                control: form.control,
             });
         }
         
@@ -345,7 +370,7 @@ export function JsonSchemaForm({ schema, schemaType, onSubmit, onCancel, request
       <div className="space-y-4">
         <div className="w-1/3">
           <FormField
-            control={control}
+            control={form.control}
             name={dataAvailabilityPath}
             render={({ field }) => (
               <FormItem>
@@ -428,29 +453,21 @@ export function JsonSchemaForm({ schema, schemaType, onSubmit, onCancel, request
             <Accordion type="multiple" value={openAccordions} onValueChange={setOpenAccordions} className="w-full">
               {sectionKeys.map(sectionKey => {
                 const sectionProp = schema.properties[sectionKey];
-                const uiVariant = sectionProp['x-ui-variant'];
-
-                if(uiVariant === 'accordion' || schemaType === 'spreadsheet') {
-                    return (
-                        <AccordionItem value={sectionKey} key={sectionKey}>
-                            <AccordionTrigger>{sectionProp.title}</AccordionTrigger>
-                            <AccordionContent className="p-4">
-                                <AccordionSectionContent sectionKey={sectionKey} sectionProp={sectionProp} control={form.control} schemaType={schemaType} />
-                            </AccordionContent>
-                        </AccordionItem>
-                    );
-                }
-
+                
                 return(
                   <AccordionItem value={sectionKey} key={sectionKey}>
                     <AccordionTrigger>{sectionProp.title}</AccordionTrigger>
                     <AccordionContent className="p-4">
                       {sectionProp.type === 'object' ? (
-                        <div className="grid md:grid-cols-2 gap-8">
-                          {Object.keys(sectionProp.properties).map(fieldKey => 
-                            renderField(`${sectionKey}.${fieldKey}`, sectionProp.properties[fieldKey], form.control)
-                          )}
-                        </div>
+                         sectionProp['x-ui-variant'] ? (
+                           <AccordionSectionContent sectionKey={sectionKey} sectionProp={sectionProp} />
+                         ) : (
+                            <div className="grid md:grid-cols-2 gap-8">
+                            {Object.keys(sectionProp.properties).map(fieldKey => 
+                                renderField(`${sectionKey}.${fieldKey}`, sectionProp.properties[fieldKey], form.control)
+                            )}
+                            </div>
+                         )
                       ) : sectionProp.type === 'array' ? (
                         renderInlineEditableTable({
                           sectionKey: sectionKey,

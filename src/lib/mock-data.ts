@@ -151,6 +151,22 @@ let operationalInputData: Record<string, any> = {
             yearOfIncorporation: 1981,
             authorizedCapital: 2000,
             paidUpCapital: 1850
+        },
+        sectorial_operational_data: {
+          manufacturingFacilities: {
+            dataAvailability: 'Available',
+            activeVersion: 1,
+            versions: [
+              {
+                version: 1,
+                timestamp: '2024-05-20T10:00:00Z',
+                data: [
+                  { 'Sr. No.': 1, 'Location': 'Mumbai', 'Product Segment': 'API', 'Regulatory Approvals': 'FDA, EMA', 'Last Audit (Month/Year)': '10/2023' },
+                  { 'Sr. No.': 2, 'Location': 'Pune', 'Product Segment': 'Formulations', 'Regulatory Approvals': 'FDA', 'Last Audit (Month/Year)': '12/2023' },
+                ]
+              }
+            ]
+          }
         }
     }
 };

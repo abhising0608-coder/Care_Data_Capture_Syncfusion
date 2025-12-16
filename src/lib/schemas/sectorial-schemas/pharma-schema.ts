@@ -6,7 +6,7 @@ export const pharmaSchema = {
     "manufacturingFacilities": {
       "type": "object",
       "title": "Manufacturing Facilities",
-      "x-ui-variant": "spreadsheet-accordion",
+      "x-ui-variant": "spreadsheet",
       "properties": {
         "dataAvailability": {
           "type": "string",
@@ -14,19 +14,26 @@ export const pharmaSchema = {
           "enum": ["Available", "Not Available", "Not Applicable"],
           "default": "Not Applicable"
         },
-        "spreadsheetData": {
+        "versions": {
+          "type": "array",
+          "items": {
             "type": "object",
-            "title": "Spreadsheet Data",
             "properties": {
-                // This will hold the JSON representation of the spreadsheet
+              "version": { "type": "number" },
+              "timestamp": { "type": "string" },
+              "data": { "type": "array" }
             }
+          }
+        },
+        "activeVersion": {
+          "type": "number"
         }
       }
     },
     "geographyWiseSales": {
       "type": "object",
       "title": "Geography-wise Sales",
-      "x-ui-variant": "spreadsheet-accordion",
+      "x-ui-variant": "spreadsheet",
       "properties": {
         "dataAvailability": {
           "type": "string",
@@ -43,7 +50,7 @@ export const pharmaSchema = {
     "therapeuticSegmentWiseSales": {
         "type": "object",
         "title": "Therapeutic Segment-wise Sales",
-        "x-ui-variant": "spreadsheet-accordion",
+        "x-ui-variant": "spreadsheet",
         "properties": {
           "dataAvailability": {
             "type": "string",
@@ -60,7 +67,7 @@ export const pharmaSchema = {
      "brandWiseSales": {
         "type": "object",
         "title": "Brand-wise Sales",
-        "x-ui-variant": "spreadsheet-accordion",
+        "x-ui-variant": "spreadsheet",
         "properties": {
           "dataAvailability": {
             "type": "string",
