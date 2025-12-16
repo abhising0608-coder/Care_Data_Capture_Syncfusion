@@ -66,90 +66,6 @@ export function GeographyWiseSalesSpreadsheet({ data, onSave }: GeographyWiseSal
     return versionData ? versionData.data : {};
   }, [data]);
 
-  const onCreated = useCallback(() => {
-    const spreadsheet = spreadsheetRef.current;
-    if (!spreadsheet) return;
-    constructSheet(spreadsheet);
-  }, [activeData, dynamicPeriods, constructSheet]);
-
-  useEffect(() => {
-    const spreadsheet = spreadsheetRef.current;
-    if (spreadsheet) {
-      constructSheet(spreadsheet);
-    }
-  }, [activeData, constructSheet]);
-
-
-  const constructSheet = useCallback((spreadsheet: SpreadsheetComponent) => {
-    const fullFyPeriods = dynamicPeriods.filter(p => p.startsWith('FY'));
-    const interimPeriod = dynamicPeriods.find(p => !p.startsWith('FY'));
-
-    const columns: ColumnModel[] = [{ width: 180 }]; // Region column
-    dynamicPeriods.forEach(() => {
-      columns.push({ width: 100 }); // Value column
-      columns.push({ width: 80 });  // % Share column
-    });
-    // Add Y-o-Y growth column
-    if (fullFyPeriods.length > 1) {
-      columns.splice(1 + fullFyPeriods.length * 2, 0, { width: 120 });
-    }
-
-    const rows: any[] = [];
-    const headerRow1: CellModel[] = [{ value: 'Region', style: { fontWeight: 'bold', verticalAlign: 'middle', textAlign: 'center' } }];
-    const headerRow2: CellModel[] = [{ value: '' }];
-
-    fullFyPeriods.forEach(period => {
-      headerRow1.push({ value: period, style: { fontWeight: 'bold', textAlign: 'center' } });
-      headerRow1.push({ value: '' }); // Placeholder for merging
-      headerRow2.push({ value: 'Value', style: { fontWeight: 'bold', textAlign: 'center' } });
-      headerRow2.push({ value: '% Share', style: { fontWeight: 'bold', textAlign: 'center' } });
-    });
-
-    if (fullFyPeriods.length > 1) {
-      headerRow1.splice(1 + fullFyPeriods.length * 2, 0, { value: 'Y-o-Y Growth (%)', style: { fontWeight: 'bold', verticalAlign: 'middle', textAlign: 'center' } });
-      headerRow2.splice(1 + fullFyPeriods.length * 2, 0, { value: '' });
-    }
-
-    if (interimPeriod) {
-      headerRow1.push({ value: interimPeriod, style: { fontWeight: 'bold', textAlign: 'center' } });
-      headerRow1.push({ value: '' }); // Placeholder for merging
-      headerRow2.push({ value: 'Value', style: { fontWeight: 'bold', textAlign: 'center' } });
-      headerRow2.push({ value: '% Share', style: { fontWeight: 'bold', textAlign: 'center' } });
-    }
-
-    rows.push({ cells: headerRow1, height: 30 }, { cells: headerRow2, height: 30 });
-
-    ROW_CONFIG.forEach(rowConfig => {
-      const dataCells: CellModel[] = [{
-        value: rowConfig.name,
-        style: {
-          fontWeight: rowConfig.isBold ? 'bold' : 'normal',
-          textIndent: `${rowConfig.indent * 20}px`,
-          fontStyle: rowConfig.indent > 0 ? 'italic' : 'normal',
-        }
-      }];
-
-      dynamicPeriods.forEach(period => {
-        const value = activeData[rowConfig.name]?.[period] ?? '';
-        dataCells.push({ value: value.toString(), format: '#,##0' }); // Value
-        dataCells.push({ format: '0.00"%"' }); // % Share (formula)
-      });
-      
-      // Add placeholder for YoY growth
-      if (fullFyPeriods.length > 1) {
-         dataCells.splice(1 + fullFyPeriods.length * 2, 0, { format: '0.00"%"' }); // YoY Growth
-      }
-
-      rows.push({ cells: dataCells });
-    });
-
-    spreadsheet.sheets = [{ rows, columns, showGridLines: false, protectSettings: { selectUnLockedCells: true } }];
-    spreadsheet.activeSheetIndex = 0;
-    
-    setTimeout(() => applyFormattingAndFormulas(spreadsheet), 0);
-
-  }, [dynamicPeriods, activeData]);
-
   const applyFormattingAndFormulas = (spreadsheet: SpreadsheetComponent) => {
     // Merge header cells
     spreadsheet.merge('A1:A2');
@@ -227,9 +143,92 @@ export function GeographyWiseSalesSpreadsheet({ data, onSave }: GeographyWiseSal
       spreadsheet.updateCell({ formula: totalSalesFormula }, `${valCol}${totalSalesRow}`);
     });
     
-    spreadsheet.lockCells(`A1:${String.fromCharCode(65 + columns.length)}2`, true);
+    spreadsheet.lockCells(`A1:${String.fromCharCode(65 + (spreadsheet.sheets[0].columns?.length || 1) )}2`, true);
     spreadsheet.element.focus(); // Refresh UI
   };
+
+  const constructSheet = useCallback((spreadsheet: SpreadsheetComponent) => {
+    const fullFyPeriods = dynamicPeriods.filter(p => p.startsWith('FY'));
+    const interimPeriod = dynamicPeriods.find(p => !p.startsWith('FY'));
+
+    const columns: ColumnModel[] = [{ width: 180 }]; // Region column
+    dynamicPeriods.forEach(() => {
+      columns.push({ width: 100 }); // Value column
+      columns.push({ width: 80 });  // % Share column
+    });
+    // Add Y-o-Y growth column
+    if (fullFyPeriods.length > 1) {
+      columns.splice(1 + fullFyPeriods.length * 2, 0, { width: 120 });
+    }
+
+    const rows: any[] = [];
+    const headerRow1: CellModel[] = [{ value: 'Region', style: { fontWeight: 'bold', verticalAlign: 'middle', textAlign: 'center' } }];
+    const headerRow2: CellModel[] = [{ value: '' }];
+
+    fullFyPeriods.forEach(period => {
+      headerRow1.push({ value: period, style: { fontWeight: 'bold', textAlign: 'center' } });
+      headerRow1.push({ value: '' }); // Placeholder for merging
+      headerRow2.push({ value: 'Value', style: { fontWeight: 'bold', textAlign: 'center' } });
+      headerRow2.push({ value: '% Share', style: { fontWeight: 'bold', textAlign: 'center' } });
+    });
+
+    if (fullFyPeriods.length > 1) {
+      headerRow1.splice(1 + fullFyPeriods.length * 2, 0, { value: 'Y-o-Y Growth (%)', style: { fontWeight: 'bold', verticalAlign: 'middle', textAlign: 'center' } });
+      headerRow2.splice(1 + fullFyPeriods.length * 2, 0, { value: '' });
+    }
+
+    if (interimPeriod) {
+      headerRow1.push({ value: interimPeriod, style: { fontWeight: 'bold', textAlign: 'center' } });
+      headerRow1.push({ value: '' }); // Placeholder for merging
+      headerRow2.push({ value: 'Value', style: { fontWeight: 'bold', textAlign: 'center' } });
+      headerRow2.push({ value: '% Share', style: { fontWeight: 'bold', textAlign: 'center' } });
+    }
+
+    rows.push({ cells: headerRow1, height: 30 }, { cells: headerRow2, height: 30 });
+
+    ROW_CONFIG.forEach(rowConfig => {
+      const dataCells: CellModel[] = [{
+        value: rowConfig.name,
+        style: {
+          fontWeight: rowConfig.isBold ? 'bold' : 'normal',
+          textIndent: `${rowConfig.indent * 20}px`,
+          fontStyle: rowConfig.indent > 0 ? 'italic' : 'normal',
+        }
+      }];
+
+      dynamicPeriods.forEach(period => {
+        const value = activeData[rowConfig.name]?.[period] ?? '';
+        dataCells.push({ value: value.toString(), format: '#,##0' }); // Value
+        dataCells.push({ format: '0.00"%"' }); // % Share (formula)
+      });
+      
+      // Add placeholder for YoY growth
+      if (fullFyPeriods.length > 1) {
+         dataCells.splice(1 + fullFyPeriods.length * 2, 0, { format: '0.00"%"' }); // YoY Growth
+      }
+
+      rows.push({ cells: dataCells });
+    });
+
+    spreadsheet.sheets = [{ rows, columns, showGridLines: false, protectSettings: { selectUnLockedCells: true } }];
+    spreadsheet.activeSheetIndex = 0;
+    
+    setTimeout(() => applyFormattingAndFormulas(spreadsheet), 0);
+
+  }, [dynamicPeriods, activeData, applyFormattingAndFormulas]);
+
+  const onCreated = useCallback(() => {
+    const spreadsheet = spreadsheetRef.current;
+    if (!spreadsheet) return;
+    constructSheet(spreadsheet);
+  }, [constructSheet]);
+
+  useEffect(() => {
+    const spreadsheet = spreadsheetRef.current;
+    if (spreadsheet) {
+      constructSheet(spreadsheet);
+    }
+  }, [activeData, constructSheet]);
 
   const handleSave = async () => {
     const spreadsheet = spreadsheetRef.current;
@@ -284,5 +283,3 @@ export function GeographyWiseSalesSpreadsheet({ data, onSave }: GeographyWiseSal
     </div>
   );
 }
-
-    
