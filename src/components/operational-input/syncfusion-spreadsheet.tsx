@@ -1,20 +1,11 @@
 'use client';
 import {
   SpreadsheetComponent,
-  SheetsDirective,
-  SheetDirective,
-  RangesDirective,
-  RangeDirective,
-  ColumnsDirective,
-  ColumnDirective,
-  RowsDirective,
-  RowDirective,
-  CellsDirective,
-  CellDirective,
-  CellModel,
   SheetModel,
+  RowModel,
+  CellModel,
 } from '@syncfusion/ej2-react-spreadsheet';
-import { useEffect, useRef, useState, useMemo } from 'react';
+import { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import { Button } from '../ui/button';
 import { Save, Plus, Trash2, History, Undo } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
@@ -51,58 +42,66 @@ export function SyncfusionSpreadsheet({ data, onSave, onRollback }: SyncfusionSp
   useEffect(() => {
     setSelectedVersion(data.activeVersion);
   }, [data.activeVersion]);
+  
+  const loadSheetData = useCallback((spreadsheet: SpreadsheetComponent | null) => {
+    if (!spreadsheet) return;
+
+    const sheet: SheetModel = {
+      rows: [],
+      columns: [
+        { width: 80 }, { width: 150 }, { width: 150 }, { width: 200 }, { width: 180 }
+      ]
+    };
+
+    const headerRow: RowModel = {
+      cells: HEADERS.map(header => ({
+        value: header,
+        style: { fontWeight: 'bold', textAlign: 'center', verticalAlign: 'middle', backgroundColor: '#f0f0f0' }
+      }))
+    };
+    sheet.rows!.push(headerRow);
+    
+    if (activeData && activeData.length > 0) {
+      activeData.forEach((rowData) => {
+        const cells: CellModel[] = HEADERS.map(header => ({
+          value: rowData[header] || ''
+        }));
+        const newSrNo = (sheet.rows?.length || 0);
+        cells[0] = { value: newSrNo.toString() };
+        sheet.rows!.push({ cells });
+      });
+    }
+
+    spreadsheet.sheets = [sheet];
+    spreadsheet.lockCells('A1:E1', true);
+    spreadsheet.activeSheetIndex = 0;
+    spreadsheet.dataBind();
+  }, [activeData]);
+
 
   useEffect(() => {
-    const spreadsheet = spreadsheetRef.current;
-    if (spreadsheet) {
-      // Clear previous data before loading new data
-      spreadsheet.clear();
-      
-      const sheet: SheetModel = {
-        rows: [],
-        columns: [
-          { width: 80 }, { width: 150 }, { width: 150 }, { width: 200 }, { width: 180 }
-        ]
-      };
-      
-      // Header Row
-      const headerRow: RowModel = {
-        cells: HEADERS.map(header => ({
-          value: header,
-          style: { fontWeight: 'bold', textAlign: 'center', verticalAlign: 'middle', backgroundColor: '#f0f0f0' }
-        }))
-      };
-      sheet.rows!.push(headerRow);
-      
-      // Data Rows
-      if(activeData && activeData.length > 0) {
-        activeData.forEach((rowData, index) => {
-          const cells: CellModel[] = HEADERS.map(header => ({
-            value: rowData[header] || ''
-          }));
-          sheet.rows!.push({ cells });
-        });
-      }
-      
-      spreadsheet.sheets = [sheet];
-      spreadsheet.lockCells('A1:E1', true); // Lock header
-      spreadsheet.activeSheetIndex = 0;
-      spreadsheet.dataBind();
+    if (spreadsheetRef.current) {
+        loadSheetData(spreadsheetRef.current);
     }
-  }, [activeData, spreadsheetRef]);
+  }, [activeData, loadSheetData]);
 
+  const onCreated = useCallback(() => {
+    if (spreadsheetRef.current) {
+        loadSheetData(spreadsheetRef.current);
+    }
+  }, [loadSheetData]);
 
   const handleAddRow = () => {
     const spreadsheet = spreadsheetRef.current;
     if (spreadsheet) {
       const currentSheet = spreadsheet.sheets[spreadsheet.activeSheetIndex];
       const lastSrNo = currentSheet.rows && currentSheet.rows.length > 1 
-        ? currentSheet.rows.length -1
-        : 0;
+        ? currentSheet.rows.length
+        : 1;
 
       const newRow = {
         index: currentSheet.rows ? currentSheet.rows.length : 1,
-        cells: [{ value: (lastSrNo + 1).toString() }, ...Array(HEADERS.length - 1).fill({ value: '' })]
+        cells: [{ value: lastSrNo.toString() }, ...Array(HEADERS.length - 1).fill({ value: '' })]
       };
       spreadsheet.insertRow([newRow]);
     }
@@ -111,6 +110,7 @@ export function SyncfusionSpreadsheet({ data, onSave, onRollback }: SyncfusionSp
   const handleSave = async () => {
     const spreadsheet = spreadsheetRef.current;
     if (spreadsheet) {
+      // The saveAsJson method is asynchronous and returns a Promise
       const json = await spreadsheet.saveAsJson();
       const sheetData = json.sheets[0];
       const dataToSave: any[] = [];
@@ -125,7 +125,7 @@ export function SyncfusionSpreadsheet({ data, onSave, onRollback }: SyncfusionSp
             HEADERS.forEach((header, j) => {
               const cellValue = row.cells![j]?.value;
               rowData[header] = cellValue || '';
-              if (cellValue) isRowEmpty = false;
+              if (cellValue && j > 0) isRowEmpty = false; // Check if any cell other than Sr. No. has data
             });
             if (!isRowEmpty) {
               dataToSave.push(rowData);
@@ -206,10 +206,11 @@ export function SyncfusionSpreadsheet({ data, onSave, onRollback }: SyncfusionSp
           </style>
           <SpreadsheetComponent
               ref={spreadsheetRef}
+              created={onCreated}
               showFormulaBar={false}
               showSheetTabs={false}
               showRibbon={false}
-              allowSave={false}
+              allowSave={true}
               allowOpen={false}
           >
           </SpreadsheetComponent>
