@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -20,6 +19,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Loader2 } from 'lucide-react';
+import Image from 'next/image';
 
 const loginSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email address.' }),
@@ -70,8 +70,8 @@ export default function LoginPage() {
 
   return (
     <>
-        <div className="absolute top-4 left-4">
-            <Image src="/careedge-logo.svg" alt="CareEdge Logo" width={150} height={40} className="dark:invert" />
+        <div className="absolute top-8 left-8">
+            <img src="/assets/logo/careedge-logo.png" alt="CareEdge Logo" style={{ height: '40px', objectFit: 'contain', maxWidth: '100%' }} />
         </div>
         <Card className="mx-auto w-full max-w-sm">
         <CardHeader>

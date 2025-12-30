@@ -1,7 +1,6 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
-import Image from 'next/image';
 import {
   Sidebar,
   SidebarHeader,
@@ -37,7 +36,7 @@ export function AppSidebar() {
   return (
     <Sidebar>
       <SidebarHeader className="p-4 flex items-center justify-center">
-        <Image src="/careedge-logo.svg" alt="CareEdge Logo" width={120} height={32} className="dark:invert" />
+        <img src="/assets/logo/careedge-logo.png" alt="CareEdge Logo" style={{ height: '40px', objectFit: 'contain', maxWidth: '100%' }} />
       </SidebarHeader>
       <SidebarContent>
         <SidebarMenu>
