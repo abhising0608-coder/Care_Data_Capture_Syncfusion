@@ -1,18 +1,16 @@
 'use client';
 
-import { useForm, Controller } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import type { DetailItem } from '@/lib/definitions';
 import { useEffect, useMemo } from 'react';
 import type { ColumnDefinition } from './detail-block';
-import { Switch } from '../ui/switch';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-
+import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 
 interface DetailModalProps {
     isOpen: boolean;
@@ -33,16 +31,30 @@ export function DetailModal({ isOpen, onClose, onSave, columns, defaultValues, t
                 case 'text':
                     fieldSchema = z.string();
                     if (col.accessor.toLowerCase().includes('email')) {
-                        fieldSchema = fieldSchema.email({ message: "Invalid email format." }).optional().or(z.literal(''));
-                    } else {
-                        fieldSchema = fieldSchema.optional();
+                        fieldSchema = fieldSchema.email({ message: "Invalid email format." }).or(z.literal(''));
                     }
                     if (col.required) {
                         fieldSchema = fieldSchema.min(1, `${col.header} is required.`);
+                    } else {
+                        fieldSchema = fieldSchema.optional().or(z.literal(''));
                     }
                     break;
                 case 'number':
                     fieldSchema = z.number().optional();
+                    break;
+                case 'select':
+                     if (col.options?.every(o => ['Yes', 'No'].includes(o))) {
+                        // Handle boolean-like 'Yes'/'No' dropdowns
+                        fieldSchema = z.preprocess(
+                            val => val === 'Yes' ? true : (val === 'No' ? false : undefined),
+                            z.boolean().optional()
+                        );
+                    } else {
+                        fieldSchema = z.string().optional();
+                    }
+                    if (col.required) {
+                        fieldSchema = fieldSchema.min(1, `${col.header} is required.`);
+                    }
                     break;
                 case 'boolean':
                     fieldSchema = z.boolean().optional();
@@ -60,11 +72,21 @@ export function DetailModal({ isOpen, onClose, onSave, columns, defaultValues, t
         defaultValues: defaultValues,
     });
 
-    useEffect(() => {
+     useEffect(() => {
         if (isOpen) {
-            form.reset(defaultValues || {});
+            const transformedDefaults: any = { ...defaultValues };
+            columns.forEach(col => {
+                if (col.type === 'select' && col.options?.every(o => ['Yes', 'No'].includes(o))) {
+                    const key = col.accessor as keyof typeof defaultValues;
+                    if (defaultValues && typeof defaultValues[key] === 'boolean') {
+                        transformedDefaults[key] = defaultValues[key] ? 'Yes' : 'No';
+                    }
+                }
+            });
+            form.reset(transformedDefaults || {});
         }
-    }, [isOpen, defaultValues, form]);
+    }, [isOpen, defaultValues, form, columns]);
+
 
     const handleFormSubmit = (data: any) => {
         onSave(data as DetailItem);
@@ -72,18 +94,27 @@ export function DetailModal({ isOpen, onClose, onSave, columns, defaultValues, t
     
     const renderInput = (col: ColumnDefinition, field: any) => {
         switch (col.type) {
-            case 'boolean':
-                return (
-                     <Switch
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                    />
-                );
+            case 'select':
+                 return (
+                    <Select onValueChange={field.onChange} value={field.value || ''}>
+                        <FormControl>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Select" />
+                            </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                            {col.options?.map(option => (
+                                <SelectItem key={option} value={option}>{option}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                 );
             case 'number':
                  return (
                      <Input
                         {...field}
                         type="number"
+                        placeholder={`Enter ${col.header}`}
                         onChange={e => field.onChange(e.target.valueAsNumber)}
                     />
                 );
@@ -92,6 +123,7 @@ export function DetailModal({ isOpen, onClose, onSave, columns, defaultValues, t
                 return (
                      <Input
                         {...field}
+                        placeholder={`Enter ${col.header}`}
                         type={col.type === 'text' ? 'text' : col.type}
                     />
                 );
@@ -100,31 +132,35 @@ export function DetailModal({ isOpen, onClose, onSave, columns, defaultValues, t
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent>
+            <DialogContent className="sm:max-w-[600px]">
                 <DialogHeader>
                     <DialogTitle>{title}</DialogTitle>
                 </DialogHeader>
                 <Form {...form}>
-                    <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-4">
+                    <form onSubmit={form.handleSubmit(handleFormSubmit)}>
+                         <div className="grid border-t border-x">
                             {columns.map(col => (
                                <FormField
                                     key={col.accessor}
                                     control={form.control}
                                     name={col.accessor}
                                     render={({ field }) => (
-                                        <FormItem className="grid grid-cols-4 items-center gap-4">
-                                            <FormLabel className="text-right">{col.header}</FormLabel>
-                                            <FormControl className="col-span-3">
-                                               {renderInput(col, field)}
-                                            </FormControl>
-                                            <div className="col-start-2 col-span-3">
-                                               <FormMessage />
+                                        <div className="grid grid-cols-3 items-start border-b">
+                                            <div className="px-4 py-2 bg-muted/50 h-full flex items-center border-r">
+                                               <label className="text-sm font-medium">{col.header}{col.required && <span className="text-destructive">*</span>}</label>
                                             </div>
-                                        </FormItem>
+                                            <div className="col-span-2 p-2">
+                                               <FormControl>
+                                                  {renderInput(col, field)}
+                                               </FormControl>
+                                               <FormMessage className="mt-1" />
+                                            </div>
+                                        </div>
                                     )}
                                 />
                             ))}
-                        <DialogFooter>
+                        </div>
+                        <DialogFooter className="pt-6">
                             <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
                             <Button type="submit">Save</Button>
                         </DialogFooter>

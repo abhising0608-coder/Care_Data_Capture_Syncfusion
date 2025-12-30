@@ -191,9 +191,9 @@ export default function CompanyInformationPage() {
                                     { accessor: 'email', header: 'Email ID', type: 'text' },
                                     { accessor: 'mobile', header: 'Mobile', type: 'text' },
                                     { accessor: 'phone', header: 'Phone', type: 'text' },
-                                    { accessor: 'isPrimary', header: 'Primary', type: 'boolean' },
-                                    { accessor: 'isUPSI', header: 'UPSI', type: 'boolean' },
-                                    { accessor: 'authorizedSignatory', header: 'Signatory', type: 'boolean' },
+                                    { accessor: 'isPrimary', header: 'Primary', type: 'select', options: ['Yes', 'No'] },
+                                    { accessor: 'isUPSI', header: 'UPSI', type: 'select', options: ['Yes', 'No'] },
+                                    { accessor: 'authorizedSignatory', header: 'Signatory', type: 'select', options: ['Yes', 'No'] },
                                 ]}
                             />
                         </TabsContent>
