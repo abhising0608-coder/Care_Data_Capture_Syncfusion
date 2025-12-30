@@ -16,22 +16,23 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Skeleton } from '../ui/skeleton';
-import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
+import { useAuth, useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection } from 'firebase/firestore';
 
 export function Step1Form() {
   const { control } = useFormContext();
   const firestore = useFirestore();
+  const { user } = useAuth();
 
   const companiesCollection = useMemoFirebase(() => {
-    if (!firestore) return null;
+    if (!firestore || !user) return null;
     return collection(firestore, 'companies');
-  }, [firestore]);
+  }, [firestore, user]);
 
   const templatesCollection = useMemoFirebase(() => {
-    if (!firestore) return null;
+    if (!firestore || !user) return null;
     return collection(firestore, 'templates');
-  }, [firestore]);
+  }, [firestore, user]);
 
 
   const { data: companies, isLoading: companiesLoading } = useCollection(companiesCollection);
