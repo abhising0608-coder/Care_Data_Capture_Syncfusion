@@ -34,6 +34,9 @@ export function WorkflowStepper() {
 
   const getStepHref = (stepId: string) => {
       if (!ratingCycleId) return '#';
+      if (stepId === 'initiate-rating-note') {
+        return `/notes/new/${ratingCycleId}`;
+      }
       return `/${stepId}/${ratingCycleId}`;
   }
 
@@ -51,34 +54,40 @@ export function WorkflowStepper() {
           if (isCurrent) {
             status = 'current';
           }
+          
+          const stepClasses = cn(
+            "group flex flex-col border-l-4 py-2 pl-4 md:border-l-0 md:border-t-4 md:pb-0 md:pl-0 md:pt-4",
+            {
+              "border-primary hover:border-primary-dark": status === 'complete',
+              "border-primary": status === 'current',
+              "border-border hover:border-gray-300": status === 'upcoming'
+            }
+          );
+          
+           const mainTextClasses = cn("text-sm font-medium", {
+            "text-primary": status === 'complete' || status === 'current',
+            "text-muted-foreground group-hover:text-gray-700": status === 'upcoming',
+          });
+
+          const subTextClasses = cn("text-sm font-medium", {
+             "text-muted-foreground": true
+          });
+
 
           return (
             <li key={step.name} className="md:flex-1">
-              {status === 'complete' ? (
-                <Link
+              <Link
                   href={getStepHref(step.id)}
-                  className="group flex flex-col border-l-4 border-primary py-2 pl-4 hover:border-primary-dark md:border-l-0 md:border-t-4 md:pb-0 md:pl-0 md:pt-4"
+                  className={stepClasses}
+                  aria-current={status === 'current' ? 'step' : undefined}
                 >
-                  <span className="text-sm font-medium text-primary">{step.name}</span>
-                  <span className="text-sm font-medium text-muted-foreground">Completed</span>
+                  <span className={mainTextClasses}>{step.name}</span>
+                  <span className={subTextClasses}>
+                    {status === 'complete' && 'Completed'}
+                    {status === 'current' && 'Current Step'}
+                    {status === 'upcoming' && 'Upcoming'}
+                  </span>
                 </Link>
-              ) : status === 'current' ? (
-                <Link
-                  href={getStepHref(step.id)}
-                  className="flex flex-col border-l-4 border-primary py-2 pl-4 md:border-l-0 md:border-t-4 md:pb-0 md:pl-0 md:pt-4"
-                  aria-current="step"
-                >
-                  <span className="text-sm font-medium text-primary">{step.name}</span>
-                   <span className="text-sm font-medium text-muted-foreground">Current Step</span>
-                </Link>
-              ) : (
-                <div
-                  className="group flex flex-col border-l-4 border-border py-2 pl-4 md:border-l-0 md:border-t-4 md:pb-0 md:pl-0 md:pt-4"
-                >
-                  <span className="text-sm font-medium text-muted-foreground">{step.name}</span>
-                  <span className="text-sm font-medium text-muted-foreground">Upcoming</span>
-                </div>
-              )}
             </li>
           )
         })}
