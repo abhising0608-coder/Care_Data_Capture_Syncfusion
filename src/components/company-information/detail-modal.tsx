@@ -1,18 +1,20 @@
 'use client';
 
-import { useForm, Controller } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import type { DetailItem } from '@/lib/definitions';
 import { useEffect } from 'react';
+import type { ColumnDefinition } from './detail-block';
+import { Switch } from '../ui/switch';
 
 interface DetailModalProps {
     isOpen: boolean;
     onClose: () => void;
     onSave: (data: DetailItem) => void;
-    columns: { accessor: string; header: string }[];
+    columns: ColumnDefinition[];
     defaultValues?: DetailItem;
     title: string;
 }
@@ -30,6 +32,40 @@ export function DetailModal({ isOpen, onClose, onSave, columns, defaultValues, t
         onSave(data as DetailItem);
     };
 
+    const renderInput = (col: ColumnDefinition) => {
+        const fieldProps = {
+            id: col.accessor,
+            ...register(col.accessor, { required: `${col.header} is required.` }),
+        };
+
+        switch (col.type) {
+            case 'boolean':
+                return (
+                    <div className="flex items-center">
+                        <Switch
+                            id={col.accessor}
+                            defaultChecked={defaultValues?.[col.accessor]}
+                            onCheckedChange={(checked) => {
+                                // @ts-ignore
+                                fieldProps.onChange({ target: { value: checked } });
+                            }}
+                        />
+                    </div>
+                );
+            case 'text':
+            case 'number':
+            default:
+                return (
+                     <Input
+                        {...fieldProps}
+                        type={col.type === 'number' ? 'number' : 'text'}
+                        className="w-full"
+                    />
+                );
+        }
+    };
+
+
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
             <DialogContent>
@@ -44,11 +80,7 @@ export function DetailModal({ isOpen, onClose, onSave, columns, defaultValues, t
                                     {col.header}
                                 </Label>
                                 <div className="col-span-3">
-                                    <Input
-                                        id={col.accessor}
-                                        {...register(col.accessor, { required: `${col.header} is required.` })}
-                                        className="w-full"
-                                    />
+                                   {renderInput(col)}
                                      {errors[col.accessor] && <p className="text-sm text-destructive mt-1">{(errors as any)[col.accessor].message}</p>}
                                 </div>
                             </div>

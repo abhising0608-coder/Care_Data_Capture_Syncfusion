@@ -1,4 +1,4 @@
-export type Role = 'CKC_ANALYST' | 'CKC_CHECKER' | 'CKC_ADMIN' | 'RATING_ANALYST' | 'GROUP_HEAD' | 'SYSTEM';
+export type Role = 'CKC_ANALYST' | 'CKC_CHECKER' | 'CKC_ADMIN' | 'RATING_ANALYST' | 'GROUP_HEAD' | 'RATING_HEAD_SD' | 'SYSTEM';
 export type RequestStatus = 'PENDING' | 'ACCEPTED' | 'IN_PROGRESS' | 'SUBMITTED_FOR_CHECK' | 'SENT_BACK' | 'APPROVED' | 'CLOSED';
 
 export type StatusHistory = {
@@ -77,8 +77,18 @@ export type ContactDetail = {
   id: string;
   name: string;
   designation: string;
-  email: string;
-  phone: string;
+  department?: string;
+  email?: string;
+  mobile?: string;
+  phone?: string;
+  isPrimary?: boolean;
+  isUPSI?: boolean;
+  authorizedSignatory?: boolean;
+  source: 'CRM' | 'Rating';
+  isDeleted: boolean;
+  lastUpdatedBy: string;
+  lastUpdatedAt: string;
+  pendingSync: boolean;
 };
 
 export type DetailItem = {

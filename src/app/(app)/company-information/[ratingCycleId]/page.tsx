@@ -16,6 +16,7 @@ import { CompanyMasterInfo } from '@/components/company-information/company-mast
 import { GroupTagging } from '@/components/company-information/group-tagging';
 import { DetailBlock } from '@/components/company-information/detail-block';
 import { Save, Ban } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
@@ -29,14 +30,29 @@ const companyInfoSchema = z.object({
         id: z.string(),
         name: z.string().min(1, "Name is required"),
         designation: z.string().min(1, "Designation is required"),
-        email: z.string().email("Invalid email"),
-        phone: z.string().min(1, "Phone is required"),
+        department: z.string().optional(),
+        email: z.string().email("Invalid email").optional().or(z.literal('')),
+        mobile: z.string().optional(),
+        phone: z.string().optional(),
+        isPrimary: z.boolean().optional(),
+        isUPSI: z.boolean().optional(),
+        authorizedSignatory: z.boolean().optional(),
+        source: z.string().optional(),
+        isDeleted: z.boolean().optional(),
     })).optional(),
     auditorDetails: z.array(z.any()).optional(),
     bankerDetails: z.array(z.any()).optional(),
     dtDetails: z.array(z.any()).optional(),
     ipaDetails: z.array(z.any()).optional(),
     thirdPartyDetails: z.array(z.any()).optional(),
+}).refine(data => {
+    if (data.contactDetails) {
+        return data.contactDetails.every(contact => contact.email || contact.mobile);
+    }
+    return true;
+}, {
+    message: "Either Email or Mobile must be provided for each contact.",
+    path: ['contactDetails']
 });
 
 
@@ -141,45 +157,63 @@ export default function CompanyInformationPage() {
                         </div>
                     </header>
                     
-                    <CompanyMasterInfo masterSnapshot={data.masterSnapshot} />
-                    <GroupTagging isReadOnly={isReadOnly} />
-
-                    <DetailBlock
-                        title="Contact Details"
-                        data={data.contactDetails}
-                        isReadOnly={isReadOnly}
-                        fieldName="contactDetails"
-                        columns={[
-                            { accessor: 'name', header: 'Name' },
-                            { accessor: 'designation', header: 'Designation' },
-                            { accessor: 'email', header: 'Email' },
-                            { accessor: 'phone', header: 'Phone' },
-                        ]}
-                    />
-
-                    <DetailBlock
-                        title="Auditor Details"
-                        data={data.auditorDetails}
-                        isReadOnly={isReadOnly}
-                        fieldName="auditorDetails"
-                        columns={[
-                            { accessor: 'name', header: 'Auditor Name' },
-                            { accessor: 'type', header: 'Type (Statutory/Internal)' },
-                            { accessor: 'since', header: 'Auditor Since' },
-                        ]}
-                    />
-
-                     <DetailBlock
-                        title="Banker Details"
-                        data={data.bankerDetails}
-                        isReadOnly={isReadOnly}
-                        fieldName="bankerDetails"
-                        columns={[
-                            { accessor: 'bankName', header: 'Bank Name' },
-                            { accessor: 'facilityType', header: 'Facility Type' },
-                            { accessor: 'amount', header: 'Amount (Cr)' },
-                        ]}
-                    />
+                    <Tabs defaultValue="general">
+                        <TabsList className="mb-4">
+                            <TabsTrigger value="general">General & Group</TabsTrigger>
+                            <TabsTrigger value="contacts">Contact Details</TabsTrigger>
+                            <TabsTrigger value="auditors">Auditor Details</TabsTrigger>
+                            <TabsTrigger value="bankers">Banker Details</TabsTrigger>
+                        </TabsList>
+                        <TabsContent value="general" className="space-y-6">
+                             <CompanyMasterInfo masterSnapshot={data.masterSnapshot} />
+                             <GroupTagging isReadOnly={isReadOnly} />
+                        </TabsContent>
+                        <TabsContent value="contacts">
+                             <DetailBlock
+                                title="Contact Details"
+                                data={data.contactDetails}
+                                isReadOnly={isReadOnly}
+                                fieldName="contactDetails"
+                                columns={[
+                                    { accessor: 'name', header: 'Name', type: 'text' },
+                                    { accessor: 'designation', header: 'Designation', type: 'text' },
+                                    { accessor: 'department', header: 'Department', type: 'text' },
+                                    { accessor: 'email', header: 'Email', type: 'text' },
+                                    { accessor: 'mobile', header: 'Mobile', type: 'text' },
+                                    { accessor: 'isPrimary', header: 'Primary', type: 'boolean' },
+                                    { accessor: 'isUPSI', header: 'UPSI', type: 'boolean' },
+                                    { accessor: 'authorizedSignatory', header: 'Signatory', type: 'boolean' },
+                                    { accessor: 'source', header: 'Source', type: 'text' },
+                                ]}
+                            />
+                        </TabsContent>
+                        <TabsContent value="auditors">
+                            <DetailBlock
+                                title="Auditor Details"
+                                data={data.auditorDetails}
+                                isReadOnly={isReadOnly}
+                                fieldName="auditorDetails"
+                                columns={[
+                                    { accessor: 'name', header: 'Auditor Name', type: 'text' },
+                                    { accessor: 'type', header: 'Type (Statutory/Internal)', type: 'text' },
+                                    { accessor: 'since', header: 'Auditor Since', type: 'text' },
+                                ]}
+                            />
+                        </TabsContent>
+                         <TabsContent value="bankers">
+                             <DetailBlock
+                                title="Banker Details"
+                                data={data.bankerDetails}
+                                isReadOnly={isReadOnly}
+                                fieldName="bankerDetails"
+                                columns={[
+                                    { accessor: 'bankName', header: 'Bank Name', type: 'text' },
+                                    { accessor: 'facilityType', header: 'Facility Type', type: 'text' },
+                                    { accessor: 'amount', header: 'Amount (Cr)', type: 'text' },
+                                ]}
+                            />
+                        </TabsContent>
+                    </Tabs>
                 </div>
             </form>
         </FormProvider>

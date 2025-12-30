@@ -6,16 +6,35 @@ import { v4 as uuidv4 } from 'uuid';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, Pencil, Trash2 } from 'lucide-react';
+import { PlusCircle, Pencil, Trash2, Check, X } from 'lucide-react';
 import { DetailModal } from './detail-modal';
 import type { DetailItem } from '@/lib/definitions';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+
+
+export type ColumnDefinition = {
+    accessor: string;
+    header: string;
+    type: 'text' | 'number' | 'boolean' | 'select';
+    options?: string[];
+};
 
 interface DetailBlockProps {
     title: string;
     data: DetailItem[];
     isReadOnly: boolean;
     fieldName: string;
-    columns: { accessor: string; header: string }[];
+    columns: ColumnDefinition[];
 }
 
 export function DetailBlock({ title, data, isReadOnly, fieldName, columns }: DetailBlockProps) {
@@ -35,13 +54,34 @@ export function DetailBlock({ title, data, isReadOnly, fieldName, columns }: Det
 
     const handleSave = (itemData: DetailItem) => {
         if (editingIndex !== null) {
-            update(editingIndex, itemData);
+             const updatedItem = {
+                ...fields[editingIndex],
+                ...itemData,
+                lastUpdatedAt: new Date().toISOString(),
+                // lastUpdatedBy should be set here from auth context
+                pendingSync: itemData.source === 'CRM'
+            };
+            update(editingIndex, updatedItem);
         } else {
-            append({ ...itemData, id: uuidv4() });
+            append({
+                ...itemData,
+                id: uuidv4(),
+                source: 'Rating',
+                isDeleted: false,
+                lastUpdatedAt: new Date().toISOString(),
+                // lastUpdatedBy should be set here
+             });
         }
         setIsModalOpen(false);
         setEditingIndex(null);
     };
+
+    const handleDelete = (index: number) => {
+        const field: any = fields[index];
+        update(index, { ...field, isDeleted: true, lastUpdatedAt: new Date().toISOString() });
+    };
+
+    const activeFields = fields.filter(field => !(field as any).isDeleted);
 
     return (
         <>
@@ -64,26 +104,46 @@ export function DetailBlock({ title, data, isReadOnly, fieldName, columns }: Det
                             <TableHeader>
                                 <TableRow>
                                     {columns.map(col => <TableHead key={col.accessor}>{col.header}</TableHead>)}
-                                    {!isReadOnly && <TableHead className="w-[100px]">Actions</TableHead>}
+                                    {!isReadOnly && <TableHead className="w-[100px] text-right">Actions</TableHead>}
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {fields.length > 0 ? (
-                                    fields.map((item, index) => (
+                                {activeFields.length > 0 ? (
+                                    activeFields.map((item, index) => (
                                         <TableRow key={item.id}>
                                             {columns.map(col => (
                                                 <TableCell key={`${item.id}-${col.accessor}`}>
-                                                    {(item as any)[col.accessor]}
+                                                    {col.type === 'boolean' ? (
+                                                        (item as any)[col.accessor] ? <Check className="h-5 w-5 text-green-500" /> : <X className="h-5 w-5 text-muted-foreground" />
+                                                    ) : (
+                                                        (item as any)[col.accessor]
+                                                    )}
                                                 </TableCell>
                                             ))}
                                             {!isReadOnly && (
-                                                <TableCell className="flex gap-2">
+                                                <TableCell className="flex gap-2 justify-end">
                                                     <Button variant="ghost" size="icon" onClick={() => handleOpenModal(index)}>
                                                         <Pencil className="h-4 w-4" />
                                                     </Button>
-                                                    <Button variant="ghost" size="icon" onClick={() => remove(index)}>
-                                                        <Trash2 className="h-4 w-4 text-destructive" />
-                                                    </Button>
+                                                    <AlertDialog>
+                                                        <AlertDialogTrigger asChild>
+                                                            <Button variant="ghost" size="icon">
+                                                                <Trash2 className="h-4 w-4 text-destructive" />
+                                                            </Button>
+                                                        </AlertDialogTrigger>
+                                                        <AlertDialogContent>
+                                                            <AlertDialogHeader>
+                                                                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                                                <AlertDialogDescription>
+                                                                    This action will mark the record for deletion. It will be hidden from view but can be recovered.
+                                                                </AlertDialogDescription>
+                                                            </AlertDialogHeader>
+                                                            <AlertDialogFooter>
+                                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                                <AlertDialogAction onClick={() => handleDelete(index)}>Continue</AlertDialogAction>
+                                                            </AlertDialogFooter>
+                                                        </AlertDialogContent>
+                                                    </AlertDialog>
                                                 </TableCell>
                                             )}
                                         </TableRow>
