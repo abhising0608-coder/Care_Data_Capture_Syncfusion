@@ -13,8 +13,8 @@ import { Step4Form } from '@/components/initiate-rating-note/step-4-form';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
-import { addDocumentNonBlocking, useFirestore } from '@/firebase';
-import { collection } from 'firebase/firestore';
+import { useFirestore } from '@/firebase';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 
 const steps = [
   { id: 'step-1', name: 'Select Company & Template' },
@@ -93,7 +93,8 @@ export default function NewRatingNotePage() {
       return;
     }
     
-    const company = (methods.getValues('step1.companyId') as any)?.label;
+    // This is a temporary way to get the company name label, should be improved
+    const company = (methods.getValues('step1.companyId') as any)?.label || 'Selected Company';
     const noteName = `${company} Surveillance Note`;
 
     const notePayload = {
@@ -108,8 +109,8 @@ export default function NewRatingNotePage() {
       currencyDenomination: methods.getValues('step3.currencyDenomination'),
       scale: methods.getValues('step3.scale'),
       applicableCriteria: methods.getValues('step3.applicableCriteria'),
-      createdAt: new Date(),
-      lastModified: new Date(),
+      createdAt: serverTimestamp(),
+      lastModified: serverTimestamp(),
       createdBy: user.uid,
       rcmDate: null,
       sections: {}, // Will be populated later
@@ -117,13 +118,14 @@ export default function NewRatingNotePage() {
 
     try {
       const notesCollection = collection(firestore, 'ratingNotes');
-      const docRef = await addDocumentNonBlocking(notesCollection, notePayload);
+      const docRef = await addDoc(notesCollection, notePayload);
       toast({
         title: 'Success!',
         description: `Rating note for ${company} has been created.`,
       });
       router.push(`/rating-note/${docRef.id}`);
     } catch (error) {
+       console.error("Firestore error:", error);
       toast({
         variant: 'destructive',
         title: 'Firestore Error',
