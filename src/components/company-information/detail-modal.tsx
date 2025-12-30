@@ -27,21 +27,31 @@ export function DetailModal({ isOpen, onClose, onSave, columns, defaultValues, t
         const schemaShape: any = {};
         columns.forEach(col => {
             let fieldSchema: z.ZodTypeAny;
+
             switch(col.type) {
                 case 'text':
-                    fieldSchema = z.string();
+                    let stringSchema = z.string();
                     if (col.accessor.toLowerCase().includes('email')) {
-                        fieldSchema = fieldSchema.email({ message: "Invalid email format." }).or(z.literal(''));
+                        stringSchema = stringSchema.email({ message: "Invalid email format." });
                     }
                     if (col.required) {
-                        fieldSchema = fieldSchema.min(1, `${col.header} is required.`);
+                        fieldSchema = stringSchema.min(1, `${col.header} is required.`);
                     } else {
-                        fieldSchema = fieldSchema.optional().or(z.literal(''));
+                        fieldSchema = stringSchema.optional().or(z.literal(''));
                     }
                     break;
+
                 case 'number':
-                    fieldSchema = z.number().optional();
+                    fieldSchema = z.preprocess(
+                        (a) => {
+                            if (a === '' || a === null || a === undefined) return undefined;
+                            const num = parseFloat(String(a));
+                            return isNaN(num) ? undefined : num;
+                        },
+                        col.required ? z.number({ required_error: `${col.header} is required.`}) : z.number().optional()
+                    );
                     break;
+                
                 case 'select':
                      if (col.options?.every(o => ['Yes', 'No'].includes(o))) {
                         // Handle boolean-like 'Yes'/'No' dropdowns
@@ -50,19 +60,20 @@ export function DetailModal({ isOpen, onClose, onSave, columns, defaultValues, t
                             z.boolean().optional()
                         );
                     } else {
-                        let stringSchema = z.string();
+                        // Handle regular string dropdowns
+                        let selectStringSchema = z.string();
                          if (col.required) {
-                            stringSchema = stringSchema.min(1, `${col.header} is required.`);
+                            fieldSchema = selectStringSchema.min(1, `${col.header} is required.`);
                         } else {
-                            stringSchema = stringSchema.optional() as any;
+                            fieldSchema = selectStringSchema.optional().or(z.literal(''));
                         }
-                        fieldSchema = stringSchema;
                     }
-                    
                     break;
+
                 case 'boolean':
                     fieldSchema = z.boolean().optional();
                     break;
+                    
                 default:
                     fieldSchema = z.any().optional();
             }
@@ -104,6 +115,8 @@ export function DetailModal({ isOpen, onClose, onSave, columns, defaultValues, t
             return 'Add New IPA';
         } else if (title.startsWith('Add New Third')) {
             return 'Add New Third Party';
+        } else if (title.startsWith('Add New Contact')) {
+            return 'Add New Contact'
         }
         return `Add New ${title}`;
     }
