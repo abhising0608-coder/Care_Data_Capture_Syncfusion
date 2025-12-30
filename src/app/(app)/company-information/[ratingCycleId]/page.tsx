@@ -270,7 +270,7 @@ export default function CompanyInformationPage() {
                                 fieldName="thirdPartyDetails"
                                 columns={[
                                     { accessor: 'firmName', header: 'Firm Name', type: 'text', required: true },
-                                    { accessor: 'contactPerson', header: 'Contact Person', type: 'text' },
+                                    { accessor: 'contactPerson', header: 'Contact Person', type: 'text', required: true },
                                     { accessor: 'designation', header: 'Designation', type: 'text' },
                                     { accessor: 'emailId', header: 'Email ID', type: 'text' },
                                     { accessor: 'contactNo', header: 'Contact No', type: 'text' },
