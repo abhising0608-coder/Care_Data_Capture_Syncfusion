@@ -4,6 +4,9 @@ import * as React from 'react';
 import {
   ArrowUpDown,
   ChevronDown,
+  Triangle,
+  Square,
+  Circle as Dot,
 } from 'lucide-react';
 import {
   ColumnDef,
@@ -37,7 +40,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { CaretDown, Triangle, Square, Circle as Dot } from 'lucide-react';
 import { mockCompanies } from '@/lib/mock-data';
 import type { CompanyDashboard } from '@/lib/definitions';
 import { cn } from '@/lib/utils';
@@ -173,7 +175,7 @@ const columns: ColumnDef<CompanyDashboard>[] = [
       return (
         <Button variant="ghost" className="h-8 w-8 p-0">
           <span className="sr-only">Open menu</span>
-          <CaretDown className="h-4 w-4" />
+          <ChevronDown className="h-4 w-4" />
         </Button>
       );
     },
