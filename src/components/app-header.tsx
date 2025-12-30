@@ -38,7 +38,7 @@ export function AppHeader() {
         
         {user && (
           <Select value={user.role} onValueChange={(value) => setUserRole(value as Role)}>
-            <SelectTrigger className="w-[180px] h-9">
+            <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Select a role" />
             </SelectTrigger>
             <SelectContent>
