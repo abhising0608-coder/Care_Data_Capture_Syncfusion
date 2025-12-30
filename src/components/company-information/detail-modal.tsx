@@ -90,6 +90,12 @@ export function DetailModal({ isOpen, onClose, onSave, columns, defaultValues, t
         }
     }, [isOpen, defaultValues, form, columns]);
 
+    const getModalTitle = () => {
+        if (title.startsWith('Edit')) {
+            return `Edit ${title.substring(5)}`;
+        }
+        return `Add New ${title}`;
+    }
 
     const handleFormSubmit = (data: any) => {
         onSave(data as DetailItem);
@@ -137,7 +143,7 @@ export function DetailModal({ isOpen, onClose, onSave, columns, defaultValues, t
         <Dialog open={isOpen} onOpenChange={onClose}>
             <DialogContent className="sm:max-w-[600px]">
                 <DialogHeader>
-                    <DialogTitle>{title}</DialogTitle>
+                    <DialogTitle>{getModalTitle()}</DialogTitle>
                 </DialogHeader>
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(handleFormSubmit)}>

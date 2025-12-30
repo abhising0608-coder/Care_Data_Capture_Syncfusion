@@ -31,7 +31,7 @@ const companyInfoSchema = z.object({
     contactDetails: z.array(z.object({
         id: z.string(),
         name: z.string().min(1, "Name is required"),
-        designation: z.string().min(1, "Designation is required"),
+        designation: z.string().optional(),
         department: z.string().optional(),
         email: z.string().email("Invalid email").optional().or(z.literal('')),
         mobile: z.string().optional(),
@@ -186,9 +186,9 @@ export default function CompanyInformationPage() {
                                 fieldName="contactDetails"
                                 columns={[
                                     { accessor: 'name', header: 'Contact Name', type: 'text', required: true },
-                                    { accessor: 'designation', header: 'Designation', type: 'text', required: true },
+                                    { accessor: 'designation', header: 'Designation', type: 'text' },
                                     { accessor: 'department', header: 'Department', type: 'text' },
-                                    { accessor: 'email', header: 'Email ID', type: 'text' },
+                                    { accessor: 'email', header: 'Email ID', type: 'text', required: true },
                                     { accessor: 'mobile', header: 'Mobile', type: 'text' },
                                     { accessor: 'phone', header: 'Phone', type: 'text' },
                                     { accessor: 'isPrimary', header: 'Primary', type: 'select', options: ['Yes', 'No'] },
@@ -200,7 +200,7 @@ export default function CompanyInformationPage() {
 
                         <TabsContent value="auditor_details">
                              <DetailBlock
-                                title="Auditor Details"
+                                title="Auditor Firm"
                                 data={data.auditorDetails}
                                 isReadOnly={isReadOnly}
                                 fieldName="auditorDetails"
@@ -216,13 +216,13 @@ export default function CompanyInformationPage() {
 
                         <TabsContent value="banker_details">
                             <DetailBlock
-                                title="Banker Details"
+                                title="Banker"
                                 data={data.bankerDetails}
                                 isReadOnly={isReadOnly}
                                 fieldName="bankerDetails"
                                 columns={[
-                                    { accessor: 'bankName', header: 'Bank Name', type: 'text', required: true },
-                                    { accessor: 'contactPerson', header: 'Contact Person', type: 'text' },
+                                    { accessor: 'bankName', header: 'Banker / Lender Name', type: 'select', required: true, options: ['HDFC Bank', 'ICICI Bank', 'State Bank of India', 'Axis Bank'] },
+                                    { accessor: 'contactPerson', header: 'Contact Person', type: 'text', required: true },
                                     { accessor: 'designation', header: 'Designation', type: 'text' },
                                     { accessor: 'emailId', header: 'Email ID', type: 'text' },
                                     { accessor: 'contactNo', header: 'Contact No', type: 'text' },
