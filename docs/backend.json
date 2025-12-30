@@ -1,0 +1,208 @@
+{
+  "entities": {
+    "CKCOperationalRequest": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "CKCOperationalRequest",
+      "type": "object",
+      "description": "Represents a CKC operational data request.",
+      "properties": {
+        "requestId": {
+          "type": "string",
+          "description": "Unique identifier for the CKC operational request.",
+          "format": "string"
+        },
+        "companyId": {
+          "type": "string",
+          "description": "Identifier for the company associated with the request."
+        },
+        "companyName": {
+          "type": "string",
+          "description": "Name of the company."
+        },
+        "financialInputSector": {
+          "type": "string",
+          "description": "Sector of the financial input."
+        },
+        "listed": {
+          "type": "string",
+          "description": "Indicates if the company is listed (Yes/No)."
+        },
+        "rating": {
+          "type": "string",
+          "description": "Rating of the company."
+        },
+        "hoRoName": {
+          "type": "string",
+          "description": "Name of the HO/RO."
+        },
+        "dealingAnalyst": {
+          "type": "string",
+          "description": "Name of the dealing analyst."
+        },
+        "groupHead": {
+          "type": "string",
+          "description": "Name of the group head."
+        },
+        "assignedTo": {
+          "type": "string",
+          "description": "User ID of the analyst assigned to the request."
+        },
+        "checker": {
+          "type": "string",
+          "description": "Name of the checker."
+        },
+        "status": {
+          "type": "string",
+          "description": "Status of the request (PENDING, ACCEPTED, CLOSED)."
+        },
+        "auditedFY": {
+          "type": "array",
+          "description": "Array of audited fiscal years.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "provisionalFY": {
+          "type": "array",
+          "description": "Array of provisional fiscal years.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "projectionFY": {
+          "type": "array",
+          "description": "Array of projection fiscal years.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "remarks": {
+          "type": "string",
+          "description": "Remarks related to the request."
+        },
+        "receiptDateTime": {
+          "type": "string",
+          "description": "Timestamp of when the request was received.",
+          "format": "date-time"
+        },
+        "receiptResponseDateTime": {
+          "type": "string",
+          "description": "Timestamp of the receipt response.",
+          "format": "date-time"
+        },
+        "entryAllottedDateTime": {
+          "type": "string",
+          "description": "Timestamp of when the entry was allotted.",
+          "format": "date-time"
+        },
+        "entryCompletedDateTime": {
+          "type": "string",
+          "description": "Timestamp of when the entry was completed.",
+          "format": "date-time"
+        },
+        "checkingAllottedDateTime": {
+          "type": "string",
+          "description": "Timestamp of when the checking was allotted.",
+          "format": "date-time"
+        },
+        "checkingCompletedDateTime": {
+          "type": "string",
+          "description": "Timestamp of when the checking was completed.",
+          "format": "date-time"
+        },
+        "sentBackFlag": {
+          "type": "boolean",
+          "description": "Flag indicating if the request was sent back."
+        },
+        "createdBy": {
+          "type": "string",
+          "description": "User ID of the user who created the request."
+        },
+        "overallStatus": {
+          "type": "string",
+          "description": "Overall status of the request."
+        },
+        "itemType": {
+          "type": "string",
+          "description": "Type of the item."
+        },
+        "path": {
+          "type": "string",
+          "description": "Path or location of the request."
+        },
+        "resultType": {
+          "type": "string",
+          "description": "Type of result (Standalone / Consolidated)."
+        },
+        "cycle": {
+          "type": "string",
+          "description": "Cycle of the request (Initial / Surveillance)."
+        },
+        "receiptDate": {
+          "type": "string",
+          "description": "Date when the request was received.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "requestId",
+        "companyId",
+        "companyName",
+        "financialInputSector",
+        "listed",
+        "rating",
+        "hoRoName",
+        "dealingAnalyst",
+        "groupHead",
+        "assignedTo",
+        "checker",
+        "status",
+        "auditedFY",
+        "provisionalFY",
+        "projectionFY",
+        "remarks",
+        "receiptDateTime",
+        "receiptResponseDateTime",
+        "entryAllottedDateTime",
+        "entryCompletedDateTime",
+        "checkingAllottedDateTime",
+        "checkingCompletedDateTime",
+        "sentBackFlag",
+        "createdBy",
+        "overallStatus",
+        "itemType",
+        "path",
+        "resultType",
+        "cycle",
+        "receiptDate"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/ckc_operational_requests/{requestId}",
+        "definition": {
+          "entityName": "CKCOperationalRequest",
+          "schema": {
+            "$ref": "#/backend/entities/CKCOperationalRequest"
+          },
+          "description": "Stores CKC operational data requests.  The 'requestId' is used as the document ID.",
+          "params": [
+            {
+              "name": "requestId",
+              "description": "Unique identifier for the CKC operational request."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore structure is designed to support the CareEdge Operational Data Input application, focusing on the 'Pending' landing screen for CKC Analysts. The primary entity is `CKCOperationalRequest`. The structure prioritizes authorization independence and efficient data retrieval for the pending requests list. I am using Structural Segregation (Homogeneous Security Posture) by placing all CKC Operational Requests in one collection `ckc_operational_requests`. All documents share same security requirements.\n\nTo ensure Authorization Independence, the `ckc_operational_requests` collection stores all the necessary information, thus not relying on parent documents.  Since we are only dealing with a landing page, we do not need to implement Authorization independence now but this will be useful when creating subcollections.\n\nThe structure supports QAPs by storing all requests in a single collection with status and role-based filtering applied in the application logic, which can be enforced by Firestore rules.  The search and filter features in the UI (search by Request ID, Company Name, Company ID, Cycle, Audited FY; filters for Listed, Cycle, and Audited FY) can be implemented by querying this collection with appropriate `where()` clauses.\n\n"
+  }
+}
