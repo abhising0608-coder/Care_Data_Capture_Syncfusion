@@ -17,19 +17,18 @@ import {
 } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
-import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import { collection } from 'firebase/firestore';
+
+// Mock criteria data
+const mockCriteria = [
+    { id: 'criteria-001', name: 'Criteria for Rating Manufacturing Companies' },
+    { id: 'criteria-002', name: 'Criteria for Rating Service Sector Companies' },
+    { id: 'criteria-003', name: 'Criteria for Bank Loans' },
+    { id: 'criteria-004', name: 'Parent and Group Support' },
+];
+
 
 export function Step3Form() {
   const { control } = useFormContext();
-  const firestore = useFirestore();
-
-  const criteriaCollection = useMemoFirebase(() => {
-    if (!firestore) return null;
-    return collection(firestore, 'criteria');
-  }, [firestore]);
-
-  const { data: criteria, isLoading: criteriaLoading } = useCollection(criteriaCollection);
 
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: 10 }, (_, i) => currentYear - i);
@@ -95,7 +94,7 @@ export function Step3Form() {
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {years.map(year => <SelectItem key={year} value={String(year)}>{year + 1}</SelectItem>)}
+                  {years.map(year => <SelectItem key={year} value={String(year + 1)}>{year + 1}</SelectItem>)}
                 </SelectContent>
               </Select>
               <FormMessage />
@@ -152,7 +151,7 @@ export function Step3Form() {
       <div>
         <FormLabel>Applicable Criteria</FormLabel>
         <div className="mt-2 grid grid-cols-2 gap-4 rounded-md border p-4">
-          {criteria?.map(item => (
+          {mockCriteria?.map(item => (
             <FormField
               key={item.id}
               control={control}
