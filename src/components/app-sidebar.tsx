@@ -37,7 +37,7 @@ export function AppSidebar() {
   return (
     <Sidebar>
       <SidebarHeader className="p-4 flex items-center justify-center">
-        {/* The logo is now in the AppHeader for desktop view */}
+        <Image src="/careedge-logo.svg" alt="CareEdge Logo" width={120} height={32} className="dark:invert" />
       </SidebarHeader>
       <SidebarContent>
         <SidebarMenu>

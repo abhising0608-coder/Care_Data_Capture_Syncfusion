@@ -25,8 +25,6 @@ export function AppHeader() {
       <div className="flex items-center gap-2">
         <SidebarTrigger className="md:hidden" />
          <div className="items-center gap-2 hidden md:flex">
-           <Image src="/careedge-logo.svg" alt="CareEdge Logo" width={110} height={28} className="dark:invert" />
-           <span className="text-muted-foreground/50">|</span>
            <h1 className="text-lg font-semibold text-foreground">Rating Note</h1>
          </div>
       </div>
