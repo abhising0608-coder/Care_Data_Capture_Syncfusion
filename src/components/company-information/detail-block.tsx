@@ -98,7 +98,7 @@ export function DetailBlock({ title, isReadOnly, fieldName, columns }: DetailBlo
                         <CardDescription>Review and manage {title.toLowerCase()}.</CardDescription>
                     </div>
                     {!isReadOnly && (
-                        <Button variant="outline" size="sm" onClick={() => handleOpenModal()}>
+                        <Button type="button" variant="outline" size="sm" onClick={() => handleOpenModal()}>
                             <PlusCircle className="mr-2 h-4 w-4" />
                             Add New
                         </Button>
