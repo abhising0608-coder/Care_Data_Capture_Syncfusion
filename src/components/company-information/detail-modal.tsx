@@ -26,7 +26,7 @@ export function DetailModal({ isOpen, onClose, onSave, columns, defaultValues, t
     const validationSchema = useMemo(() => {
         const schemaShape: any = {};
         columns.forEach(col => {
-            let fieldSchema;
+            let fieldSchema: z.ZodTypeAny;
             switch(col.type) {
                 case 'text':
                     fieldSchema = z.string();
@@ -50,12 +50,13 @@ export function DetailModal({ isOpen, onClose, onSave, columns, defaultValues, t
                             z.boolean().optional()
                         );
                     } else {
-                        fieldSchema = z.string();
+                        let stringSchema = z.string();
                          if (col.required) {
-                            fieldSchema = fieldSchema.min(1, `${col.header} is required.`);
+                            stringSchema = stringSchema.min(1, `${col.header} is required.`);
                         } else {
-                             fieldSchema = fieldSchema.optional();
+                            stringSchema = stringSchema.optional() as any;
                         }
+                        fieldSchema = stringSchema;
                     }
                     
                     break;
@@ -93,6 +94,16 @@ export function DetailModal({ isOpen, onClose, onSave, columns, defaultValues, t
     const getModalTitle = () => {
         if (title.startsWith('Edit')) {
             return `Edit ${title.substring(5)}`;
+        } else if (title.startsWith('Add New Banker')) {
+            return 'Add New Banker';
+        } else if (title.startsWith('Add New Auditor')) {
+            return 'Add New Auditor Firm';
+        } else if (title.startsWith('Add New DT')) {
+            return 'Add New DT';
+        } else if (title.startsWith('Add New IPA')) {
+            return 'Add New IPA';
+        } else if (title.startsWith('Add New Third')) {
+            return 'Add New Third Party';
         }
         return `Add New ${title}`;
     }
