@@ -9,7 +9,7 @@ import { useEffect } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { useFirebase } from '@/firebase';
+import { useAuth } from '@/firebase';
 import type { CompanyInfo, Role } from '@/lib/definitions';
 import { Skeleton } from '@/components/ui/skeleton';
 import { CompanyMasterInfo } from '@/components/company-information/company-master-info';
@@ -66,9 +66,7 @@ export default function CompanyInformationPage() {
     const router = useRouter();
     const { toast } = useToast();
     const { mutate } = useSWRConfig();
-    const { auth } = useFirebase();
-    const user = auth?.currentUser;
-    const isAuthLoading = !auth;
+    const { user, isLoading: isAuthLoading } = useAuth();
 
     const { completeStep } = useWorkflow();
     const ratingCycleId = params.ratingCycleId as string;
@@ -85,13 +83,17 @@ export default function CompanyInformationPage() {
 
     useEffect(() => {
         if (data) {
-            methods.reset(data);
+            const transformedData = {
+                ...data,
+                contactDetails: data.contactDetails?.map(c => ({...c, isPrimary: c.isPrimary || false, isUPSI: c.isUPSI || false, authorizedSignatory: c.authorizedSignatory || false}))
+            };
+            methods.reset(transformedData);
         }
     }, [data, methods]);
     
     // This is a placeholder for actual role logic
     const readOnlyRoles: string[] = ['GROUP_HEAD', 'RATING_HEAD_SD'];
-    const userRole = 'RATING_ANALYST'; // Hardcoded for now
+    const userRole = user?.role || 'RATING_ANALYST'; // Hardcoded for now
     const isReadOnly = isAuthLoading || !user || readOnlyRoles.includes(userRole);
 
     const onSubmit = async (formData: z.infer<typeof companyInfoSchema>) => {
@@ -159,7 +161,7 @@ export default function CompanyInformationPage() {
                      <header className="flex items-center justify-between">
                         <div>
                             <h1 className="text-2xl font-bold tracking-tight text-foreground">
-                                Company Information: {data.masterSnapshot.name}
+                                Company Information: {data?.masterSnapshot?.name}
                             </h1>
                             <p className="text-muted-foreground">
                                 Rating Cycle ID: {ratingCycleId}
