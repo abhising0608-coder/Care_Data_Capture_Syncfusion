@@ -1,3 +1,20 @@
+export type Role = 'CKC_ANALYST' | 'CKC_CHECKER' | 'CKC_ADMIN' | 'RATING_ANALYST' | 'GROUP_HEAD' | 'SYSTEM';
+export type RequestStatus = 'PENDING' | 'ACCEPTED' | 'IN_PROGRESS' | 'SUBMITTED_FOR_CHECK' | 'SENT_BACK' | 'APPROVED' | 'CLOSED';
+
+export type StatusHistory = {
+  status: RequestStatus;
+  timestamp: string | Date;
+  actorId: string;
+  actorRole: Role;
+  remarks?: string;
+};
+
+export type AppUser = {
+  uid: string;
+  displayName?: string | null;
+  email?: string | null;
+  role: Role;
+};
 
 export type CKCRequest = {
   id: string; // Corresponds to document ID
@@ -12,13 +29,13 @@ export type CKCRequest = {
   groupHead: string;
   assignedTo: string | null;
   checker: string;
-  status: 'PENDING' | 'ACCEPTED' | 'CLOSED';
+  status: RequestStatus;
   cycle: 'Initial' | 'Surveillance';
   auditedFY: string[];
   provisionalFY: string[];
   projectionFY: string[];
   remarks: string;
-  receiptDateTime: string | Date; // Using ISO string or Date object
+  receiptDateTime: string | Date;
   receiptResponseDateTime: string | Date | null;
   entryAllottedDateTime: string | Date | null;
   entryCompletedDateTime: string | Date | null;
@@ -31,4 +48,56 @@ export type CKCRequest = {
   path: string;
   resultType: 'Standalone' | 'Consolidated';
   ckcAnalystName?: string;
+  currentOwnerId: string | null;
+  currentOwnerRole: Role | null;
+  assignedCheckerId: string | null;
+  statusHistory: StatusHistory[];
+};
+
+export type CompanyMaster = {
+  address: string;
+  city: string;
+  zipCode: string;
+  state: string;
+  country: string;
+  listingStatus: string;
+  listingIn: string;
+  macroEconomicIndicator: string;
+  sector: string;
+  industry: string;
+  basicIndustry: string;
+};
+
+export type GroupSelection = {
+  group: string;
+  groupForCombinedApproach: string;
+};
+
+export type ContactDetail = {
+  id: string;
+  name: string;
+  designation: string;
+  email: string;
+  phone: string;
+};
+
+export type DetailItem = {
+  id: string;
+  [key: string]: any;
+};
+
+export type CompanyInfo = {
+  masterSnapshot: CompanyMaster;
+  groupSelection: GroupSelection;
+  contactDetails: ContactDetail[];
+  auditorDetails: DetailItem[];
+  bankerDetails: DetailItem[];
+  dtDetails: DetailItem[];
+  ipaDetails: DetailItem[];
+  thirdPartyDetails: DetailItem[];
+  syncStatus: {
+    source: 'CRM' | 'Rating';
+    lastUpdatedBy: string;
+    lastUpdatedAt: string;
+  };
 };

@@ -17,7 +17,17 @@ import {
   Briefcase,
   GitFork,
   PenSquare,
+  Building,
 } from 'lucide-react';
+import { useAuth } from '@/hooks/use-auth';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import type { Role } from '@/lib/definitions';
 
 const menuItems = [
   {
@@ -29,6 +39,11 @@ const menuItems = [
     href: '/ckc-requests',
     label: 'CKC Requests',
     icon: FileText,
+  },
+    {
+    href: '/company-information/RC-001',
+    label: 'Company Information',
+    icon: Building,
   },
   {
     href: '/financial-input',
@@ -49,6 +64,8 @@ const menuItems = [
 
 export function AppSidebar() {
   const pathname = usePathname();
+  const { user, setUserRole } = useAuth();
+
 
   return (
     <Sidebar>
@@ -81,7 +98,23 @@ export function AppSidebar() {
         </SidebarMenu>
       </SidebarContent>
       <SidebarFooter>
-        {/* Can add user profile here later */}
+        {user && (
+          <div className='p-2 space-y-2'>
+              <span className='text-xs text-muted-foreground'>Simulate Role:</span>
+              <Select value={user.role} onValueChange={(value) => setUserRole(value as Role)}>
+                  <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select a role" />
+                  </SelectTrigger>
+                  <SelectContent>
+                      <SelectItem value="CKC_ANALYST">CKC Analyst</SelectItem>
+                      <SelectItem value="CKC_CHECKER">CKC Checker</SelectItem>
+                      <SelectItem value="CKC_ADMIN">CKC Admin</SelectItem>
+                      <SelectItem value="RATING_ANALYST">Rating Analyst</SelectItem>
+                      <SelectItem value="GROUP_HEAD">Group Head</SelectItem>
+                  </SelectContent>
+              </Select>
+          </div>
+        )}
       </SidebarFooter>
     </Sidebar>
   );

@@ -1,12 +1,14 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import type { Role } from '@/lib/definitions';
 
 // Mock user and claims structure
 interface User {
   uid: string;
   email: string | null;
   displayName: string | null;
+  role: Role;
 }
 
 interface AppClaims {
@@ -18,6 +20,7 @@ interface AuthContextType {
   claims: AppClaims | null;
   isLoading: boolean;
   error: Error | null;
+  setUserRole: (role: Role) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -28,6 +31,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [claims, setClaims] = useState<AppClaims | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  
+  const [role, setRole] = useState<Role>('CKC_ANALYST');
 
   useEffect(() => {
     // Simulate fetching user data
@@ -38,10 +43,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         uid: 'mock-user-123',
         email: 'analyst@careedge.com',
         displayName: 'CKC Analyst',
+        role: role, // Assign the dynamic role
       };
       
       const mockClaims: AppClaims = {
-        isAdmin: false, // Change this to true to test admin views
+        isAdmin: role === 'CKC_ADMIN', 
       };
 
       setUser(mockUser);
@@ -50,9 +56,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }, 500); // Simulate network delay
 
     return () => clearTimeout(timer);
-  }, []);
+  }, [role]);
+  
+  const setUserRole = (newRole: Role) => {
+    setRole(newRole);
+  }
 
-  const value = { user, claims, isLoading, error };
+  const value = { user, claims, isLoading, error, setUserRole };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
