@@ -5,7 +5,6 @@ import { FormProvider, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 
-import { Stepper } from '@/components/initiate-rating-note/stepper';
 import { Step1Form } from '@/components/initiate-rating-note/step-1-form';
 import { Step2Form } from '@/components/initiate-rating-note/step-2-form';
 import { Step3Form } from '@/components/initiate-rating-note/step-3-form';
@@ -15,13 +14,8 @@ import { useAuth } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { useFirestore } from '@/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
-
-const steps = [
-  { id: 'step-1', name: 'Select Company & Template' },
-  { id: 'step-2', name: 'Role Clarification' },
-  { id: 'step-3', name: 'Define Parameters' },
-  { id: 'step-4', name: 'Review & Create' },
-];
+import { useWorkflow } from '@/context/workflow-context';
+import { ArrowRight } from 'lucide-react';
 
 const validationSchema = z.object({
   step1: z.object({
@@ -39,15 +33,20 @@ const validationSchema = z.object({
     scale: z.string(),
     applicableCriteria: z.array(z.string()).optional(),
   }),
+   step4: z.object({
+    ratingCommitteeType: z.string().min(1, 'Rating Committee Type is required.'),
+    analystRemarks: z.string().optional(),
+  })
 });
 
 export default function NewRatingNotePage() {
   const router = useRouter();
   const params = useParams();
-  const currentStep = params.step as string;
+  const ratingCycleId = params.ratingCycleId as string;
   const { user } = useAuth();
   const { toast } = useToast();
   const firestore = useFirestore();
+  const { completeStep } = useWorkflow();
 
   const methods = useForm({
     resolver: zodResolver(validationSchema),
@@ -62,26 +61,12 @@ export default function NewRatingNotePage() {
         scale: 'Crores',
         applicableCriteria: [],
       },
+       step4: {
+        ratingCommitteeType: '',
+        analystRemarks: '',
+      }
     },
   });
-
-  const stepIndex = steps.findIndex(s => s.id === currentStep);
-
-  const handleNext = () => {
-    const nextStep = steps[stepIndex + 1];
-    if (nextStep) {
-      router.push(`/notes/new/${nextStep.id}`);
-    }
-  };
-
-  const handleBack = () => {
-    const prevStep = steps[stepIndex - 1];
-    if (prevStep) {
-      router.push(`/notes/new/${prevStep.id}`);
-    } else {
-      router.push('/dashboard'); // Or wherever back from step 1 should go
-    }
-  };
 
   const onSubmit = async (data: any) => {
     if (!user || !firestore) {
@@ -93,13 +78,12 @@ export default function NewRatingNotePage() {
       return;
     }
     
-    // This is a temporary way to get the company name label, should be improved
-    const company = (methods.getValues('step1.companyId') as any)?.label || 'Selected Company';
-    const noteName = `${company} Surveillance Note`;
+    const companyId = ratingCycleId;
+    const noteName = `${companyId} Surveillance Note`;
 
     const notePayload = {
       noteName,
-      companyId: methods.getValues('step1.companyId'),
+      companyId: companyId,
       templateId: methods.getValues('step1.templateId'),
       analysts: [user.uid],
       status: 'In Progress',
@@ -109,11 +93,13 @@ export default function NewRatingNotePage() {
       currencyDenomination: methods.getValues('step3.currencyDenomination'),
       scale: methods.getValues('step3.scale'),
       applicableCriteria: methods.getValues('step3.applicableCriteria'),
+      ratingCommitteeType: methods.getValues('step4.ratingCommitteeType'),
+      analystRemarks: methods.getValues('step4.analystRemarks'),
       createdAt: serverTimestamp(),
       lastModified: serverTimestamp(),
       createdBy: user.uid,
       rcmDate: null,
-      sections: {}, // Will be populated later
+      sections: {},
     };
 
     try {
@@ -121,8 +107,9 @@ export default function NewRatingNotePage() {
       const docRef = await addDoc(notesCollection, notePayload);
       toast({
         title: 'Success!',
-        description: `Rating note for ${company} has been created.`,
+        description: `Rating note for ${companyId} has been initiated.`,
       });
+      completeStep('initiate-rating-note');
       router.push(`/rating-note/${docRef.id}`);
     } catch (error) {
        console.error("Firestore error:", error);
@@ -135,40 +122,28 @@ export default function NewRatingNotePage() {
   };
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 space-y-6">
+    <div className="space-y-6">
       <header>
         <h1 className="text-2xl font-bold tracking-tight text-foreground">
-          Create New Rating Note
+          Initiate New Rating Note
         </h1>
         <p className="text-muted-foreground">
-          Follow the steps to initiate a new rating note.
+          Step 4: Confirm details to formally initiate the rating note.
         </p>
       </header>
       
-      <Stepper steps={steps} currentStep={stepIndex} />
-
       <FormProvider {...methods}>
         <form onSubmit={methods.handleSubmit(onSubmit)} className="mt-8">
-          <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-6">
-            {currentStep === 'step-1' && <Step1Form />}
-            {currentStep === 'step-2' && <Step2Form />}
-            {currentStep === 'step-3' && <Step3Form />}
-            {currentStep === 'step-4' && <Step4Form />}
+          <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-6 space-y-8">
+            <Step1Form />
+            <Step4Form />
           </div>
 
-          <div className="flex justify-between mt-8">
-            <Button type="button" variant="outline" onClick={handleBack} disabled={stepIndex === 0}>
-              Back
-            </Button>
-            {stepIndex < steps.length - 1 ? (
-              <Button type="button" onClick={handleNext}>
-                Next
+          <div className="flex justify-end mt-8">
+             <Button type="submit">
+                Initiate and Proceed to Rating Note
+                <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
-            ) : (
-              <Button type="submit">
-                Create Note and Start
-              </Button>
-            )}
           </div>
         </form>
       </FormProvider>

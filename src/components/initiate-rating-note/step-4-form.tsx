@@ -1,68 +1,66 @@
 'use client';
 
 import { useFormContext } from 'react-hook-form';
-import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import { collection } from 'firebase/firestore';
-
-const InfoRow = ({ label, value }: { label: string; value: React.ReactNode }) => (
-  <div className="flex justify-between py-2 border-b">
-    <dt className="text-sm font-medium text-muted-foreground">{label}</dt>
-    <dd className="text-sm text-foreground text-right">{value}</dd>
-  </div>
-);
+import {
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Textarea } from '../ui/textarea';
 
 export function Step4Form() {
-  const { getValues } = useFormContext();
-  const firestore = useFirestore();
-
-  const companiesCollection = useMemoFirebase(() => {
-    if (!firestore) return null;
-    return collection(firestore, 'companies');
-  }, [firestore]);
-
-  const templatesCollection = useMemoFirebase(() => {
-    if (!firestore) return null;
-    return collection(firestore, 'templates');
-  }, [firestore]);
-
-
-  const { data: companies } = useCollection(companiesCollection);
-  const { data: templates } = useCollection(templatesCollection);
-
-  const step1 = getValues('step1');
-  const step2 = getValues('step2');
-  const step3 = getValues('step3');
-
-  const company = companies?.find(c => c.id === step1.companyId);
-  const template = templates?.find(t => t.id === step1.templateId);
+  const { control } = useFormContext();
 
   return (
-    <div className="space-y-8">
-      <h2 className="text-lg font-semibold text-foreground">Review Your Selections</h2>
-      <div className="grid md:grid-cols-2 gap-8">
-        <div className="space-y-4">
-          <h3 className="font-medium">Company & Template</h3>
-          <dl>
-            <InfoRow label="Company Name" value={company?.name || 'N/A'} />
-            <InfoRow label="Template" value={template?.name || 'N/A'} />
-          </dl>
-        </div>
-        <div className="space-y-4">
-           <h3 className="font-medium">Parameters</h3>
-            <dl>
-                <InfoRow label="Financial Approach" value={step3.financialApproach} />
-                <InfoRow label="Financial Year" value={`${step3.financialYearFrom} - ${step3.financialYearTo}`} />
-                <InfoRow label="Currency" value={step3.currencyDenomination} />
-                <InfoRow label="Scale" value={step3.scale} />
-            </dl>
-        </div>
-        <div className="space-y-4 md:col-span-2">
-            <h3 className="font-medium">Role Clarification Comments</h3>
-            <p className="text-sm text-muted-foreground p-4 bg-muted/50 rounded-md">
-                {step2.comments || 'No comments provided.'}
-            </p>
-        </div>
-      </div>
+    <div className="space-y-6">
+        <FormField
+            control={control}
+            name="step4.ratingCommitteeType"
+            render={({ field }) => (
+                <FormItem>
+                <FormLabel>Rating Committee Type</FormLabel>
+                <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                    <SelectTrigger>
+                        <SelectValue placeholder="Select a committee type" />
+                    </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                    <SelectItem value="standard">Standard Committee</SelectItem>
+                    <SelectItem value="executive">Executive Committee</SelectItem>
+                    <SelectItem value="special">Special Committee</SelectItem>
+                    </SelectContent>
+                </Select>
+                <FormMessage />
+                </FormItem>
+            )}
+        />
+        <FormField
+            control={control}
+            name="step4.analystRemarks"
+            render={({ field }) => (
+            <FormItem>
+                <FormLabel>Analyst Remarks (Optional)</FormLabel>
+                <FormControl>
+                <Textarea
+                    placeholder="Enter any remarks for the committee..."
+                    className="min-h-[100px]"
+                    {...field}
+                />
+                </FormControl>
+                <FormMessage />
+            </FormItem>
+            )}
+      />
     </div>
   );
 }

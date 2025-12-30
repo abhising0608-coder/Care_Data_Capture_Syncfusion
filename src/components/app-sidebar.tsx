@@ -14,14 +14,8 @@ import {
 import {
   LayoutDashboard,
   FileText,
-  Database,
-  Briefcase,
-  PenSquare,
-  Building,
-  PlusCircle,
 } from 'lucide-react';
-import { useAuth } from '@/hooks/use-auth';
-import type { Role } from '@/lib/definitions';
+import { useAuth } from '@/firebase';
 
 const menuItems = [
   {
@@ -34,44 +28,16 @@ const menuItems = [
     label: 'CKC Requests',
     icon: FileText,
   },
-    {
-    href: '/company-information/RC-001',
-    label: 'Company Information',
-    icon: Building,
-  },
-  {
-    href: '/financial-input',
-    label: 'Financial Input',
-    icon: Database,
-  },
-  {
-    href: '/operational-input',
-    label: 'Operational Input',
-    icon: Briefcase,
-  },
-  {
-    href: '/rating-note',
-    label: 'Rating Note',
-    icon: PenSquare,
-  },
-  {
-    href: '/notes/new/step-1',
-    label: 'Initiate Rating Note',
-    icon: PlusCircle,
-  }
 ];
 
 export function AppSidebar() {
   const pathname = usePathname();
-  const { user, setUserRole } = useAuth();
-
+  const { user } = useAuth();
 
   return (
     <Sidebar>
-      <SidebarHeader>
-        <div className="flex items-center justify-center p-4">
-          <Image src="/careedge-logo.svg" alt="CareEdge Logo" width={150} height={40} />
-        </div>
+      <SidebarHeader className="p-4 flex items-center justify-center">
+        {/* The logo is now in the AppHeader for desktop view */}
       </SidebarHeader>
       <SidebarContent>
         <SidebarMenu>
@@ -79,9 +45,9 @@ export function AppSidebar() {
             <SidebarMenuItem key={item.href}>
               <SidebarMenuButton
                 asChild
-                isActive={pathname.startsWith(item.href)}
+                isActive={pathname === item.href}
                 tooltip={{ children: item.label, side: 'right' }}
-                className="justify-start h-8"
+                className="justify-start"
               >
                 <a href={item.href}>
                   <item.icon className="h-4 w-4" />

@@ -1,6 +1,5 @@
-
 'use client';
-import { Bell, Search } from 'lucide-react';
+import { Bell } from 'lucide-react';
 import Link from 'next/link';
 import useSWR from 'swr';
 import { Button } from '@/components/ui/button';
@@ -10,7 +9,7 @@ import type { CKCRequest, Role } from '@/lib/definitions';
 import { useAuth } from '@/firebase';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Input } from '@/components/ui/input';
+import Image from 'next/image';
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
@@ -25,20 +24,24 @@ export function AppHeader() {
     <header className="sticky top-0 z-10 flex h-16 items-center justify-between gap-4 border-b bg-card px-4 sm:px-6">
       <div className="flex items-center gap-2">
         <SidebarTrigger className="md:hidden" />
-        <h1 className="text-xl font-semibold text-foreground hidden md:block">
-          Rating Note
-        </h1>
+         <div className="items-center gap-2 hidden md:flex">
+           <Image src="/careedge-logo.svg" alt="CareEdge Logo" width={110} height={28} className="dark:invert" />
+           <span className="text-muted-foreground/50">|</span>
+           <h1 className="text-lg font-semibold text-foreground">Rating Note</h1>
+         </div>
       </div>
 
       <div className="flex items-center gap-4">
         {user && (
-          <Select value={user.role} onValueChange={(value) => setUserRole(value as Role)}>
+          <Select value={user.role} onValueChange={(value) => setUserRole && setUserRole(value as Role)}>
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Select a role" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="RATING_ANALYST">Rating Analyst</SelectItem>
               <SelectItem value="GROUP_HEAD">Group Head</SelectItem>
+              <SelectItem value="QC">Quality Control</SelectItem>
+              <SelectItem value="RATING_COMMITTEE">Rating Committee</SelectItem>
               <SelectItem value="CKC_ANALYST">CKC Analyst</SelectItem>
               <SelectItem value="CKC_CHECKER">CKC Checker</SelectItem>
               <SelectItem value="CKC_ADMIN">CKC Admin</SelectItem>
@@ -59,7 +62,7 @@ export function AppHeader() {
         </Button>
 
         <Avatar className="h-9 w-9">
-          <AvatarImage src={user?.photoURL} />
+          <AvatarImage src={user?.photoURL || undefined} />
           <AvatarFallback className="bg-primary text-primary-foreground">{userInitials}</AvatarFallback>
         </Avatar>
 

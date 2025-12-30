@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useForm, useFieldArray, Controller, useWatch } from 'react-hook-form';
@@ -20,7 +19,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useEffect, useMemo, useState } from 'react';
 import { Skeleton } from '../ui/skeleton';
-import { PlusCircle, Trash2, Check, RefreshCw, Pencil, X, ChevronsUp, ChevronsDown } from 'lucide-react';
+import { PlusCircle, Trash2, Check, RefreshCw, Pencil, X, ChevronsUp, ChevronsDown, ArrowRight } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { SyncfusionSpreadsheet } from './syncfusion-spreadsheet';
 import { GeographyWiseSalesSpreadsheet } from './geography-wise-sales-spreadsheet';
@@ -87,11 +86,12 @@ interface JsonSchemaFormProps {
   requestId: string;
   dataKey: string;
   isLastStep?: boolean;
+  submitButtonText?: string;
 }
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
 
-export function JsonSchemaForm({ schema, onSubmit, onCancel, requestId, dataKey, isLastStep = false }: JsonSchemaFormProps) {
+export function JsonSchemaForm({ schema, onSubmit, onCancel, requestId, dataKey, isLastStep = false, submitButtonText }: JsonSchemaFormProps) {
   const zodSchema = useMemo(() => generateZodSchema(schema), [schema]);
   
   const { data: existingData, isLoading } = useSWR(`/api/operational-input/${requestId}`, fetcher);
@@ -498,10 +498,10 @@ export function JsonSchemaForm({ schema, onSubmit, onCancel, requestId, dataKey,
               })}
             </Accordion>
             <div className="flex justify-end gap-4">
-              <Button type="button" variant="outline" onClick={onCancel}>
-                Back
+              <Button type="submit">
+                {submitButtonText || (isLastStep ? 'Finish' : 'Save & Continue')}
+                <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
-              <Button type="submit">{isLastStep ? 'Finish' : 'Continue'}</Button>
             </div>
           </form>
         </Form>

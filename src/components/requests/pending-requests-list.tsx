@@ -4,7 +4,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import useSWR, { useSWRConfig } from 'swr';
-import { useAuth } from '@/hooks/use-auth';
+import { useAuth } from '@/firebase';
 import {
   Check,
   Download,

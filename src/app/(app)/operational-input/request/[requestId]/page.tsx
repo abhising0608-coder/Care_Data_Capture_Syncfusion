@@ -25,7 +25,7 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import type { CKCRequest } from '@/lib/definitions';
-import { useAuth } from '@/hooks/use-auth';
+import { useAuth } from '@/firebase';
 
 interface DocumentInfo {
   docType: 'Audited' | 'Provisional' | 'Projection';

@@ -9,14 +9,14 @@ import { useEffect } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/hooks/use-auth';
+import { useAuth } from '@/firebase';
 import type { CompanyInfo, Role } from '@/lib/definitions';
 import { Skeleton } from '@/components/ui/skeleton';
 import { CompanyMasterInfo } from '@/components/company-information/company-master-info';
 import { DetailBlock } from '@/components/company-information/detail-block';
-import { Save, Ban } from 'lucide-react';
+import { Save, Ban, ArrowRight } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent } from '@/components/ui/card';
+import { useWorkflow } from '@/context/workflow-context';
 
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
@@ -50,8 +50,6 @@ const companyInfoSchema = z.object({
     if (data.contactDetails) {
         const primaryContacts = data.contactDetails.filter(c => !c.isDeleted && c.isPrimary);
         if (primaryContacts.length > 1) {
-            // This is a custom error for multiple primary contacts.
-            // Consider how to show this in the UI. For now, it prevents submission.
             return false;
         }
         return data.contactDetails.every(contact => !contact.isDeleted ? (contact.email || contact.mobile) : true);
@@ -69,6 +67,7 @@ export default function CompanyInformationPage() {
     const { toast } = useToast();
     const { mutate } = useSWRConfig();
     const { user, isLoading: isAuthLoading } = useAuth();
+    const { completeStep } = useWorkflow();
     const ratingCycleId = params.ratingCycleId as string;
 
     const { data, error, isLoading } = useSWR<CompanyInfo>(
@@ -113,6 +112,9 @@ export default function CompanyInformationPage() {
                 title: 'Success',
                 description: 'Company information has been saved.',
             });
+            completeStep('company-information');
+            router.push(`/operational-input/${ratingCycleId}`);
+
         } catch (e) {
             toast({
                 variant: 'destructive',
@@ -140,8 +142,8 @@ export default function CompanyInformationPage() {
     return (
         <FormProvider {...methods}>
             <form onSubmit={methods.handleSubmit(onSubmit)}>
-                <div className="p-4 sm:p-6 lg:p-8 space-y-6">
-                    <header className="flex items-center justify-between sticky top-0 z-10 bg-background/80 backdrop-blur-sm -mx-8 px-8 py-4 border-b">
+                <div className="space-y-6">
+                     <header className="flex items-center justify-between">
                         <div>
                             <h1 className="text-2xl font-bold tracking-tight text-foreground">
                                 Company Information: {data.masterSnapshot.sector}
@@ -151,14 +153,10 @@ export default function CompanyInformationPage() {
                             </p>
                         </div>
                         <div className="flex items-center gap-4">
-                            <Button type="button" variant="outline" onClick={() => router.back()}>
-                                 <Ban className="mr-2 h-4 w-4" />
-                                Cancel
-                            </Button>
                             {!isReadOnly && (
                                 <Button type="submit">
-                                    <Save className="mr-2 h-4 w-4" />
-                                    Save Changes
+                                    Save & Continue to Next Step
+                                    <ArrowRight className="ml-2 h-4 w-4" />
                                 </Button>
                             )}
                         </div>

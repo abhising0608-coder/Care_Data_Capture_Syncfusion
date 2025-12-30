@@ -7,6 +7,7 @@ import {
   Triangle,
   Square,
   Circle as Dot,
+  MoreVertical,
 } from 'lucide-react';
 import {
   ColumnDef,
@@ -20,6 +21,12 @@ import {
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -43,7 +50,9 @@ import { Badge } from '@/components/ui/badge';
 import { mockCompanies } from '@/lib/mock-data';
 import type { CompanyDashboard } from '@/lib/definitions';
 import { cn } from '@/lib/utils';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useWorkflow } from '@/context/workflow-context';
+
 
 const PriorityIndicator = ({ priority }: { priority: 'High' | 'Medium' | 'Low' }) => {
   const styles = {
@@ -70,7 +79,8 @@ const StatusIndicator = ({ status }: { status: string }) => {
         case 'Completed':
             return <div className={baseClasses}><Dot className="h-3 w-3 fill-green-500 text-green-500" /><span>Completed</span></div>;
         case 'In Progress':
-            return <div className={baseClasses}><Dot className="h-3 w-3 fill-blue-500 text-blue-500" /><span>In Progress</span></div>;
+        case 'In Review':
+             return <div className={baseClasses}><Dot className="h-3 w-3 fill-blue-500 text-blue-500" /><span>{status}</span></div>;
         case 'New':
             return <div className="relative flex items-center gap-2"><Dot className="h-3 w-3 fill-purple-500 text-purple-500" /><span className="absolute -left-1 -top-1 w-5 h-5 border-2 border-dashed border-purple-500 rounded-full"></span><span>New</span></div>;
         case 'Not Started':
@@ -80,115 +90,135 @@ const StatusIndicator = ({ status }: { status: string }) => {
     }
 };
 
-const columns: ColumnDef<CompanyDashboard>[] = [
-  {
-    id: 'select',
-    header: ({ table }) => (
-      <Checkbox
-        checked={
-          table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && 'indeterminate')
-        }
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Select all"
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Select row"
-      />
-    ),
-    enableSorting: false,
-    enableHiding: false,
-  },
-  {
-    accessorKey: 'companyName',
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-        >
-          Company Name
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
-    cell: ({ row }) => <Link href={`/company-information/${row.original.id}`} className="capitalize text-primary hover:underline">{row.getValue('companyName')}</Link>,
-  },
-  {
-    accessorKey: 'ratingCycle',
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-        >
-          Rating Cycle
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
-    cell: ({ row }) => <div>{row.getValue('ratingCycle')}</div>,
-  },
-  {
-    accessorKey: 'priority',
-    header: ({ column }) => {
-       return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-        >
-          Priority
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
-    cell: ({ row }) => <PriorityIndicator priority={row.getValue('priority')} />,
-  },
-  {
-    accessorKey: 'dueDate',
-    header: ({ column }) => {
-       return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-        >
-          Due Date
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
-    cell: ({ row }) => <div>{row.getValue('dueDate')}</div>,
-  },
-  {
-    accessorKey: 'status',
-    header: 'Status',
-    cell: ({ row }) => <StatusIndicator status={row.getValue('status')} />,
-  },
-  {
-    id: 'actions',
-    enableHiding: false,
-    cell: ({ row }) => {
-      return (
-        <Button variant="ghost" className="h-8 w-8 p-0">
-          <span className="sr-only">Open menu</span>
-          <ChevronDown className="h-4 w-4" />
-        </Button>
-      );
-    },
-  },
-];
 
 export default function DashboardClient() {
+  const router = useRouter();
+  const { startWorkflow } = useWorkflow();
   const [data] = React.useState<CompanyDashboard[]>(() => mockCompanies);
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
+  
+  const handleOpenRatingNote = (companyId: string) => {
+    startWorkflow(companyId);
+    router.push(`/company-information/${companyId}`);
+  };
+
+  const columns: ColumnDef<CompanyDashboard>[] = [
+    {
+      id: 'select',
+      header: ({ table }) => (
+        <Checkbox
+          checked={
+            table.getIsAllPageRowsSelected() ||
+            (table.getIsSomePageRowsSelected() && 'indeterminate')
+          }
+          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+          aria-label="Select all"
+        />
+      ),
+      cell: ({ row }) => (
+        <Checkbox
+          checked={row.getIsSelected()}
+          onCheckedChange={(value) => row.toggleSelected(!!value)}
+          aria-label="Select row"
+        />
+      ),
+      enableSorting: false,
+      enableHiding: false,
+    },
+    {
+      accessorKey: 'companyName',
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+          >
+            Company Name
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        );
+      },
+      cell: ({ row }) => <div className="capitalize">{row.getValue('companyName')}</div>,
+    },
+    {
+      accessorKey: 'ratingCycle',
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+          >
+            Rating Cycle
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        );
+      },
+      cell: ({ row }) => <div>{row.getValue('ratingCycle')}</div>,
+    },
+    {
+      accessorKey: 'priority',
+      header: ({ column }) => {
+         return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+          >
+            Priority
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        );
+      },
+      cell: ({ row }) => <PriorityIndicator priority={row.getValue('priority')} />,
+    },
+    {
+      accessorKey: 'dueDate',
+      header: ({ column }) => {
+         return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+          >
+            Due Date
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        );
+      },
+      cell: ({ row }) => <div>{row.getValue('dueDate')}</div>,
+    },
+    {
+      accessorKey: 'status',
+      header: 'Status',
+      cell: ({ row }) => <StatusIndicator status={row.getValue('status')} />,
+    },
+    {
+      id: 'actions',
+      header: 'Actions',
+      cell: ({ row }) => {
+        const company = row.original
+        return (
+           <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8 p-0">
+                <span className="sr-only">Open menu</span>
+                <MoreVertical className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => handleOpenRatingNote(company.id)}>
+                Open Rating Note
+              </DropdownMenuItem>
+              <DropdownMenuItem>View Company Summary</DropdownMenuItem>
+              <DropdownMenuItem>View Workflow Status</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )
+      },
+    },
+  ];
 
   const table = useReactTable({
     data,

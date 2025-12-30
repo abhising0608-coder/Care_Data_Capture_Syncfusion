@@ -52,7 +52,7 @@ import { useToast } from '@/hooks/use-toast';
 import type { CKCRequest } from '@/lib/definitions';
 import { Badge } from '../ui/badge';
 import { Skeleton } from '../ui/skeleton';
-import { useAuth } from '@/hooks/use-auth';
+import { useAuth } from '@/firebase';
 
 type SortConfig = {
   key: keyof CKCRequest;
