@@ -146,7 +146,7 @@ export default function CompanyInformationPage() {
                      <header className="flex items-center justify-between">
                         <div>
                             <h1 className="text-2xl font-bold tracking-tight text-foreground">
-                                Company Information: {data.masterSnapshot.sector}
+                                Company Information: {data.masterSnapshot?.sector}
                             </h1>
                             <p className="text-muted-foreground">
                                 Rating Cycle ID: {ratingCycleId}
@@ -162,7 +162,7 @@ export default function CompanyInformationPage() {
                         </div>
                     </header>
                     
-                    <CompanyMasterInfo masterSnapshot={data.masterSnapshot} />
+                    {data.masterSnapshot && <CompanyMasterInfo masterSnapshot={data.masterSnapshot} />}
 
                     <Tabs defaultValue="contact_details">
                         <TabsList className="mb-4">
