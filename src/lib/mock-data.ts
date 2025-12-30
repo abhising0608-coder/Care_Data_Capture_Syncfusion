@@ -1,21 +1,25 @@
+
 import type { CKCRequest, AppUser, Role, RequestStatus, CompanyInfo, CompanyDashboard } from './definitions';
 
 export const mockCompanies: CompanyDashboard[] = [
-    { id: 'COMP-101', companyName: 'Reliance', ratingCycle: 'Initial', priority: 'High', dueDate: '1 Jan 26', status: 'Completed' },
-    { id: 'COMP-102', companyName: 'Adani Group', ratingCycle: 'Surveillance', priority: 'Medium', dueDate: '3 Feb 26', status: 'In Progress' },
-    { id: 'COMP-103', companyName: 'Reliance', ratingCycle: 'Initial', priority: 'Low', dueDate: '1 Jan 26', status: 'New' },
-    { id: 'COMP-104', companyName: 'Adani Group', ratingCycle: 'Initial', priority: 'Medium', dueDate: '3 Feb 26', status: 'Not Started' },
-    { id: 'COMP-105', companyName: 'Reliance', ratingCycle: 'Initial', priority: 'High', dueDate: '1 Jan 26', status: 'Completed' },
-    { id: 'COMP-106', companyName: 'Adani Group', ratingCycle: 'Surveillance', priority: 'Medium', dueDate: '3 Feb 26', status: 'In Progress' },
-    { id: 'COMP-107', companyName: 'Reliance', ratingCycle: 'Initial', priority: 'Low', dueDate: '1 Jan 26', status: 'New' },
-    { id: 'COMP-108', companyName: 'Adani Group', ratingCycle: 'Initial', priority: 'Medium', dueDate: '3 Feb 26', status: 'Not Started' },
-    { id: 'COMP-109', companyName: 'Reliance', ratingCycle: 'Initial', priority: 'High', dueDate: '1 Jan 26', status: 'Completed' },
-    { id: 'COMP-110', companyName: 'Adani Group', ratingCycle: 'Surveillance', priority: 'Medium', dueDate: '3 Feb 26', status: 'In Progress' },
-    { id: 'COMP-111', companyName: 'Reliance', ratingCycle: 'Initial', priority: 'Low', dueDate: '1 Jan 26', status: 'New' },
-    { id: 'COMP-112', companyName: 'Adani Group', ratingCycle: 'Initial', priority: 'Medium', dueDate: '3 Feb 26', status: 'Not Started' },
-    { id: 'COMP-113', companyName: 'Reliance', ratingCycle: 'Initial', priority: 'High', dueDate: '1 Jan 26', status: 'Completed' },
-    { id: 'COMP-114', companyName: 'Adani Group', ratingCycle: 'Surveillance', priority: 'Medium', dueDate: '3 Feb 26', status: 'In Progress' },
-    { id: 'COMP-115', companyName: 'Reliance', ratingCycle: 'Initial', priority: 'Low', dueDate: '1 Jan 26', status: 'New' },
+    { id: 'COMP-101', companyName: 'Sun Pharmaceutical Industries Limited', ratingCycle: 'Initial', priority: 'High', dueDate: '1 Jan 26', status: 'Completed' },
+    { id: 'COMP-102', companyName: 'Dr. Reddy’s Laboratories Limited', ratingCycle: 'Surveillance', priority: 'Medium', dueDate: '3 Feb 26', status: 'In Progress' },
+    { id: 'COMP-103', companyName: 'Cipla Limited', ratingCycle: 'Initial', priority: 'Low', dueDate: '10 Mar 26', status: 'New' },
+    { id: 'COMP-104', companyName: 'Lupin Limited', ratingCycle: 'Initial', priority: 'Medium', dueDate: '15 Apr 26', status: 'Not Started' },
+    { id: 'COMP-105', companyName: 'Aurobindo Pharma Limited', ratingCycle: 'Surveillance', priority: 'High', dueDate: '20 May 26', status: 'Completed' },
+    { id: 'COMP-106', companyName: 'Glenmark Pharmaceuticals Limited', ratingCycle: 'Surveillance', priority: 'Medium', dueDate: '25 Jun 26', status: 'In Progress' },
+    { id: 'COMP-107', companyName: 'Torrent Pharmaceuticals Limited', ratingCycle: 'Initial', priority: 'Low', dueDate: '1 Jul 26', status: 'New' },
+    { id: 'COMP-108', companyName: 'Alkem Laboratories Limited', ratingCycle: 'Initial', priority: 'Medium', dueDate: '8 Aug 26', status: 'Not Started' },
+    { id: 'COMP-109', companyName: 'Divi’s Laboratories Limited', ratingCycle: 'Initial', priority: 'High', dueDate: '12 Sep 26', status: 'Completed' },
+    { id: 'COMP-110', companyName: 'Zydus Lifesciences Limited', ratingCycle: 'Surveillance', priority: 'Medium', dueDate: '18 Oct 26', status: 'In Progress' },
+    { id: 'COMP-111', companyName: 'Abbott India Limited', ratingCycle: 'Initial', priority: 'Low', dueDate: '22 Nov 26', status: 'New' },
+    { id: 'COMP-112', companyName: 'Biocon Limited', ratingCycle: 'Surveillance', priority: 'Medium', dueDate: '30 Dec 26', status: 'Not Started' },
+    { id: 'COMP-113', companyName: 'IPCA Laboratories Limited', ratingCycle: 'Initial', priority: 'High', dueDate: '5 Jan 27', status: 'Completed' },
+    { id: 'COMP-114', companyName: 'Alembic Pharmaceuticals Limited', ratingCycle: 'Surveillance', priority: 'Medium', dueDate: '11 Feb 27', status: 'In Progress' },
+    { id: 'COMP-115', companyName: 'Natco Pharma Limited', ratingCycle: 'Initial', priority: 'Low', dueDate: '19 Mar 27', status: 'New' },
+    { id: 'COMP-116', companyName: 'Wockhardt Limited', ratingCycle: 'Surveillance', priority: 'High', dueDate: '23 Apr 27', status: 'In Progress' },
+    { id: 'COMP-117', companyName: 'Laurus Labs Limited', ratingCycle: 'Initial', priority: 'Medium', dueDate: '1 May 27', status: 'Not Started' },
+    { id: 'COMP-118', companyName: 'Ajanta Pharma Limited', ratingCycle: 'Initial', priority: 'Low', dueDate: '9 Jun 27', status: 'New' },
 ];
 
 
