@@ -168,9 +168,8 @@ export default function CompanyInformationPage() {
                     <CompanyMasterInfo masterSnapshot={data.masterSnapshot} />
                     <GroupTagging isReadOnly={isReadOnly} />
 
-                    <Tabs defaultValue="company_details">
+                    <Tabs defaultValue="contact_details">
                         <TabsList className="mb-4">
-                            <TabsTrigger value="company_details">Company Details</TabsTrigger>
                             <TabsTrigger value="contact_details">Contact Details</TabsTrigger>
                             <TabsTrigger value="auditor_details">Auditor Details</TabsTrigger>
                             <TabsTrigger value="banker_details">Banker Details</TabsTrigger>
@@ -178,11 +177,6 @@ export default function CompanyInformationPage() {
                             <TabsTrigger value="ipa_details">IPA Details</TabsTrigger>
                             <TabsTrigger value="third_party_details">Third Party Details</TabsTrigger>
                         </TabsList>
-
-                        <TabsContent value="company_details">
-                             {/* Placeholder for future Company Details component */}
-                             <Card><CardContent className="p-6">Company Details content goes here.</CardContent></Card>
-                        </TabsContent>
 
                         <TabsContent value="contact_details">
                              <DetailBlock
@@ -269,8 +263,20 @@ export default function CompanyInformationPage() {
                          </TabsContent>
 
                          <TabsContent value="third_party_details">
-                             {/* Placeholder for future Third Party Details component */}
-                             <Card><CardContent className="p-6">Third Party Details content goes here.</CardContent></Card>
+                            <DetailBlock
+                                title="Third Party Details"
+                                data={data.thirdPartyDetails}
+                                isReadOnly={isReadOnly}
+                                fieldName="thirdPartyDetails"
+                                columns={[
+                                    { accessor: 'firmName', header: 'Firm Name', type: 'text', required: true },
+                                    { accessor: 'contactPerson', header: 'Contact Person', type: 'text' },
+                                    { accessor: 'designation', header: 'Designation', type: 'text' },
+                                    { accessor: 'emailId', header: 'Email ID', type: 'text' },
+                                    { accessor: 'contactNo', header: 'Contact No', type: 'text' },
+                                    { accessor: 'relationWithClient', header: 'Relation with the Client', type: 'text', required: true },
+                                ]}
+                            />
                          </TabsContent>
                     </Tabs>
                 </div>
