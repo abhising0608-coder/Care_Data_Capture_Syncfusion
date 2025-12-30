@@ -89,7 +89,11 @@ export function DetailModal({ isOpen, onClose, onSave, columns, defaultValues, t
 
      useEffect(() => {
         if (isOpen) {
-            const transformedDefaults: any = { ...defaultValues };
+            const initialValues: any = {};
+            columns.forEach(col => {
+                initialValues[col.accessor] = ''; // Ensure all fields have a default value
+            });
+            const transformedDefaults: any = { ...initialValues, ...defaultValues };
             columns.forEach(col => {
                 if (col.type === 'select' && col.options?.every(o => ['Yes', 'No'].includes(o))) {
                     const key = col.accessor as keyof typeof defaultValues;
@@ -98,7 +102,7 @@ export function DetailModal({ isOpen, onClose, onSave, columns, defaultValues, t
                     }
                 }
             });
-            form.reset(transformedDefaults || {});
+            form.reset(transformedDefaults);
         }
     }, [isOpen, defaultValues, form, columns]);
 
