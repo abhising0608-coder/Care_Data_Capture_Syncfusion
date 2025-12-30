@@ -17,6 +17,8 @@ import { GroupTagging } from '@/components/company-information/group-tagging';
 import { DetailBlock } from '@/components/company-information/detail-block';
 import { Save, Ban } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent } from '@/components/ui/card';
+
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
@@ -226,7 +228,7 @@ export default function CompanyInformationPage() {
                                 fieldName="bankerDetails"
                                 columns={[
                                     { accessor: 'bankName', header: 'Bank Name', type: 'text' },
-                                    { accessor: 'facilityType', header: 'Facility Type', type 'text' },
+                                    { accessor: 'facilityType', header: 'Facility Type', type: 'text' },
                                     { accessor: 'amount', header: 'Amount (Cr)', type: 'number' },
                                 ]}
                             />
