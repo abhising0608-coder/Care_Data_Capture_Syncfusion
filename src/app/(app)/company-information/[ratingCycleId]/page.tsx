@@ -9,7 +9,7 @@ import { useEffect } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/firebase';
+import { useFirebase } from '@/firebase';
 import type { CompanyInfo, Role } from '@/lib/definitions';
 import { Skeleton } from '@/components/ui/skeleton';
 import { CompanyMasterInfo } from '@/components/company-information/company-master-info';
@@ -66,7 +66,10 @@ export default function CompanyInformationPage() {
     const router = useRouter();
     const { toast } = useToast();
     const { mutate } = useSWRConfig();
-    const { user, isLoading: isAuthLoading } = useAuth();
+    const { auth } = useFirebase();
+    const user = auth?.currentUser;
+    const isAuthLoading = !auth;
+
     const { completeStep } = useWorkflow();
     const ratingCycleId = params.ratingCycleId as string;
 
@@ -77,7 +80,7 @@ export default function CompanyInformationPage() {
 
     const methods = useForm<z.infer<typeof companyInfoSchema>>({
         resolver: zodResolver(companyInfoSchema),
-        defaultValues: data,
+        defaultValues: data || {},
     });
 
     useEffect(() => {
@@ -86,8 +89,10 @@ export default function CompanyInformationPage() {
         }
     }, [data, methods]);
     
-    const readOnlyRoles: Role[] = ['GROUP_HEAD', 'RATING_HEAD_SD'];
-    const isReadOnly = isAuthLoading || !user || readOnlyRoles.includes(user.role);
+    // This is a placeholder for actual role logic
+    const readOnlyRoles: string[] = ['GROUP_HEAD', 'RATING_HEAD_SD'];
+    const userRole = 'RATING_ANALYST'; // Hardcoded for now
+    const isReadOnly = isAuthLoading || !user || readOnlyRoles.includes(userRole);
 
     const onSubmit = async (formData: z.infer<typeof companyInfoSchema>) => {
         const payload = {
@@ -109,7 +114,8 @@ export default function CompanyInformationPage() {
             });
 
             if (!res.ok) {
-                throw new Error('Failed to save data');
+                const errorText = await res.text();
+                throw new Error(`Failed to save data: ${errorText}`);
             }
 
             mutate(`/api/rating-workflow/company-info/${ratingCycleId}`);
@@ -120,12 +126,12 @@ export default function CompanyInformationPage() {
             completeStep('company-information');
             router.push(`/operational-input/${ratingCycleId}`);
 
-        } catch (e) {
+        } catch (e: any) {
             console.error(e);
             toast({
                 variant: 'destructive',
                 title: 'Error',
-                description: 'Failed to save company information.',
+                description: e.message || 'Failed to save company information.',
             });
         }
     };

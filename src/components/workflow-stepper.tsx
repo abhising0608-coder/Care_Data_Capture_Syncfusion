@@ -33,14 +33,8 @@ export function WorkflowStepper() {
   const currentStepIndex = workflowSteps.findIndex(step => step.id === currentStepId);
 
   const getStepHref = (stepId: string) => {
-    switch(stepId) {
-      case 'company-information': return `/company-information/${ratingCycleId}`;
-      case 'operational-input': return `/operational-input/${ratingCycleId}`;
-      case 'financial-input': return `/financial-input/${ratingCycleId}`;
-      case 'initiate-rating-note': return `/notes/new/${ratingCycleId}`;
-      case 'rating-note': return `/rating-note/${ratingCycleId}`; // Assuming note ID is same as cycle ID for now
-      default: return '#';
-    }
+      if (!ratingCycleId) return '#';
+      return `/${stepId}/${ratingCycleId}`;
   }
 
   return (
