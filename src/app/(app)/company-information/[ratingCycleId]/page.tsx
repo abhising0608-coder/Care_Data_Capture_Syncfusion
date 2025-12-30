@@ -102,11 +102,16 @@ export default function CompanyInformationPage() {
         };
 
         try {
-            await fetch(`/api/rating-workflow/company-info/${ratingCycleId}`, {
+            const res = await fetch(`/api/rating-workflow/company-info/${ratingCycleId}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload),
             });
+
+            if (!res.ok) {
+                throw new Error('Failed to save data');
+            }
+
             mutate(`/api/rating-workflow/company-info/${ratingCycleId}`);
             toast({
                 title: 'Success',
@@ -116,6 +121,7 @@ export default function CompanyInformationPage() {
             router.push(`/operational-input/${ratingCycleId}`);
 
         } catch (e) {
+            console.error(e);
             toast({
                 variant: 'destructive',
                 title: 'Error',
@@ -135,9 +141,21 @@ export default function CompanyInformationPage() {
         )
     }
 
-    if (error || !data) {
+    if (error) {
         return <div>Failed to load data. Please try again.</div>;
     }
+    
+    if (!data) {
+      return (
+        <div className="p-6 space-y-6">
+          <Skeleton className="h-10 w-1/4" />
+          <Skeleton className="h-64 w-full" />
+          <Skeleton className="h-48 w-full" />
+          <Skeleton className="h-48 w-full" />
+        </div>
+      );
+    }
+
 
     return (
         <FormProvider {...methods}>

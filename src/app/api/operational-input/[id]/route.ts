@@ -9,8 +9,8 @@ export async function GET(
   const data = getOperationalInput(id);
 
   if (!data) {
-    // Return an empty object or a default structure if not found
-    return NextResponse.json({ id, initiation: {} });
+    // Return an empty object with a default structure if not found
+    return NextResponse.json({ id, initiation: {}, sectorial_operational_data: {} });
   }
 
   return NextResponse.json(data);
@@ -25,5 +25,5 @@ export async function POST(
 
     const updatedData = saveOperationalInput(id, body);
 
-    return NextResponse.json(updatedData);
+    return NextResponse.json(updatedData, { status: 200 });
 }

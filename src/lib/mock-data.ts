@@ -246,7 +246,7 @@ let operationalInputData: Record<string, any> = {
 };
 
 let companyInfoData: Record<string, CompanyInfo> = {
-    'RC-001': {
+    'COMP-101': {
         masterSnapshot: {
             address: '123 Maker Towers',
             city: 'Mumbai',
@@ -256,82 +256,16 @@ let companyInfoData: Record<string, CompanyInfo> = {
             listingStatus: 'Listed',
             listingIn: 'BSE, NSE',
             macroEconomicIndicator: 'Normal',
-            sector: 'Information Technology',
-            industry: 'IT Services',
-            basicIndustry: 'Software Development'
+            sector: 'Pharmaceuticals',
+            industry: 'Generic API',
+            basicIndustry: 'API Manufacturing'
         },
         groupSelection: {
-            group: 'Tata Group',
+            group: 'Sun Pharma Group',
             groupForCombinedApproach: ''
         },
-        contactDetails: [
-            { 
-                id: 'c1', 
-                name: 'Mr. Rajesh Gopinathan', 
-                designation: 'CEO & MD', 
-                department: 'Executive Office',
-                email: 'ceo@tcs.com', 
-                mobile: '123-456-7890',
-                phone: '022-67789595',
-                isPrimary: true,
-                isUPSI: true,
-                authorizedSignatory: true,
-                source: 'CRM',
-                isDeleted: false,
-                lastUpdatedBy: 'crm-sync',
-                lastUpdatedAt: new Date('2023-01-01').toISOString(),
-                pendingSync: false,
-            },
-            { 
-                id: 'c2', 
-                name: 'Mr. Samir Seksaria', 
-                designation: 'CFO', 
-                department: 'Finance',
-                email: 'cfo@tcs.com', 
-                mobile: '987-654-3210',
-                phone: '022-67789596',
-                isPrimary: false,
-                isUPSI: true,
-                authorizedSignatory: true,
-                source: 'CRM',
-                isDeleted: false,
-                lastUpdatedBy: 'crm-sync',
-                lastUpdatedAt: new Date('2023-01-01').toISOString(),
-                pendingSync: false,
-            }
-        ],
-        auditorDetails: [
-            {
-                id: 'ad1',
-                firmName: 'A.U. Mojad & Associates',
-                contactPerson: 'Amit Varma',
-                designation: 'Jr. Auditor',
-                emailId: 'Amit@gmail.com',
-                contactNo: '9029193811',
-                source: 'CRM',
-                isDeleted: false,
-            },
-            {
-                id: 'ad2',
-                firmName: 'Ashish R Pai & Associates',
-                contactPerson: 'Vijay Sharma',
-                designation: 'Jr. Auditor',
-                emailId: 'Vijay@gmail.com',
-                contactNo: '9038873118',
-                source: 'CRM',
-                isDeleted: false,
-            },
-            {
-                id: 'ad3',
-                firmName: 'R. K. GARJE AND CO',
-                contactPerson: 'Anil Patil',
-                designation: 'Sr. Auditor',
-                emailId: 'Anil@gmail.com',
-                contactNo: '9038873118',
-                source: 'Rating',
-                isDeleted: false,
-            }
-        ],
+        contactDetails: [],
+        auditorDetails: [],
         bankerDetails: [],
         dtDetails: [],
         ipaDetails: [],
@@ -494,7 +428,33 @@ export const saveOperationalInput = (id: string, data: any) => {
 
 // Company Info Mock Data
 export const getCompanyInfo = (ratingCycleId: string): CompanyInfo | null => {
-    return companyInfoData[ratingCycleId] ? JSON.parse(JSON.stringify(companyInfoData[ratingCycleId])) : null;
+    // Return a default mock for any requested ID to ensure the page works
+    const defaultData = {
+        masterSnapshot: {
+            address: '123 Pharma Lane',
+            city: 'Hyderabad',
+            zipCode: '500081',
+            state: 'Telangana',
+            country: 'India',
+            listingStatus: 'Listed',
+            listingIn: 'BSE, NSE',
+            macroEconomicIndicator: 'Normal',
+            sector: 'Pharmaceuticals',
+            industry: 'Generic API',
+            basicIndustry: 'API Manufacturing'
+        },
+        groupSelection: {
+            group: 'Pharma Group',
+            groupForCombinedApproach: ''
+        },
+        contactDetails: [], auditorDetails: [], bankerDetails: [], dtDetails: [], ipaDetails: [], thirdPartyDetails: [],
+        syncStatus: {
+            source: 'CRM',
+            lastUpdatedBy: 'crm-system',
+            lastUpdatedAt: new Date().toISOString()
+        }
+    };
+    return companyInfoData[ratingCycleId] ? JSON.parse(JSON.stringify(companyInfoData[ratingCycleId])) : defaultData;
 }
 
 export const saveCompanyInfo = (ratingCycleId: string, data: CompanyInfo): CompanyInfo => {
