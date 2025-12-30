@@ -13,7 +13,6 @@ import { useAuth } from '@/hooks/use-auth';
 import type { CompanyInfo, Role } from '@/lib/definitions';
 import { Skeleton } from '@/components/ui/skeleton';
 import { CompanyMasterInfo } from '@/components/company-information/company-master-info';
-import { GroupTagging } from '@/components/company-information/group-tagging';
 import { DetailBlock } from '@/components/company-information/detail-block';
 import { Save, Ban } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -166,7 +165,6 @@ export default function CompanyInformationPage() {
                     </header>
                     
                     <CompanyMasterInfo masterSnapshot={data.masterSnapshot} />
-                    <GroupTagging isReadOnly={isReadOnly} />
 
                     <Tabs defaultValue="contact_details">
                         <TabsList className="mb-4">
