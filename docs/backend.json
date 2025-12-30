@@ -176,6 +176,154 @@
         "cycle",
         "receiptDate"
       ]
+    },
+    "RatingNote": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "RatingNote",
+      "type": "object",
+      "description": "Represents a Rating Note document.",
+      "properties": {
+        "noteName": {
+          "type": "string",
+          "description": "A descriptive name for the note."
+        },
+        "companyId": {
+          "type": "string",
+          "description": "A foreign key linking to a document in the companies collection."
+        },
+        "templateId": {
+          "type": "string",
+          "description": "A foreign key linking to a document in the templates collection."
+        },
+        "analysts": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "An array of user IDs. The first entry is the Primary Analyst."
+        },
+        "status": {
+          "type": "string",
+          "enum": ["In Progress", "Completed", "Approved"],
+          "description": "The current workflow state of the note."
+        },
+        "financialApproach": {
+          "type": "string",
+          "enum": ["Standalone", "Consolidated", "Combined"],
+          "description": "The analytical approach for financials."
+        },
+        "financialYearFrom": {
+          "type": "number"
+        },
+        "financialYearTo": {
+          "type": "number"
+        },
+        "currencyDenomination": {
+          "type": "string"
+        },
+        "scale": {
+          "type": "string"
+        },
+        "applicableCriteria": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "lastModified": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "createdBy": {
+          "type": "string"
+        },
+        "rcmDate": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "sections": {
+          "type": "object"
+        }
+      },
+      "required": [
+        "noteName",
+        "companyId",
+        "templateId",
+        "analysts",
+        "status",
+        "financialApproach",
+        "financialYearFrom",
+        "financialYearTo",
+        "currencyDenomination",
+        "scale",
+        "createdAt",
+        "lastModified",
+        "createdBy"
+      ]
+    },
+    "Company": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Company",
+      "type": "object",
+      "description": "Master list of all companies that can be rated.",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "industry": {
+          "type": "string"
+        }
+      },
+      "required": ["name", "industry"]
+    },
+    "User": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "User",
+      "type": "object",
+      "description": "Contains user profiles and their roles.",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "role": {
+          "type": "string"
+        }
+      },
+      "required": ["name", "role"]
+    },
+    "Template": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Template",
+      "type": "object",
+      "description": "Stores the structure and metadata for each type of rating note template.",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "sections": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        }
+      },
+      "required": ["name"]
+    },
+    "Criteria": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Criteria",
+      "type": "object",
+      "description": "Master list of all applicable rating criteria.",
+      "properties": {
+        "name": {
+          "type": "string"
+        }
+      },
+      "required": ["name"]
     }
   },
   "auth": {
@@ -200,6 +348,51 @@
               "description": "Unique identifier for the CKC operational request."
             }
           ]
+        }
+      },
+      {
+        "path": "/ratingNotes/{noteId}",
+        "definition": {
+          "entityName": "RatingNote",
+          "schema": {
+            "$ref": "#/backend/entities/RatingNote"
+          }
+        }
+      },
+      {
+        "path": "/companies/{companyId}",
+        "definition": {
+          "entityName": "Company",
+          "schema": {
+            "$ref": "#/backend/entities/Company"
+          }
+        }
+      },
+      {
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "User",
+          "schema": {
+            "$ref": "#/backend/entities/User"
+          }
+        }
+      },
+      {
+        "path": "/templates/{templateId}",
+        "definition": {
+          "entityName": "Template",
+          "schema": {
+            "$ref": "#/backend/entities/Template"
+          }
+        }
+      },
+      {
+        "path": "/criteria/{criteriaId}",
+        "definition": {
+          "entityName": "Criteria",
+          "schema": {
+            "$ref": "#/backend/entities/Criteria"
+          }
         }
       }
     ],

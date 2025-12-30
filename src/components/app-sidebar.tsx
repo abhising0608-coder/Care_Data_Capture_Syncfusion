@@ -18,6 +18,7 @@ import {
   Briefcase,
   PenSquare,
   Building,
+  PlusCircle,
 } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import type { Role } from '@/lib/definitions';
@@ -52,6 +53,11 @@ const menuItems = [
     href: '/rating-note',
     label: 'Rating Note',
     icon: PenSquare,
+  },
+  {
+    href: '/notes/new/step-1',
+    label: 'Initiate Rating Note',
+    icon: PlusCircle,
   }
 ];
 
@@ -75,11 +81,11 @@ export function AppSidebar() {
                 asChild
                 isActive={pathname.startsWith(item.href)}
                 tooltip={{ children: item.label, side: 'right' }}
-                className="justify-start"
+                className="justify-start h-8"
               >
                 <a href={item.href}>
-                  <item.icon className="h-5 w-5" />
-                  <span className="text-base">{item.label}</span>
+                  <item.icon className="h-4 w-4" />
+                  <span className="text-sm">{item.label}</span>
                 </a>
               </SidebarMenuButton>
             </SidebarMenuItem>
