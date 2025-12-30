@@ -75,7 +75,7 @@ export default function CompanyInformationPage() {
         fetcher
     );
 
-    const methods = useForm<CompanyInfo>({
+    const methods = useForm<z.infer<typeof companyInfoSchema>>({
         resolver: zodResolver(companyInfoSchema),
         defaultValues: data,
     });
@@ -89,7 +89,7 @@ export default function CompanyInformationPage() {
     const readOnlyRoles: Role[] = ['GROUP_HEAD', 'RATING_HEAD_SD'];
     const isReadOnly = isAuthLoading || !user || readOnlyRoles.includes(user.role);
 
-    const onSubmit = async (formData: CompanyInfo) => {
+    const onSubmit = async (formData: z.infer<typeof companyInfoSchema>) => {
         const payload = {
             ...data,
             ...formData,
@@ -177,7 +177,6 @@ export default function CompanyInformationPage() {
                         <TabsContent value="contact_details">
                              <DetailBlock
                                 title="Contact Details"
-                                data={data.contactDetails}
                                 isReadOnly={isReadOnly}
                                 fieldName="contactDetails"
                                 columns={[
@@ -197,7 +196,6 @@ export default function CompanyInformationPage() {
                         <TabsContent value="auditor_details">
                              <DetailBlock
                                 title="Auditor Firm"
-                                data={data.auditorDetails}
                                 isReadOnly={isReadOnly}
                                 fieldName="auditorDetails"
                                 columns={[
@@ -213,7 +211,6 @@ export default function CompanyInformationPage() {
                         <TabsContent value="banker_details">
                             <DetailBlock
                                 title="Banker"
-                                data={data.bankerDetails}
                                 isReadOnly={isReadOnly}
                                 fieldName="bankerDetails"
                                 columns={[
@@ -229,7 +226,6 @@ export default function CompanyInformationPage() {
                          <TabsContent value="dt_details">
                              <DetailBlock
                                 title="DT Details"
-                                data={data.dtDetails}
                                 isReadOnly={isReadOnly}
                                 fieldName="dtDetails"
                                 columns={[
@@ -245,7 +241,6 @@ export default function CompanyInformationPage() {
                          <TabsContent value="ipa_details">
                              <DetailBlock
                                 title="IPA Details"
-                                data={data.ipaDetails}
                                 isReadOnly={isReadOnly}
                                 fieldName="ipaDetails"
                                 columns={[
@@ -261,7 +256,6 @@ export default function CompanyInformationPage() {
                          <TabsContent value="third_party_details">
                             <DetailBlock
                                 title="Third Party Details"
-                                data={data.thirdPartyDetails}
                                 isReadOnly={isReadOnly}
                                 fieldName="thirdPartyDetails"
                                 columns={[

@@ -27,18 +27,18 @@ export type ColumnDefinition = {
     header: string;
     type: 'text' | 'number' | 'boolean' | 'select';
     options?: string[];
+    required?: boolean;
 };
 
 interface DetailBlockProps {
     title: string;
-    data: DetailItem[];
     isReadOnly: boolean;
     fieldName: string;
     columns: ColumnDefinition[];
 }
 
-export function DetailBlock({ title, data, isReadOnly, fieldName, columns }: DetailBlockProps) {
-    const { control } = useFormContext();
+export function DetailBlock({ title, isReadOnly, fieldName, columns }: DetailBlockProps) {
+    const { control, getValues } = useFormContext();
     const { fields, append, update, remove } = useFieldArray({
         control,
         name: fieldName,
@@ -59,7 +59,7 @@ export function DetailBlock({ title, data, isReadOnly, fieldName, columns }: Det
                 ...itemData,
                 lastUpdatedAt: new Date().toISOString(),
                 // lastUpdatedBy should be set here from auth context
-                pendingSync: itemData.source === 'CRM'
+                pendingSync: (fields[editingIndex] as any).source === 'CRM'
             };
             update(editingIndex, updatedItem);
         } else {
@@ -78,7 +78,13 @@ export function DetailBlock({ title, data, isReadOnly, fieldName, columns }: Det
 
     const handleDelete = (index: number) => {
         const field: any = fields[index];
-        update(index, { ...field, isDeleted: true, lastUpdatedAt: new Date().toISOString() });
+        // Instead of removing, we mark as deleted
+        if (field.source === 'CRM') {
+             update(index, { ...field, isDeleted: true, lastUpdatedAt: new Date().toISOString() });
+        } else {
+            // if it was added in the Rating system, we can just remove it
+            remove(index);
+        }
     };
 
     const activeFields = fields.filter(field => !(field as any).isDeleted);
@@ -109,12 +115,15 @@ export function DetailBlock({ title, data, isReadOnly, fieldName, columns }: Det
                             </TableHeader>
                             <TableBody>
                                 {activeFields.length > 0 ? (
-                                    activeFields.map((item, index) => (
+                                    activeFields.map((item, index) => {
+                                        // Find the original index in the 'fields' array for correct update/delete
+                                        const originalIndex = fields.findIndex(f => f.id === item.id);
+                                        return (
                                         <TableRow key={item.id}>
                                             {columns.map(col => (
                                                 <TableCell key={`${item.id}-${col.accessor}`}>
-                                                    {col.type === 'boolean' ? (
-                                                        (item as any)[col.accessor] ? <Check className="h-5 w-5 text-green-500" /> : <X className="h-5 w-5 text-muted-foreground" />
+                                                    {col.type === 'boolean' || (Array.isArray(col.options) && col.options.every(o => ['Yes', 'No'].includes(o))) ? (
+                                                        (item as any)[col.accessor] === true || (item as any)[col.accessor] === 'Yes' ? <Check className="h-5 w-5 text-green-500" /> : <X className="h-5 w-5 text-muted-foreground" />
                                                     ) : (
                                                         (item as any)[col.accessor]
                                                     )}
@@ -122,7 +131,7 @@ export function DetailBlock({ title, data, isReadOnly, fieldName, columns }: Det
                                             ))}
                                             {!isReadOnly && (
                                                 <TableCell className="flex gap-2 justify-end">
-                                                    <Button variant="ghost" size="icon" onClick={() => handleOpenModal(index)}>
+                                                    <Button variant="ghost" size="icon" onClick={() => handleOpenModal(originalIndex)}>
                                                         <Pencil className="h-4 w-4" />
                                                     </Button>
                                                     <AlertDialog>
@@ -135,19 +144,19 @@ export function DetailBlock({ title, data, isReadOnly, fieldName, columns }: Det
                                                             <AlertDialogHeader>
                                                                 <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                                                                 <AlertDialogDescription>
-                                                                    This action will mark the record for deletion. It will be hidden from view but can be recovered.
+                                                                    This action will mark the record for deletion. It will be hidden from view but can be recovered if it originated from CRM. Records added here will be permanently deleted.
                                                                 </AlertDialogDescription>
                                                             </AlertDialogHeader>
                                                             <AlertDialogFooter>
                                                                 <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                                <AlertDialogAction onClick={() => handleDelete(index)}>Continue</AlertDialogAction>
+                                                                <AlertDialogAction onClick={() => handleDelete(originalIndex)}>Continue</AlertDialogAction>
                                                             </AlertDialogFooter>
                                                         </AlertDialogContent>
                                                     </AlertDialog>
                                                 </TableCell>
                                             )}
                                         </TableRow>
-                                    ))
+                                    )})
                                 ) : (
                                     <TableRow>
                                         <TableCell colSpan={columns.length + (isReadOnly ? 0 : 1)} className="h-24 text-center">
@@ -166,7 +175,7 @@ export function DetailBlock({ title, data, isReadOnly, fieldName, columns }: Det
                 onClose={() => setIsModalOpen(false)}
                 onSave={handleSave}
                 columns={columns}
-                defaultValues={editingIndex !== null ? fields[editingIndex] as any : {}}
+                defaultValues={editingIndex !== null ? fields[editingIndex] as DetailItem : undefined}
                 title={editingIndex !== null ? `Edit ${title}` : `Add New ${title}`}
             />
         </>
