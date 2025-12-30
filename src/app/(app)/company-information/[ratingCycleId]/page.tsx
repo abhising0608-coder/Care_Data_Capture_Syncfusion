@@ -151,7 +151,7 @@ export default function CompanyInformationPage() {
         return <div>Failed to load data. Please try again.</div>;
     }
     
-    if (!data) {
+    if (!data || !data.masterSnapshot) {
       return (
         <div className="p-6 space-y-6">
           <Skeleton className="h-10 w-1/4" />
@@ -170,7 +170,7 @@ export default function CompanyInformationPage() {
                      <header className="flex items-center justify-between">
                         <div>
                             <h1 className="text-2xl font-bold tracking-tight text-foreground">
-                                Company Information: {data.masterSnapshot?.sector}
+                                Company Information: {data.masterSnapshot.sector}
                             </h1>
                             <p className="text-muted-foreground">
                                 Rating Cycle ID: {ratingCycleId}
