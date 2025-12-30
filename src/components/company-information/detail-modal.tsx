@@ -50,11 +50,14 @@ export function DetailModal({ isOpen, onClose, onSave, columns, defaultValues, t
                             z.boolean().optional()
                         );
                     } else {
-                        fieldSchema = z.string().optional();
+                        fieldSchema = z.string();
+                         if (col.required) {
+                            fieldSchema = fieldSchema.min(1, `${col.header} is required.`);
+                        } else {
+                             fieldSchema = fieldSchema.optional();
+                        }
                     }
-                    if (col.required) {
-                        fieldSchema = fieldSchema.min(1, `${col.header} is required.`);
-                    }
+                    
                     break;
                 case 'boolean':
                     fieldSchema = z.boolean().optional();
@@ -99,7 +102,7 @@ export function DetailModal({ isOpen, onClose, onSave, columns, defaultValues, t
                     <Select onValueChange={field.onChange} value={field.value || ''}>
                         <FormControl>
                             <SelectTrigger>
-                                <SelectValue placeholder="Select" />
+                                <SelectValue placeholder={`Select ${col.header}`} />
                             </SelectTrigger>
                         </FormControl>
                         <SelectContent>
