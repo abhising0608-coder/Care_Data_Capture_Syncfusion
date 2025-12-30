@@ -1,6 +1,7 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
+import Image from 'next/image';
 import {
   Sidebar,
   SidebarHeader,
@@ -15,18 +16,10 @@ import {
   FileText,
   Database,
   Briefcase,
-  GitFork,
   PenSquare,
   Building,
 } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import type { Role } from '@/lib/definitions';
 
 const menuItems = [
@@ -70,13 +63,8 @@ export function AppSidebar() {
   return (
     <Sidebar>
       <SidebarHeader>
-        <div className="flex items-center gap-2 p-2">
-            <GitFork className="w-8 h-8 text-primary" />
-            <div className="flex flex-col">
-              <span className="text-lg font-semibold tracking-tight text-foreground">
-                CareEdge
-              </span>
-            </div>
+        <div className="flex items-center justify-center p-4">
+          <Image src="/careedge-logo.svg" alt="CareEdge Logo" width={150} height={40} />
         </div>
       </SidebarHeader>
       <SidebarContent>
@@ -87,10 +75,11 @@ export function AppSidebar() {
                 asChild
                 isActive={pathname.startsWith(item.href)}
                 tooltip={{ children: item.label, side: 'right' }}
+                className="justify-start"
               >
                 <a href={item.href}>
-                  <item.icon />
-                  <span>{item.label}</span>
+                  <item.icon className="h-5 w-5" />
+                  <span className="text-base">{item.label}</span>
                 </a>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -98,23 +87,7 @@ export function AppSidebar() {
         </SidebarMenu>
       </SidebarContent>
       <SidebarFooter>
-        {user && (
-          <div className='p-2 space-y-2'>
-              <span className='text-xs text-muted-foreground'>Simulate Role:</span>
-              <Select value={user.role} onValueChange={(value) => setUserRole(value as Role)}>
-                  <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select a role" />
-                  </SelectTrigger>
-                  <SelectContent>
-                      <SelectItem value="CKC_ANALYST">CKC Analyst</SelectItem>
-                      <SelectItem value="CKC_CHECKER">CKC Checker</SelectItem>
-                      <SelectItem value="CKC_ADMIN">CKC Admin</SelectItem>
-                      <SelectItem value="RATING_ANALYST">Rating Analyst</SelectItem>
-                      <SelectItem value="GROUP_HEAD">Group Head</SelectItem>
-                  </SelectContent>
-              </Select>
-          </div>
-        )}
+        {/* Footer content can go here */}
       </SidebarFooter>
     </Sidebar>
   );

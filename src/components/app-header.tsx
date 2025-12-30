@@ -1,31 +1,57 @@
 
 'use client';
-import { Bell } from 'lucide-react';
+import { Bell, Search } from 'lucide-react';
 import Link from 'next/link';
 import useSWR from 'swr';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { SidebarTrigger } from '@/components/ui/sidebar';
-import type { CKCRequest } from '@/lib/definitions';
+import type { CKCRequest, Role } from '@/lib/definitions';
+import { useAuth } from '@/hooks/use-auth';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Input } from '@/components/ui/input';
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export function AppHeader() {
   const { data: pendingRequests } = useSWR<CKCRequest[]>('/api/requests?status=PENDING', fetcher);
+  const { user, setUserRole } = useAuth();
 
   const newRequestCount = pendingRequests?.length || 0;
+  const userInitials = user?.displayName?.split(' ').map(n => n[0]).join('') || 'U';
 
   return (
     <header className="sticky top-0 z-10 flex h-16 items-center justify-between gap-4 border-b bg-card px-4 sm:px-6">
       <div className="flex items-center gap-2">
         <SidebarTrigger className="md:hidden" />
-        <h1 className="text-lg font-semibold text-foreground hidden md:block">
-          CareEdge Operational Data Input
+        <h1 className="text-xl font-semibold text-foreground hidden md:block">
+          Dashboard
         </h1>
       </div>
 
       <div className="flex items-center gap-4">
-        <Button asChild variant="ghost" size="icon" className="rounded-full relative">
+        <div className="relative w-64">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input placeholder="Search companies..." className="pl-9" />
+        </div>
+        
+        {user && (
+          <Select value={user.role} onValueChange={(value) => setUserRole(value as Role)}>
+            <SelectTrigger className="w-[180px] h-9">
+              <SelectValue placeholder="Select a role" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="CKC_ANALYST">CKC Analyst</SelectItem>
+              <SelectItem value="CKC_CHECKER">CKC Checker</SelectItem>
+              <SelectItem value="CKC_ADMIN">CKC Admin</SelectItem>
+              <SelectItem value="RATING_ANALYST">Rating Analyst</SelectItem>
+              <SelectItem value="GROUP_HEAD">Group Head</SelectItem>
+            </SelectContent>
+          </Select>
+        )}
+
+        <Button asChild variant="ghost" size="icon" className="rounded-full relative text-muted-foreground">
           <Link href="/ckc-requests">
             <Bell className="h-5 w-5" />
             {newRequestCount > 0 && (
@@ -36,6 +62,12 @@ export function AppHeader() {
             <span className="sr-only">Toggle notifications</span>
           </Link>
         </Button>
+
+        <Avatar className="h-9 w-9">
+          <AvatarImage src={user?.photoURL} />
+          <AvatarFallback className="bg-primary text-primary-foreground">{userInitials}</AvatarFallback>
+        </Avatar>
+
       </div>
     </header>
   );
