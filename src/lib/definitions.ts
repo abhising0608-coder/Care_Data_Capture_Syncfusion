@@ -1,5 +1,8 @@
 export type Role = 'CKC_ANALYST' | 'CKC_CHECKER' | 'CKC_ADMIN' | 'RATING_ANALYST' | 'GROUP_HEAD' | 'RATING_HEAD_SD' | 'SYSTEM';
 export type RequestStatus = 'PENDING' | 'ACCEPTED' | 'IN_PROGRESS' | 'SUBMITTED_FOR_CHECK' | 'SENT_BACK' | 'APPROVED' | 'CLOSED';
+export type CompanyStatus = 'New' | 'Not Started' | 'In Progress' | 'Completed';
+export type CompanyPriority = 'High' | 'Medium' | 'Low';
+
 
 export type StatusHistory = {
   status: RequestStatus;
@@ -14,7 +17,17 @@ export type AppUser = {
   displayName?: string | null;
   email?: string | null;
   role: Role;
+  photoURL?: string | null;
 };
+
+export interface CompanyDashboard {
+    id: string;
+    companyName: string;
+    ratingCycle: 'Initial' | 'Surveillance';
+    priority: CompanyPriority;
+    dueDate: string;
+    status: CompanyStatus;
+}
 
 export type CKCRequest = {
   id: string; // Corresponds to document ID

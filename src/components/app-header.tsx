@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import type { CKCRequest, Role } from '@/lib/definitions';
-import { useAuth } from '@/hooks/use-auth';
+import { useAuth } from '@/firebase';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
@@ -26,27 +26,22 @@ export function AppHeader() {
       <div className="flex items-center gap-2">
         <SidebarTrigger className="md:hidden" />
         <h1 className="text-xl font-semibold text-foreground hidden md:block">
-          Dashboard
+          Rating Note
         </h1>
       </div>
 
       <div className="flex items-center gap-4">
-        <div className="relative w-64">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Search companies..." className="pl-9" />
-        </div>
-        
         {user && (
           <Select value={user.role} onValueChange={(value) => setUserRole(value as Role)}>
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Select a role" />
             </SelectTrigger>
             <SelectContent>
+              <SelectItem value="RATING_ANALYST">Rating Analyst</SelectItem>
+              <SelectItem value="GROUP_HEAD">Group Head</SelectItem>
               <SelectItem value="CKC_ANALYST">CKC Analyst</SelectItem>
               <SelectItem value="CKC_CHECKER">CKC Checker</SelectItem>
               <SelectItem value="CKC_ADMIN">CKC Admin</SelectItem>
-              <SelectItem value="RATING_ANALYST">Rating Analyst</SelectItem>
-              <SelectItem value="GROUP_HEAD">Group Head</SelectItem>
             </SelectContent>
           </Select>
         )}

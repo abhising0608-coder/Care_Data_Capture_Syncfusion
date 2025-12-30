@@ -1,4 +1,23 @@
-import type { CKCRequest, AppUser, Role, RequestStatus, CompanyInfo } from './definitions';
+import type { CKCRequest, AppUser, Role, RequestStatus, CompanyInfo, CompanyDashboard } from './definitions';
+
+export const mockCompanies: CompanyDashboard[] = [
+    { id: 'COMP-101', companyName: 'Reliance', ratingCycle: 'Initial', priority: 'High', dueDate: '1 Jan 26', status: 'Completed' },
+    { id: 'COMP-102', companyName: 'Adani Group', ratingCycle: 'Surveillance', priority: 'Medium', dueDate: '3 Feb 26', status: 'In Progress' },
+    { id: 'COMP-103', companyName: 'Reliance', ratingCycle: 'Initial', priority: 'Low', dueDate: '1 Jan 26', status: 'New' },
+    { id: 'COMP-104', companyName: 'Adani Group', ratingCycle: 'Initial', priority: 'Medium', dueDate: '3 Feb 26', status: 'Not Started' },
+    { id: 'COMP-105', companyName: 'Reliance', ratingCycle: 'Initial', priority: 'High', dueDate: '1 Jan 26', status: 'Completed' },
+    { id: 'COMP-106', companyName: 'Adani Group', ratingCycle: 'Surveillance', priority: 'Medium', dueDate: '3 Feb 26', status: 'In Progress' },
+    { id: 'COMP-107', companyName: 'Reliance', ratingCycle: 'Initial', priority: 'Low', dueDate: '1 Jan 26', status: 'New' },
+    { id: 'COMP-108', companyName: 'Adani Group', ratingCycle: 'Initial', priority: 'Medium', dueDate: '3 Feb 26', status: 'Not Started' },
+    { id: 'COMP-109', companyName: 'Reliance', ratingCycle: 'Initial', priority: 'High', dueDate: '1 Jan 26', status: 'Completed' },
+    { id: 'COMP-110', companyName: 'Adani Group', ratingCycle: 'Surveillance', priority: 'Medium', dueDate: '3 Feb 26', status: 'In Progress' },
+    { id: 'COMP-111', companyName: 'Reliance', ratingCycle: 'Initial', priority: 'Low', dueDate: '1 Jan 26', status: 'New' },
+    { id: 'COMP-112', companyName: 'Adani Group', ratingCycle: 'Initial', priority: 'Medium', dueDate: '3 Feb 26', status: 'Not Started' },
+    { id: 'COMP-113', companyName: 'Reliance', ratingCycle: 'Initial', priority: 'High', dueDate: '1 Jan 26', status: 'Completed' },
+    { id: 'COMP-114', companyName: 'Adani Group', ratingCycle: 'Surveillance', priority: 'Medium', dueDate: '3 Feb 26', status: 'In Progress' },
+    { id: 'COMP-115', companyName: 'Reliance', ratingCycle: 'Initial', priority: 'Low', dueDate: '1 Jan 26', status: 'New' },
+];
+
 
 let requests: CKCRequest[] = [
   {
