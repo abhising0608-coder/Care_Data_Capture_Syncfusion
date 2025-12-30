@@ -1,4 +1,4 @@
-import { CKCRequest } from './definitions';
+import type { CKCRequest, AppUser, Role, RequestStatus } from './definitions';
 
 let requests: CKCRequest[] = [
   {
@@ -12,8 +12,6 @@ let requests: CKCRequest[] = [
     hoRoName: 'Mumbai HO',
     dealingAnalyst: 'Analyst A',
     groupHead: 'Head 1',
-    assignedTo: null,
-    checker: 'Checker X',
     status: 'PENDING',
     cycle: 'Initial',
     auditedFY: ['2023'],
@@ -21,18 +19,14 @@ let requests: CKCRequest[] = [
     projectionFY: [],
     remarks: 'Initial request for FY23.',
     receiptDateTime: '2024-05-01T10:00:00Z',
-    receiptResponseDateTime: null,
-    entryAllottedDateTime: null,
-    entryCompletedDateTime: null,
-    checkingAllottedDateTime: null,
-    checkingCompletedDateTime: null,
-    sentBackFlag: false,
     createdBy: 'Initiator 1',
-    overallStatus: 'Pending Acceptance',
-    itemType: 'New Request',
-    path: '/requests/REQ-001',
     resultType: 'Standalone',
-    ckcAnalystName: undefined,
+    currentOwnerId: null,
+    currentOwnerRole: null,
+    assignedCheckerId: 'checker-001',
+    statusHistory: [
+        { status: 'PENDING', timestamp: '2024-05-01T10:00:00Z', actorId: 'system', actorRole: 'SYSTEM' }
+    ]
   },
   {
     id: 'REQ-002',
@@ -45,27 +39,23 @@ let requests: CKCRequest[] = [
     hoRoName: 'Bangalore RO',
     dealingAnalyst: 'Analyst B',
     groupHead: 'Head 2',
-    assignedTo: 'mock-user-123',
-    checker: 'Checker Y',
-    status: 'ACCEPTED',
+    status: 'IN_PROGRESS',
     cycle: 'Surveillance',
     auditedFY: ['2022', '2023'],
     provisionalFY: [],
     projectionFY: ['2025'],
     remarks: 'Surveillance for FY22-23.',
     receiptDateTime: '2024-05-02T11:30:00Z',
-    receiptResponseDateTime: '2024-05-02T12:00:00Z',
-    entryAllottedDateTime: '2024-05-03T09:00:00Z',
-    entryCompletedDateTime: null,
-    checkingAllottedDateTime: null,
-    checkingCompletedDateTime: null,
-    sentBackFlag: false,
     createdBy: 'Initiator 2',
-    overallStatus: 'Entry in Progress',
-    itemType: 'Surveillance',
-    path: '/requests/REQ-002',
     resultType: 'Consolidated',
-    ckcAnalystName: 'CKC Analyst',
+    currentOwnerId: 'analyst-001',
+    currentOwnerRole: 'CKC_ANALYST',
+    assignedCheckerId: 'checker-001',
+    statusHistory: [
+        { status: 'PENDING', timestamp: '2024-05-02T11:30:00Z', actorId: 'system', actorRole: 'SYSTEM' },
+        { status: 'ACCEPTED', timestamp: '2024-05-02T14:00:00Z', actorId: 'analyst-001', actorRole: 'CKC_ANALYST' },
+        { status: 'IN_PROGRESS', timestamp: '2024-05-02T14:05:00Z', actorId: 'analyst-001', actorRole: 'CKC_ANALYST' }
+    ]
   },
   {
     id: 'REQ-003',
@@ -78,29 +68,26 @@ let requests: CKCRequest[] = [
     hoRoName: 'Delhi HO',
     dealingAnalyst: 'Analyst C',
     groupHead: 'Head 1',
-    assignedTo: 'another-user-456',
-    checker: 'Checker Z',
-    status: 'CLOSED',
+    status: 'APPROVED',
     cycle: 'Initial',
     auditedFY: ['2023'],
     provisionalFY: [],
     projectionFY: [],
-    remarks: 'Completed and closed.',
+    remarks: 'Approved by checker.',
     receiptDateTime: '2024-04-15T09:00:00Z',
-    receiptResponseDateTime: '2024-04-15T10:00:00Z',
-    entryAllottedDateTime: '2024-04-16T10:00:00Z',
-    entryCompletedDateTime: '2024-04-20T17:00:00Z',
-    checkingAllottedDateTime: '2024-04-21T10:00:00Z',
-    checkingCompletedDateTime: '2024-04-25T18:00:00Z',
-    sentBackFlag: false,
     createdBy: 'Initiator 3',
-    overallStatus: 'Completed',
-    itemType: 'New Request',
-    path: '/requests/REQ-003',
     resultType: 'Standalone',
-    ckcAnalystName: 'Another Analyst',
+    currentOwnerId: 'checker-001',
+    currentOwnerRole: 'CKC_CHECKER',
+     assignedCheckerId: 'checker-001',
+    statusHistory: [
+        { status: 'PENDING', timestamp: '2024-04-15T09:00:00Z', actorId: 'system', actorRole: 'SYSTEM' },
+        { status: 'ACCEPTED', timestamp: '2024-04-15T10:00:00Z', actorId: 'analyst-002', actorRole: 'CKC_ANALYST' },
+        { status: 'IN_PROGRESS', timestamp: '2024-04-15T10:05:00Z', actorId: 'analyst-002', actorRole: 'CKC_ANALYST' },
+        { status: 'SUBMITTED_FOR_CHECK', timestamp: '2024-04-20T17:00:00Z', actorId: 'analyst-002', actorRole: 'CKC_ANALYST' },
+        { status: 'APPROVED', timestamp: '2024-04-25T18:00:00Z', actorId: 'checker-001', actorRole: 'CKC_CHECKER' }
+    ]
   },
-  // Add more pending requests
   {
     id: 'REQ-004',
     requestId: 'REQ-004',
@@ -112,8 +99,6 @@ let requests: CKCRequest[] = [
     hoRoName: 'Bangalore RO',
     dealingAnalyst: 'Analyst D',
     groupHead: 'Head 2',
-    assignedTo: null,
-    checker: 'Checker X',
     status: 'PENDING',
     cycle: 'Surveillance',
     auditedFY: ['2023'],
@@ -121,20 +106,17 @@ let requests: CKCRequest[] = [
     projectionFY: [],
     remarks: 'Annual surveillance.',
     receiptDateTime: '2024-05-10T14:00:00Z',
-    receiptResponseDateTime: null,
-    entryAllottedDateTime: null,
-    entryCompletedDateTime: null,
-    checkingAllottedDateTime: null,
-    checkingCompletedDateTime: null,
-    sentBackFlag: false,
     createdBy: 'Initiator 1',
-    overallStatus: 'Pending Acceptance',
-    itemType: 'Surveillance',
-    path: '/requests/REQ-004',
     resultType: 'Consolidated',
-    ckcAnalystName: undefined,
+    currentOwnerId: null,
+    currentOwnerRole: null,
+    assignedCheckerId: 'checker-002',
+    statusHistory: [
+        { status: 'PENDING', timestamp: '2024-05-10T14:00:00Z', actorId: 'system', actorRole: 'SYSTEM' }
+    ]
   },
 ];
+
 
 let operationalInputData: Record<string, any> = {
     'REQ-002': {
@@ -160,10 +142,18 @@ let operationalInputData: Record<string, any> = {
               {
                 version: 1,
                 timestamp: '2024-05-20T10:00:00Z',
-                data: [
-                  { 'Sr. No.': 1, 'Location': 'Mumbai', 'Product Segment': 'API', 'Regulatory Approvals': 'FDA, EMA', 'Last Audit (Month/Year)': '10/2023' },
-                  { 'Sr. No.': 2, 'Location': 'Pune', 'Product Segment': 'Formulations', 'Regulatory Approvals': 'FDA', 'Last Audit (Month/Year)': '12/2023' },
-                ]
+                workbookJson: {} // Placeholder for Syncfusion JSON
+              }
+            ]
+          },
+           geographyWiseSales: {
+            dataAvailability: 'Available',
+            activeVersion: 1,
+            versions: [
+              {
+                version: 1,
+                timestamp: '2024-05-20T10:00:00Z',
+                workbookJson: {} // Placeholder for Syncfusion JSON
               }
             ]
           }
@@ -171,36 +161,97 @@ let operationalInputData: Record<string, any> = {
     }
 };
 
-export const getRequests = (status?: string, id?: string) => {
+export const getRequests = (status?: RequestStatus | RequestStatus[], id?: string) => {
   let filteredRequests = requests;
   if (status) {
-    filteredRequests = filteredRequests.filter(r => r.status === status);
+    const statuses = Array.isArray(status) ? status : [status];
+    filteredRequests = filteredRequests.filter(r => statuses.includes(r.status));
   }
   if (id) {
     filteredRequests = filteredRequests.filter(r => r.id === id);
   }
-  return filteredRequests;
+  return JSON.parse(JSON.stringify(filteredRequests));
 };
 
 export const getRequestById = (id: string) => {
-  return requests.find(r => r.id === id);
+  const request = requests.find(r => r.id === id);
+  return request ? JSON.parse(JSON.stringify(request)) : undefined;
 };
 
-export const acceptRequest = (id: string, userId: string, userName: string) => {
-  const requestIndex = requests.findIndex(r => r.id === id);
-  if (requestIndex !== -1) {
-    requests[requestIndex] = {
-      ...requests[requestIndex],
-      status: 'ACCEPTED',
-      assignedTo: userId,
-      ckcAnalystName: userName,
-      entryAllottedDateTime: new Date().toISOString(),
-      overallStatus: 'Entry Pending',
-    };
-    return requests[requestIndex];
-  }
-  return null;
+const updateRequestStatus = (id: string, newStatus: RequestStatus, actor: AppUser) => {
+    const requestIndex = requests.findIndex(r => r.id === id);
+    if (requestIndex === -1) return null;
+
+    const request = requests[requestIndex];
+    
+    // Add to history
+    request.statusHistory.push({
+        status: newStatus,
+        timestamp: new Date().toISOString(),
+        actorId: actor.uid,
+        actorRole: actor.role,
+        remarks: `Status changed to ${newStatus}`
+    });
+
+    request.status = newStatus;
+    
+    switch (newStatus) {
+        case 'ACCEPTED':
+            request.currentOwnerId = actor.uid;
+            request.currentOwnerRole = 'CKC_ANALYST';
+            break;
+        case 'IN_PROGRESS':
+            // Owner remains CKC Analyst
+            break;
+        case 'SUBMITTED_FOR_CHECK':
+            request.currentOwnerId = request.assignedCheckerId;
+            request.currentOwnerRole = 'CKC_CHECKER';
+            break;
+        case 'SENT_BACK':
+            // Find the original analyst from history
+            const analystEntry = request.statusHistory.find(h => h.actorRole === 'CKC_ANALYST');
+            request.currentOwnerId = analystEntry ? analystEntry.actorId : null;
+            request.currentOwnerRole = 'CKC_ANALYST';
+            break;
+        case 'APPROVED':
+            // Owner remains the checker
+            break;
+        case 'CLOSED':
+             request.currentOwnerId = null;
+             request.currentOwnerRole = 'SYSTEM';
+             // In a real app, this might trigger notifications
+             break;
+    }
+    
+    requests[requestIndex] = request;
+    return request;
+}
+
+export const acceptRequest = (id: string, user: AppUser) => {
+  return updateRequestStatus(id, 'ACCEPTED', user);
 };
+
+export const initiateRequest = (id: string, user: AppUser) => {
+    return updateRequestStatus(id, 'IN_PROGRESS', user);
+}
+
+export const submitForChecking = (id: string, user: AppUser) => {
+    return updateRequestStatus(id, 'SUBMITTED_FOR_CHECK', user);
+}
+
+export const sendBackRequest = (id: string, user: AppUser) => {
+    return updateRequestStatus(id, 'SENT_BACK', user);
+}
+
+export const approveRequest = (id: string, user: AppUser) => {
+    // First approve, then close
+    const approvedRequest = updateRequestStatus(id, 'APPROVED', user);
+    if(approvedRequest) {
+        // System action to close
+        return updateRequestStatus(id, 'CLOSED', { uid: 'system', role: 'SYSTEM', displayName: 'System' });
+    }
+    return null;
+}
 
 
 export const getOperationalInput = (id: string) => {

@@ -16,6 +16,7 @@ import {
   Database,
   Briefcase,
   GitFork,
+  PenSquare,
 } from 'lucide-react';
 
 const menuItems = [
@@ -39,6 +40,11 @@ const menuItems = [
     label: 'Operational Input',
     icon: Briefcase,
   },
+  {
+    href: '/rating-note',
+    label: 'Rating Note',
+    icon: PenSquare,
+  }
 ];
 
 export function AppSidebar() {
