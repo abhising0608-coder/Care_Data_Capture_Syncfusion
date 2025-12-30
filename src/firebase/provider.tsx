@@ -60,41 +60,60 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
   firestore,
   auth,
 }) => {
-  // --- Mock Auth Logic ---
+  // --- Auth Logic ---
   const [user, setUser] = useState<AppUser | null>(null);
   const [claims, setClaims] = useState<AppClaims | null>(null);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
-  const [role, setRole] = useState<Role>('RATING_ANALYST'); // Default to RA
-  
-  const [isAuthResolved, setIsAuthResolved] = useState(false);
+  const [role, setRole] = useState<Role>('CKC_ANALYST'); // Default to CKC_ANALYST
 
   useEffect(() => {
-    // This simulates fetching a user and their role.
-    const mockUser: AppUser = {
-      uid: 'mock-user-123',
-      email: 'analyst@careedge.com',
-      displayName: 'Taha G',
-      role: role,
-      photoURL: 'https://i.pravatar.cc/150?u=taha'
-    };
-    const mockClaims: AppClaims = {
-      isAdmin: role === 'CKC_ADMIN',
-    };
-    setUser(mockUser);
-    setClaims(mockClaims);
-    // Simulate async loading
-    setTimeout(() => {
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      if (firebaseUser) {
+        // In a real app, you might fetch custom claims here.
+        // For this prototype, we'll assign a role and derive claims.
+        const appUser: AppUser = {
+          uid: firebaseUser.uid,
+          email: firebaseUser.email || 'analyst@careedge.com',
+          displayName: firebaseUser.displayName || 'Taha G',
+          role: role, // Use the state-managed role
+          photoURL: firebaseUser.photoURL || 'https://i.pravatar.cc/150?u=taha'
+        };
+        const appClaims: AppClaims = {
+          isAdmin: role === 'CKC_ADMIN',
+        };
+        setUser(appUser);
+        setClaims(appClaims);
+      } else {
+        // Handle user being logged out
+        const mockUser: AppUser = {
+          uid: 'mock-user-123',
+          email: 'analyst@careedge.com',
+          displayName: 'Taha G',
+          role: role,
+          photoURL: 'https://i.pravatar.cc/150?u=taha'
+        };
+        const mockClaims: AppClaims = {
+          isAdmin: role === 'CKC_ADMIN',
+        };
+        setUser(mockUser);
+        setClaims(mockClaims);
+      }
       setIsAuthLoading(false);
-      setIsAuthResolved(true); // Mark auth as resolved after mock user is set
-    }, 50);
+    }, (error) => {
+      setError(error);
+      setIsAuthLoading(false);
+    });
 
-  }, [role]);
+    // Cleanup subscription on unmount
+    return () => unsubscribe();
+  }, [auth, role]); // Rerun effect if auth instance or role changes
 
   const setUserRole = (newRole: Role) => {
+    setIsAuthLoading(true);
     setRole(newRole);
   };
-  // --- End Mock Auth Logic ---
+  // --- End Auth Logic ---
 
   const firebaseContextValue = useMemo((): FirebaseContextState => ({
     areServicesAvailable: true,
@@ -105,12 +124,11 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
 
   const authContextValue = { user, claims, isLoading: isAuthLoading, error, setUserRole };
   
-  // Render children only after auth state is resolved to prevent race conditions
   return (
     <FirebaseContext.Provider value={firebaseContextValue}>
       <AuthContext.Provider value={authContextValue}>
         <FirebaseErrorListener />
-        {isAuthResolved ? children : null /* Or a global loader */}
+        {!isAuthLoading ? children : null /* Or a global loader */}
       </AuthContext.Provider>
     </FirebaseContext.Provider>
   );
