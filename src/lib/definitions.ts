@@ -68,6 +68,7 @@ export type CKCRequest = {
 };
 
 export type CompanyMaster = {
+  name: string;
   address: string;
   city: string;
   zipCode: string;

@@ -248,6 +248,7 @@ let operationalInputData: Record<string, any> = {
 let companyInfoData: Record<string, CompanyInfo> = {
     'COMP-101': {
         masterSnapshot: {
+            name: 'Sun Pharmaceutical Industries Limited',
             address: '123 Maker Towers',
             city: 'Mumbai',
             zipCode: '400021',
@@ -428,9 +429,11 @@ export const saveOperationalInput = (id: string, data: any) => {
 
 // Company Info Mock Data
 export const getCompanyInfo = (ratingCycleId: string): CompanyInfo | null => {
-    // Return a default mock for any requested ID to ensure the page works
+    const company = mockCompanies.find(c => c.id === ratingCycleId);
+    
     const defaultData = {
         masterSnapshot: {
+            name: company?.companyName || 'Unknown Company',
             address: '123 Pharma Lane',
             city: 'Hyderabad',
             zipCode: '500081',
