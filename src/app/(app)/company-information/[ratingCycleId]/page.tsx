@@ -253,8 +253,8 @@ export default function CompanyInformationPage() {
                                 isReadOnly={isReadOnly}
                                 fieldName="ipaDetails"
                                 columns={[
-                                    { accessor: 'bankName', header: 'Bank Name', type: 'text', required: true },
-                                    { accessor: 'contactPerson', header: 'Contact Person', type: 'text' },
+                                    { accessor: 'bankName', header: 'Name of the IPA', type: 'text', required: true },
+                                    { accessor: 'contactPerson', header: 'Contact Person', type: 'text', required: true },
                                     { accessor: 'designation', header: 'Designation', type: 'text' },
                                     { accessor: 'emailId', header: 'Email ID', type: 'text' },
                                     { accessor: 'contactNo', header: 'Contact No', type: 'text' },
