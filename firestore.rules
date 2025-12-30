@@ -3,6 +3,7 @@
  * This ruleset enforces a closed collaborator security model for a financial data
  * processing application. Access to any specific "Operational Request" document is
  * strictly limited to the user who created it (`createdBy`) or the analyst it is
+
  * currently assigned to (`assignedTo`). This ensures that sensitive operational
  * data is only visible and modifiable by the parties directly involved.
  *
@@ -96,6 +97,23 @@ service cloud.firestore {
       allow create: if isSignedIn() && hasValidCreationData();
       allow update: if isSignedIn() && resource != null && isCreatorOrAssignee() && hasValidUpdateData();
       allow delete: if isSignedIn() && resource != null && isCreatorOrAssignee();
+    }
+
+    // Allow authenticated users to read from master data collections
+    match /companies/{companyId} {
+      allow read: if isSignedIn();
+    }
+    match /templates/{templateId} {
+      allow read: if isSignedIn();
+    }
+    match /criteria/{criteriaId} {
+      allow read: if isSignedIn();
+    }
+
+    // Allow authenticated users to create new rating notes
+    match /ratingNotes/{noteId} {
+      allow create: if isSignedIn() && hasValidCreationData();
+      // Add other rules (get, update, delete) as needed for the feature
     }
   }
 }
