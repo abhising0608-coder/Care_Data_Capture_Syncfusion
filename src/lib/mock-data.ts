@@ -59,13 +59,13 @@ let requests: CKCRequest[] = [
     receiptDateTime: '2024-05-02T11:30:00Z',
     createdBy: 'Initiator 2',
     resultType: 'Consolidated',
-    currentOwnerId: 'analyst-001',
+    currentOwnerId: 'mock-user-123',
     currentOwnerRole: 'CKC_ANALYST',
     assignedCheckerId: 'checker-001',
     statusHistory: [
         { status: 'PENDING', timestamp: '2024-05-02T11:30:00Z', actorId: 'system', actorRole: 'SYSTEM' },
-        { status: 'ACCEPTED', timestamp: '2024-05-02T14:00:00Z', actorId: 'analyst-001', actorRole: 'CKC_ANALYST' },
-        { status: 'IN_PROGRESS', timestamp: '2024-05-02T14:05:00Z', actorId: 'analyst-001', actorRole: 'CKC_ANALYST' }
+        { status: 'ACCEPTED', timestamp: '2024-05-02T14:00:00Z', actorId: 'mock-user-123', actorRole: 'CKC_ANALYST' },
+        { status: 'IN_PROGRESS', timestamp: '2024-05-02T14:05:00Z', actorId: 'mock-user-123', actorRole: 'CKC_ANALYST' }
     ],
     receiptResponseDateTime: null,
     entryAllottedDateTime: null,
@@ -76,7 +76,8 @@ let requests: CKCRequest[] = [
     overallStatus: 'In Progress',
     itemType: 'Request',
     path: '/requests/REQ-002',
-    assignedTo: 'analyst-001',
+    assignedTo: 'mock-user-123',
+    ckcAnalystName: 'CKC Analyst',
     checker: 'checker-001'
   },
   {
@@ -159,6 +160,43 @@ let requests: CKCRequest[] = [
     assignedTo: null,
     checker: 'checker-002'
   },
+   {
+    id: 'REQ-005',
+    requestId: 'REQ-005',
+    companyId: 'COMP-105',
+    companyName: 'Sun Pharmaceutical',
+    financialInputSector: 'Pharma',
+    listed: 'Yes',
+    rating: 'AA-',
+    hoRoName: 'Mumbai HO',
+    dealingAnalyst: 'Analyst E',
+    groupHead: 'Head 1',
+    status: 'CLOSED',
+    cycle: 'Initial',
+    auditedFY: ['2023'],
+    provisionalFY: [],
+    projectionFY: [],
+    remarks: 'Closed request.',
+    receiptDateTime: '2024-03-01T10:00:00Z',
+    checkingCompletedDateTime: '2024-03-15T18:00:00Z',
+    createdBy: 'Initiator 3',
+    resultType: 'Standalone',
+    currentOwnerId: 'system',
+    currentOwnerRole: 'SYSTEM',
+     assignedCheckerId: 'checker-001',
+    statusHistory: [],
+    receiptResponseDateTime: null,
+    entryAllottedDateTime: null,
+    entryCompletedDateTime: null,
+    checkingAllottedDateTime: null,
+    sentBackFlag: false,
+    overallStatus: 'Completed',
+    itemType: 'Request',
+    path: '/requests/REQ-005',
+    assignedTo: 'analyst-002',
+    ckcAnalystName: 'CKC Analyst 2',
+    checker: 'checker-001'
+  },
 ];
 
 
@@ -166,7 +204,7 @@ let operationalInputData: Record<string, any> = {
     'REQ-002': {
         id: 'REQ-002',
         status: 'IN_PROGRESS',
-        currentOwnerId: 'analyst-001',
+        currentOwnerId: 'mock-user-123',
         currentOwnerRole: 'CKC_ANALYST',
         initiation: {
             companyName: 'Tata Consultancy Services',
@@ -239,7 +277,38 @@ let companyInfoData: Record<string, CompanyInfo> = {
                 pendingSync: false,
             }
         ],
-        auditorDetails: [],
+        auditorDetails: [
+            {
+                id: 'ad1',
+                firmName: 'A.U. Mojad & Associates',
+                contactPerson: 'Amit Varma',
+                designation: 'Jr. Auditor',
+                emailId: 'Amit@gmail.com',
+                contactNo: '9029193811',
+                source: 'CRM',
+                isDeleted: false,
+            },
+            {
+                id: 'ad2',
+                firmName: 'Ashish R Pai & Associates',
+                contactPerson: 'Vijay Sharma',
+                designation: 'Jr. Auditor',
+                emailId: 'Vijay@gmail.com',
+                contactNo: '9038873118',
+                source: 'CRM',
+                isDeleted: false,
+            },
+            {
+                id: 'ad3',
+                firmName: 'R. K. GARJE AND CO',
+                contactPerson: 'Anil Patil',
+                designation: 'Sr. Auditor',
+                emailId: 'Anil@gmail.com',
+                contactNo: '9038873118',
+                source: 'Rating',
+                isDeleted: false,
+            }
+        ],
         bankerDetails: [],
         dtDetails: [],
         ipaDetails: [],
@@ -253,10 +322,10 @@ let companyInfoData: Record<string, CompanyInfo> = {
 };
 
 
-export const getRequests = (status?: RequestStatus | RequestStatus[], id?: string) => {
+export const getRequests = (status?: string, id?: string) => {
   let filteredRequests = requests;
   if (status) {
-    const statuses = Array.isArray(status) ? status : [status];
+    const statuses = Array.isArray(status) ? status : status.split(',');
     filteredRequests = filteredRequests.filter(r => statuses.includes(r.status));
   }
   if (id) {
@@ -264,6 +333,7 @@ export const getRequests = (status?: RequestStatus | RequestStatus[], id?: strin
   }
   return JSON.parse(JSON.stringify(filteredRequests));
 };
+
 
 export const getRequestById = (id: string): CKCRequest | undefined => {
   const request = requests.find(r => r.id === id);
@@ -292,6 +362,7 @@ const updateRequestStatus = (id: string, newStatus: RequestStatus, actor: AppUse
             request.currentOwnerRole = 'CKC_ANALYST';
             request.assignedTo = actor.uid;
             request.ckcAnalystName = actor.displayName || actor.email || 'Unknown Analyst';
+            request.entryAllottedDateTime = new Date().toISOString();
             break;
         case 'IN_PROGRESS':
              request.currentOwnerId = actor.uid;
@@ -300,6 +371,8 @@ const updateRequestStatus = (id: string, newStatus: RequestStatus, actor: AppUse
         case 'SUBMITTED_FOR_CHECK':
             request.currentOwnerId = request.assignedCheckerId;
             request.currentOwnerRole = 'CKC_CHECKER';
+            request.entryCompletedDateTime = new Date().toISOString();
+            request.checkingAllottedDateTime = new Date().toISOString();
             break;
         case 'SENT_BACK':
             const analystEntry = request.statusHistory.find(h => h.actorRole === 'CKC_ANALYST');
@@ -310,10 +383,12 @@ const updateRequestStatus = (id: string, newStatus: RequestStatus, actor: AppUse
         case 'APPROVED':
             request.currentOwnerId = request.assignedCheckerId;
             request.currentOwnerRole = 'CKC_CHECKER';
+            request.checkingCompletedDateTime = new Date().toISOString();
             break;
         case 'CLOSED':
              request.currentOwnerId = null;
              request.currentOwnerRole = 'SYSTEM';
+             request.overallStatus = 'Completed';
              break;
     }
     
@@ -321,10 +396,19 @@ const updateRequestStatus = (id: string, newStatus: RequestStatus, actor: AppUse
     return request;
 }
 
-export const acceptRequest = (id: string, user: AppUser) => {
-  const request = getRequestById(id);
-  if (request?.status !== 'PENDING') return null; // Can only accept pending requests
-  return updateRequestStatus(id, 'ACCEPTED', user);
+export const acceptRequest = (requestId: string, userId: string, userName: string) => {
+    const request = getRequestById(requestId);
+    if (!request || request.status !== 'PENDING') {
+        return null;
+    }
+    
+    const user: AppUser = {
+        uid: userId,
+        role: 'CKC_ANALYST',
+        displayName: userName
+    };
+    
+    return updateRequestStatus(requestId, 'ACCEPTED', user);
 };
 
 export const initiateRequest = (id: string, user: AppUser) => {
@@ -333,33 +417,41 @@ export const initiateRequest = (id: string, user: AppUser) => {
 
 export const submitForChecking = (id: string, user: AppUser) => {
     const operationalData = getOperationalInput(id);
-    operationalData.status = 'SUBMITTED_FOR_CHECK';
-    operationalData.currentOwnerId = operationalData.assignedCheckerId;
-    operationalData.currentOwnerRole = 'CKC_CHECKER';
-    saveOperationalInput(id, operationalData);
+    if(operationalData) {
+        operationalData.status = 'SUBMITTED_FOR_CHECK';
+        operationalData.currentOwnerId = operationalData.assignedCheckerId;
+        operationalData.currentOwnerRole = 'CKC_CHECKER';
+        saveOperationalInput(id, operationalData);
+    }
     return updateRequestStatus(id, 'SUBMITTED_FOR_CHECK', user);
 }
 
 export const sendBackRequest = (id: string, user: AppUser, remarks: string) => {
     const operationalData = getOperationalInput(id);
-    operationalData.status = 'SENT_BACK';
-    const analystEntry = getRequestById(id)?.statusHistory.find(h => h.actorRole === 'CKC_ANALYST');
-    operationalData.currentOwnerId = analystEntry ? analystEntry.actorId : null;
-    operationalData.currentOwnerRole = 'CKC_ANALYST';
-    saveOperationalInput(id, operationalData);
+    if (operationalData) {
+        operationalData.status = 'SENT_BACK';
+        const analystEntry = getRequestById(id)?.statusHistory.find(h => h.actorRole === 'CKC_ANALYST');
+        operationalData.currentOwnerId = analystEntry ? analystEntry.actorId : null;
+        operationalData.currentOwnerRole = 'CKC_ANALYST';
+        saveOperationalInput(id, operationalData);
+    }
     return updateRequestStatus(id, 'SENT_BACK', user, remarks);
 }
 
 export const approveRequest = (id: string, user: AppUser) => {
     const operationalData = getOperationalInput(id);
-    operationalData.status = 'APPROVED';
-    operationalData.currentOwnerId = user.uid;
-    operationalData.currentOwnerRole = 'CKC_CHECKER';
-    saveOperationalInput(id, operationalData);
+    if (operationalData) {
+        operationalData.status = 'APPROVED';
+        operationalData.currentOwnerId = user.uid;
+        operationalData.currentOwnerRole = 'CKC_CHECKER';
+        saveOperationalInput(id, operationalData);
+    }
     
     const approvedRequest = updateRequestStatus(id, 'APPROVED', user);
     if(approvedRequest) {
-        return updateRequestStatus(id, 'CLOSED', { uid: 'system', role: 'SYSTEM', displayName: 'System' });
+        // Automatically move to CLOSED after approval
+        const systemUser: AppUser = { uid: 'system', role: 'SYSTEM', displayName: 'System' };
+        return updateRequestStatus(id, 'CLOSED', systemUser);
     }
     return null;
 }

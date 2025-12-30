@@ -47,11 +47,17 @@ const companyInfoSchema = z.object({
     thirdPartyDetails: z.array(z.any()).optional(),
 }).refine(data => {
     if (data.contactDetails) {
-        return data.contactDetails.every(contact => contact.email || contact.mobile);
+        const primaryContacts = data.contactDetails.filter(c => !c.isDeleted && c.isPrimary);
+        if (primaryContacts.length > 1) {
+            // This is a custom error for multiple primary contacts.
+            // Consider how to show this in the UI. For now, it prevents submission.
+            return false;
+        }
+        return data.contactDetails.every(contact => !contact.isDeleted ? (contact.email || contact.mobile) : true);
     }
     return true;
 }, {
-    message: "Either Email or Mobile must be provided for each contact.",
+    message: "Each contact must have either an email or a mobile number. Only one contact can be primary.",
     path: ['contactDetails']
 });
 
@@ -157,61 +163,88 @@ export default function CompanyInformationPage() {
                         </div>
                     </header>
                     
-                    <Tabs defaultValue="general">
+                    <CompanyMasterInfo masterSnapshot={data.masterSnapshot} />
+                    <GroupTagging isReadOnly={isReadOnly} />
+
+                    <Tabs defaultValue="company_details">
                         <TabsList className="mb-4">
-                            <TabsTrigger value="general">General & Group</TabsTrigger>
-                            <TabsTrigger value="contacts">Contact Details</TabsTrigger>
-                            <TabsTrigger value="auditors">Auditor Details</TabsTrigger>
-                            <TabsTrigger value="bankers">Banker Details</TabsTrigger>
+                            <TabsTrigger value="company_details">Company Details</TabsTrigger>
+                            <TabsTrigger value="contact_details">Contact Details</TabsTrigger>
+                            <TabsTrigger value="auditor_details">Auditor Details</TabsTrigger>
+                            <TabsTrigger value="banker_details">Banker Details</TabsTrigger>
+                            <TabsTrigger value="dt_details">DT Details</TabsTrigger>
+                            <TabsTrigger value="ipa_details">IPA Details</TabsTrigger>
+                            <TabsTrigger value="third_party_details">Third Party Details</TabsTrigger>
                         </TabsList>
-                        <TabsContent value="general" className="space-y-6">
-                             <CompanyMasterInfo masterSnapshot={data.masterSnapshot} />
-                             <GroupTagging isReadOnly={isReadOnly} />
+
+                        <TabsContent value="company_details">
+                             {/* Placeholder for future Company Details component */}
+                             <Card><CardContent className="p-6">Company Details content goes here.</CardContent></Card>
                         </TabsContent>
-                        <TabsContent value="contacts">
+
+                        <TabsContent value="contact_details">
                              <DetailBlock
                                 title="Contact Details"
                                 data={data.contactDetails}
                                 isReadOnly={isReadOnly}
                                 fieldName="contactDetails"
                                 columns={[
-                                    { accessor: 'name', header: 'Name', type: 'text' },
-                                    { accessor: 'designation', header: 'Designation', type: 'text' },
+                                    { accessor: 'name', header: 'Contact Name', type: 'text', required: true },
+                                    { accessor: 'designation', header: 'Designation', type: 'text', required: true },
                                     { accessor: 'department', header: 'Department', type: 'text' },
-                                    { accessor: 'email', header: 'Email', type: 'text' },
+                                    { accessor: 'email', header: 'Email ID', type: 'text' },
                                     { accessor: 'mobile', header: 'Mobile', type: 'text' },
+                                    { accessor: 'phone', header: 'Phone', type: 'text' },
                                     { accessor: 'isPrimary', header: 'Primary', type: 'boolean' },
                                     { accessor: 'isUPSI', header: 'UPSI', type: 'boolean' },
                                     { accessor: 'authorizedSignatory', header: 'Signatory', type: 'boolean' },
-                                    { accessor: 'source', header: 'Source', type: 'text' },
                                 ]}
                             />
                         </TabsContent>
-                        <TabsContent value="auditors">
-                            <DetailBlock
+
+                        <TabsContent value="auditor_details">
+                             <DetailBlock
                                 title="Auditor Details"
                                 data={data.auditorDetails}
                                 isReadOnly={isReadOnly}
                                 fieldName="auditorDetails"
                                 columns={[
-                                    { accessor: 'name', header: 'Auditor Name', type: 'text' },
-                                    { accessor: 'type', header: 'Type (Statutory/Internal)', type: 'text' },
-                                    { accessor: 'since', header: 'Auditor Since', type: 'text' },
+                                    { accessor: 'firmName', header: 'Firm Name', type: 'text', required: true },
+                                    { accessor: 'contactPerson', header: 'Contact Person', type: 'text' },
+                                    { accessor: 'designation', header: 'Designation', type: 'text' },
+                                    { accessor: 'emailId', header: 'Email ID', type: 'text' },
+                                    { accessor: 'contactNo', header: 'Contact No', type: 'text' },
                                 ]}
                             />
                         </TabsContent>
-                         <TabsContent value="bankers">
-                             <DetailBlock
+
+                        <TabsContent value="banker_details">
+                            <DetailBlock
                                 title="Banker Details"
                                 data={data.bankerDetails}
                                 isReadOnly={isReadOnly}
                                 fieldName="bankerDetails"
                                 columns={[
                                     { accessor: 'bankName', header: 'Bank Name', type: 'text' },
-                                    { accessor: 'facilityType', header: 'Facility Type', type: 'text' },
-                                    { accessor: 'amount', header: 'Amount (Cr)', type: 'text' },
+                                    { accessor: 'facilityType', header: 'Facility Type', type 'text' },
+                                    { accessor: 'amount', header: 'Amount (Cr)', type: 'number' },
                                 ]}
                             />
+                        </TabsContent>
+
+                         <TabsContent value="dt_details">
+                             {/* Placeholder for future DT Details component */}
+                              <Card><CardContent className="p-6">DT Details content goes here.</CardContent></Card>
+                        </TabsContent>
+
+                         <TabsContent value="ipa_details">
+                             {/* Placeholder for future IPA Details component */}
+                             <Card><CardContent className="p-6">IPA Details content goes here.</CardContent></Card>
+                        </TabsContent>
+
+                         <TabsContent value="third_party_details">
+                             {/* Placeholder for future Third Party Details component */}
+                             <Card><CardContent className="p-6">Third Party Details content goes here.</CardContent></Card>
                         </TabsContent>
                     </Tabs>
                 </div>
