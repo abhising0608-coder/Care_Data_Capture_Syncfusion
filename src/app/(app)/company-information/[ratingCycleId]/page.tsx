@@ -227,9 +227,11 @@ export default function CompanyInformationPage() {
                                 isReadOnly={isReadOnly}
                                 fieldName="bankerDetails"
                                 columns={[
-                                    { accessor: 'bankName', header: 'Bank Name', type: 'text' },
-                                    { accessor: 'facilityType', header: 'Facility Type', type: 'text' },
-                                    { accessor: 'amount', header: 'Amount (Cr)', type: 'number' },
+                                    { accessor: 'bankName', header: 'Bank Name', type: 'text', required: true },
+                                    { accessor: 'contactPerson', header: 'Contact Person', type: 'text' },
+                                    { accessor: 'designation', header: 'Designation', type: 'text' },
+                                    { accessor: 'emailId', header: 'Email ID', type: 'text' },
+                                    { accessor: 'contactNo', header: 'Contact No', type: 'text' },
                                 ]}
                             />
                         </TabsContent>
