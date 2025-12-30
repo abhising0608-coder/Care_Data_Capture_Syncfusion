@@ -66,9 +66,10 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
   const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const [role, setRole] = useState<Role>('RATING_ANALYST'); // Default to RA
+  
+  const [isAuthResolved, setIsAuthResolved] = useState(false);
 
   useEffect(() => {
-    setIsAuthLoading(true);
     // This simulates fetching a user and their role.
     const mockUser: AppUser = {
       uid: 'mock-user-123',
@@ -82,27 +83,18 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
     };
     setUser(mockUser);
     setClaims(mockClaims);
-    setIsAuthLoading(false);
+    // Simulate async loading
+    setTimeout(() => {
+      setIsAuthLoading(false);
+      setIsAuthResolved(true); // Mark auth as resolved after mock user is set
+    }, 50);
+
   }, [role]);
 
   const setUserRole = (newRole: Role) => {
     setRole(newRole);
   };
   // --- End Mock Auth Logic ---
-
-  const [isAuthResolved, setIsAuthResolved] = useState(false);
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-      // For this prototype, we rely on the mock user, but this listener structure is correct.
-      setIsAuthResolved(true); // Mark that Firebase auth state has been checked.
-    }, (error) => {
-      console.error("FirebaseProvider: onAuthStateChanged error:", error);
-      setError(error);
-      setIsAuthResolved(true);
-    });
-    return () => unsubscribe();
-  }, [auth]);
 
   const firebaseContextValue = useMemo((): FirebaseContextState => ({
     areServicesAvailable: true,
@@ -118,7 +110,7 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
     <FirebaseContext.Provider value={firebaseContextValue}>
       <AuthContext.Provider value={authContextValue}>
         <FirebaseErrorListener />
-        {isAuthResolved || !isAuthLoading ? children : null /* Or a global loader */}
+        {isAuthResolved ? children : null /* Or a global loader */}
       </AuthContext.Provider>
     </FirebaseContext.Provider>
   );
