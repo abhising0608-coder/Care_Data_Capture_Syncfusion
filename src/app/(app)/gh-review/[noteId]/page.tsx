@@ -86,7 +86,7 @@ export default function GroupHeadReviewPage() {
     const showSubmitToCC = note.status === 'QC Approved';
     const showSendToRA = note.status === 'CC Approved';
     
-    const isEditorReadOnly = note.status === 'QC Approved' || note.status === 'CC Approved';
+    const isEditorReadOnly = !showReworkAndSubmitToQC;
 
 
     return (

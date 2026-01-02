@@ -75,19 +75,23 @@ const PriorityIndicator = ({ priority }: { priority: 'High' | 'Medium' | 'Low' }
   );
 };
 
-const StatusIndicator = ({ status }: { status: NoteStatus }) => {
+const StatusIndicator = ({ status, role }: { status: NoteStatus, role: Role | undefined }) => {
     const baseClasses = "flex items-center gap-2";
+    
+    let displayStatus = status;
+    if (role === 'GROUP_HEAD' && status === 'In Review (GH)') {
+        displayStatus = 'In Review' as NoteStatus;
+    }
+
     switch (status) {
         case 'Completed':
             return <div className={baseClasses}><Dot className="h-3 w-3 fill-green-500 text-green-500" /><span>Completed</span></div>;
         case 'Draft':
              return <div className={baseClasses}><Dot className="h-3 w-3 fill-blue-500 text-blue-500" /><span>Draft</span></div>;
         case 'In Review (GH)':
-             return <div className={baseClasses}><Dot className="h-3 w-3 fill-yellow-500 text-yellow-500" /><span>In Review (GH)</span></div>;
+             return <div className={baseClasses}><Dot className="h-3 w-3 fill-yellow-500 text-yellow-500" /><span>{displayStatus}</span></div>;
         case 'Rework Requested':
              return <div className={baseClasses}><Dot className="h-3 w-3 fill-orange-500 text-orange-500" /><span>Rework Requested</span></div>;
-        case 'Forwarded to QC':
-            return <div className={baseClasses}><Dot className="h-3 w-3 fill-purple-500 text-purple-500" /><span>Forwarded to QC</span></div>;
         case 'In Review (QC)':
             return <div className={baseClasses}><Dot className="h-3 w-3 fill-cyan-500 text-cyan-500" /><span>In Review (QC)</span></div>;
         case 'QC Approved':
@@ -152,7 +156,7 @@ export default function DashboardClient() {
   };
 
   const getActionText = (role: Role | undefined, note: RatingNote): string => {
-    if (!role) return 'View Note'; // Add guard clause
+    if (!role) return 'View Note';
     if (note.status === 'Pending RR & PR (RA)') {
         return 'Generate RR & PR';
     }
@@ -249,7 +253,7 @@ export default function DashboardClient() {
     {
       accessorKey: 'status',
       header: 'Status',
-      cell: ({ row }) => <StatusIndicator status={row.getValue('status')} />,
+      cell: ({ row }) => <StatusIndicator status={row.getValue('status')} role={user?.role} />,
     },
     {
       id: 'actions',
