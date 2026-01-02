@@ -49,7 +49,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Badge } from '@/components/ui/badge';
-import type { RatingNote, NoteStatus } from '@/lib/definitions';
+import type { RatingNote, NoteStatus, Role } from '@/lib/definitions';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/firebase';
 import { Skeleton } from '../ui/skeleton';
@@ -89,11 +89,15 @@ const StatusIndicator = ({ status }: { status: NoteStatus }) => {
         case 'Forwarded to QC':
             return <div className={baseClasses}><Dot className="h-3 w-3 fill-purple-500 text-purple-500" /><span>Forwarded to QC</span></div>;
         case 'In Review (QC)':
-            return <div className={base-classes}><Dot className="h-3 w-3 fill-cyan-500 text-cyan-500" /><span>In Review (QC)</span></div>;
+            return <div className={baseClasses}><Dot className="h-3 w-3 fill-cyan-500 text-cyan-500" /><span>In Review (QC)</span></div>;
         case 'QC Approved':
             return <div className={baseClasses}><Dot className="h-3 w-3 fill-teal-500 text-teal-500" /><span>QC Approved</span></div>;
         case 'Rework Requested (GH)':
             return <div className={baseClasses}><Dot className="h-3 w-3 fill-pink-500 text-pink-500" /><span>Rework Requested (GH)</span></div>;
+        case 'In Review (CC)':
+             return <div className={baseClasses}><Dot className="h-3 w-3 fill-indigo-500 text-indigo-500" /><span>In Review (CC)</span></div>;
+        case 'CC Approved':
+            return <div className={baseClasses}><Dot className="h-3 w-3 fill-lime-500 text-lime-500" /><span>CC Approved</span></div>;
         default:
             return <span>{status}</span>;
     }
@@ -128,6 +132,9 @@ export default function DashboardClient() {
         case 'QC':
             router.push(`/qc-review/${note.id}`);
             break;
+        case 'RATING_COMMITTEE':
+            router.push(`/cc-review/${note.id}`);
+            break;
         default:
             // Default view action if any
             router.push(`/rating-note/${note.id}`);
@@ -135,13 +142,15 @@ export default function DashboardClient() {
     }
   };
 
-  const getActionText = (role: string | undefined): string => {
+  const getActionText = (role: Role | undefined): string => {
     switch (role) {
       case 'RATING_ANALYST':
         return 'Edit Note';
       case 'GROUP_HEAD':
         return 'Review Note';
       case 'QC':
+        return 'Review Note';
+      case 'RATING_COMMITTEE':
         return 'Review Note';
       default:
         return 'View Note';

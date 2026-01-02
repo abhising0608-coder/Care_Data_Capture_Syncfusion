@@ -275,6 +275,26 @@ let operationalInputData: Record<string, any> = {
     }
 };
 
+export const mockCompanies = [
+    { id: 'COMP-101', companyName: 'Reliance Industries' },
+    { id: 'COMP-102', companyName: 'Tata Consultancy Services' },
+    { id: 'COMP-103', companyName: 'HDFC Bank' },
+];
+
+export const mockTemplates = [
+    { id: 'template-001', name: 'Standard Corporate Rating Template' },
+    { id: 'template-002', name: 'Bank Rating Template' },
+    { id: 'template-003', name: 'Infrastructure Project Rating Template' },
+];
+
+export const mockCriteria = [
+    { id: 'criteria-001', name: 'Criteria for Rating Manufacturing Companies' },
+    { id: 'criteria-002', name: 'Criteria for Rating Service Sector Companies' },
+    { id: 'criteria-003', name: 'Criteria for Bank Loans' },
+    { id: 'criteria-004', name: 'Parent and Group Support' },
+];
+
+
 let companyInfoData: Record<string, CompanyInfo> = {
     'COMP-101': {
         masterSnapshot: {
@@ -316,9 +336,11 @@ export const getNotesByRole = (role: Role, userId: string): RatingNote[] => {
         case 'RATING_ANALYST':
             return ratingNotes.filter(note => note.raId === userId && ['Draft', 'Rework Requested', 'Rework Requested (GH)'].includes(note.status));
         case 'GROUP_HEAD':
-            return ratingNotes.filter(note => note.ghId === userId && ['In Review (GH)', 'Rework Requested (GH)', 'QC Approved', 'Forwarded to QC'].includes(note.status));
+            return ratingNotes.filter(note => note.ghId === userId && ['In Review (GH)', 'Rework Requested (GH)', 'QC Approved', 'CC Approved'].includes(note.status));
         case 'QC':
              return ratingNotes.filter(note => note.status === 'In Review (QC)');
+        case 'RATING_COMMITTEE':
+            return ratingNotes.filter(note => note.ccId === userId && note.status === 'In Review (CC)');
         default:
             // Return all notes for admin-like roles or an empty array for others
             return ['CKC_ADMIN', 'SYSTEM'].includes(role) ? ratingNotes : [];
@@ -356,9 +378,11 @@ export const updateNoteStatus = (id: string, newStatus: NoteStatus, actorId: str
         note.editorContent = editorContent;
     }
     
-    // Assign to QC user when submitted to QC
+    // Assign to specific roles on status change
     if (newStatus === 'In Review (QC)') {
         note.qcId = 'qc.user@careedge';
+    } else if (newStatus === 'In Review (CC)') {
+        note.ccId = 'cc.user@careedge';
     }
     
     return updateNote(id, note);

@@ -30,7 +30,7 @@ export default function GroupHeadReviewPage() {
       fetcher
     );
 
-    const handleAction = async (action: 'rework' | 'submit-to-qc') => {
+    const handleAction = async (action: 'rework' | 'submit-to-qc' | 'submit-to-cc') => {
         if (!editorRef.current || !note || !user) return;
 
         try {
@@ -58,7 +58,7 @@ export default function GroupHeadReviewPage() {
                 
                 toast({
                     title: 'Success',
-                    description: `Note has been successfully ${action === 'rework' ? 'sent back for rework' : 'submitted to QC'}.`
+                    description: `Note has been successfully handled.`
                 });
 
                 // Mutate the local data to reflect the change, then navigate
@@ -75,7 +75,7 @@ export default function GroupHeadReviewPage() {
             });
         }
     };
-
+    
     if (isLoading || !note) {
         return (
              <div className="flex h-full w-full flex-col p-4 sm:p-6 lg:p-8">
@@ -84,6 +84,10 @@ export default function GroupHeadReviewPage() {
             </div>
         )
     }
+
+    const showReworkAndSubmitToQC = note.status === 'In Review (GH)' || note.status === 'Rework Requested (GH)';
+    const showSubmitToCC = note.status === 'QC Approved';
+
 
     return (
         <div className="flex h-full w-full flex-col">
@@ -97,12 +101,21 @@ export default function GroupHeadReviewPage() {
                     </p>
                 </div>
                 <div className="flex items-center gap-2">
-                    <Button variant="outline" onClick={() => handleAction('rework')}>
-                        <MessageSquareWarning className="mr-2 h-4 w-4" /> Rework
-                    </Button>
-                     <Button onClick={() => handleAction('submit-to-qc')}>
-                        <Send className="mr-2 h-4 w-4" /> Submit to QC
-                    </Button>
+                    {showReworkAndSubmitToQC && (
+                        <>
+                            <Button variant="outline" onClick={() => handleAction('rework')}>
+                                <MessageSquareWarning className="mr-2 h-4 w-4" /> Rework
+                            </Button>
+                            <Button onClick={() => handleAction('submit-to-qc')}>
+                                <Send className="mr-2 h-4 w-4" /> Submit to QC
+                            </Button>
+                        </>
+                    )}
+                    {showSubmitToCC && (
+                         <Button onClick={() => handleAction('submit-to-cc')}>
+                            <Send className="mr-2 h-4 w-4" /> Submit to Care Committee
+                        </Button>
+                    )}
                 </div>
             </header>
             <main className="flex-1 pt-6">

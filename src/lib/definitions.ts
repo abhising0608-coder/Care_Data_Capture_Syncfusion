@@ -10,6 +10,9 @@ export type NoteStatus =
   | 'Rework Requested (GH)'
   | 'QC Approved'
   | 'Forwarded to QC'
+  | 'In Review (CC)'
+  | 'Rework Requested (CC)'
+  | 'CC Approved'
   | 'Completed';
 
 export type CompanyPriority = 'High' | 'Medium' | 'Low';
@@ -150,6 +153,7 @@ export interface RatingNote {
   raId: string; // Rating Analyst ID
   ghId?: string; // Group Head ID
   qcId?: string; // QC ID
+  ccId?: string; // Care Committee ID
   editorContent?: string; // The SFDT content of the Syncfusion editor
   statusHistory: {
       status: NoteStatus;

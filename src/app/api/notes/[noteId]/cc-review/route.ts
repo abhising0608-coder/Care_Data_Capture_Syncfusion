@@ -7,7 +7,7 @@ export async function POST(
   { params }: { params: { noteId: string } }
 ) {
   const { noteId } = params;
-  const { action, actorId, editorContent } = await request.json();
+  const { action, actorId } = await request.json();
 
   if (!action || !actorId) {
     return NextResponse.json({ message: 'Action and Actor ID are required' }, { status: 400 });
@@ -16,20 +16,17 @@ export async function POST(
   let newStatus: NoteStatus;
 
   switch (action) {
-    case 'rework':
-      newStatus = 'Rework Requested';
+    case 'rework-gh':
+      newStatus = 'Rework Requested (GH)';
       break;
-    case 'submit-to-qc':
-      newStatus = 'In Review (QC)';
-      break;
-    case 'submit-to-cc':
-      newStatus = 'In Review (CC)';
+    case 'approve-submit':
+      newStatus = 'CC Approved';
       break;
     default:
       return NextResponse.json({ message: 'Invalid action' }, { status: 400 });
   }
 
-  const updatedNote = updateNoteStatus(noteId, newStatus, actorId, editorContent);
+  const updatedNote = updateNoteStatus(noteId, newStatus, actorId);
 
   if (!updatedNote) {
     return NextResponse.json({ message: 'Failed to update note' }, { status: 404 });
