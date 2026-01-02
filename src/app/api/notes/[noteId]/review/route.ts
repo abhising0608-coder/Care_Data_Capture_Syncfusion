@@ -1,3 +1,4 @@
+
 import { NextResponse } from 'next/server';
 import { updateNoteStatus } from '@/lib/mock-data';
 import type { NoteStatus } from '@/lib/definitions';
@@ -27,6 +28,9 @@ export async function POST(
       break;
     case 'send-to-ra-for-rr-pr':
       newStatus = 'Pending RR & PR (RA)';
+      break;
+    case 'final-approve':
+      newStatus = 'Completed';
       break;
     default:
       return NextResponse.json({ message: 'Invalid action' }, { status: 400 });

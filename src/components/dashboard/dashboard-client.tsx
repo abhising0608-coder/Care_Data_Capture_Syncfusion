@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -79,8 +80,10 @@ const StatusIndicator = ({ status, role }: { status: NoteStatus, role: Role | un
     const baseClasses = "flex items-center gap-2";
     
     let displayStatus = status;
-    if (role === 'GROUP_HEAD' && status === 'In Review (GH)') {
-        displayStatus = 'In Review' as NoteStatus;
+    if (role === 'GROUP_HEAD') {
+        if (status === 'In Review (GH)') displayStatus = 'In Review' as NoteStatus;
+        if (status === 'In Review (QC)') displayStatus = 'Forwarded to QC' as NoteStatus;
+        if (status === 'In Review (CC)') displayStatus = 'Forwarded to CC' as NoteStatus;
     }
 
     switch (status) {
@@ -93,13 +96,13 @@ const StatusIndicator = ({ status, role }: { status: NoteStatus, role: Role | un
         case 'Rework Requested':
              return <div className={baseClasses}><Dot className="h-3 w-3 fill-orange-500 text-orange-500" /><span>Rework Requested</span></div>;
         case 'In Review (QC)':
-            return <div className={baseClasses}><Dot className="h-3 w-3 fill-cyan-500 text-cyan-500" /><span>In Review (QC)</span></div>;
+            return <div className={baseClasses}><Dot className="h-3 w-3 fill-cyan-500 text-cyan-500" /><span>{displayStatus}</span></div>;
         case 'QC Approved':
             return <div className={baseClasses}><Dot className="h-3 w-3 fill-teal-500 text-teal-500" /><span>QC Approved</span></div>;
         case 'Rework Requested (GH)':
             return <div className={baseClasses}><Dot className="h-3 w-3 fill-pink-500 text-pink-500" /><span>Rework Requested (GH)</span></div>;
         case 'In Review (CC)':
-             return <div className={baseClasses}><Dot className="h-3 w-3 fill-indigo-500 text-indigo-500" /><span>In Review (CC)</span></div>;
+             return <div className={baseClasses}><Dot className="h-3 w-3 fill-indigo-500 text-indigo-500" /><span>{displayStatus}</span></div>;
         case 'CC Approved':
             return <div className={baseClasses}><Dot className="h-3 w-3 fill-lime-500 text-lime-500" /><span>CC Approved</span></div>;
         case 'Pending RR & PR (RA)':
@@ -159,6 +162,9 @@ export default function DashboardClient() {
     if (!role) return 'View Note';
     if (note.status === 'Pending RR & PR (RA)') {
         return 'Generate RR & PR';
+    }
+    if (note.status === 'In Final Review (GH)') {
+        return 'Final Review';
     }
     switch (role) {
       case 'RATING_ANALYST':

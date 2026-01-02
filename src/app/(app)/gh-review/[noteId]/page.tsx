@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Suspense, useRef, useState, useEffect } from 'react';
@@ -29,7 +30,7 @@ export default function GroupHeadReviewPage() {
       fetcher
     );
 
-    const handleAction = async (action: 'rework' | 'submit-to-qc' | 'submit-to-cc' | 'send-to-ra-for-rr-pr') => {
+    const handleAction = async (action: 'rework' | 'submit-to-qc' | 'submit-to-cc' | 'send-to-ra-for-rr-pr' | 'final-approve') => {
         if (!editorRef.current || !note || !user) return;
 
         try {
@@ -81,12 +82,46 @@ export default function GroupHeadReviewPage() {
             </div>
         )
     }
+    
+    const pageConfig = {
+        'In Review (GH)': {
+            title: `Group Head Review: ${note.companyName}`,
+            description: 'Review the rating note. You can edit the document directly; changes will be tracked.',
+            isReadOnly: false,
+        },
+        'Rework Requested (GH)': {
+            title: `Group Head Review (Rework): ${note.companyName}`,
+            description: 'This note was sent back for rework. Please address the comments and resubmit.',
+            isReadOnly: false,
+        },
+        'QC Approved': {
+            title: `Submit to Care Committee: ${note.companyName}`,
+            description: 'This note has been approved by QC. Review and submit to the Care Committee.',
+            isReadOnly: true,
+        },
+        'CC Approved': {
+            title: `Final Handoff: ${note.companyName}`,
+            description: 'This note has been approved by the Care Committee. Send to the Rating Analyst for final document generation.',
+            isReadOnly: true,
+        },
+        'In Final Review (GH)': {
+            title: `Final Document Review: ${note.companyName}`,
+            description: 'Review the final Rating Note, RR, and PR. Approve to complete the workflow.',
+            isReadOnly: true,
+        },
+        default: {
+            title: `Group Head View: ${note.companyName}`,
+            description: `Status: ${note?.status}. This note is locked for editing.`,
+            isReadOnly: true,
+        }
+    }
+    
+    const currentConfig = pageConfig[note.status as keyof typeof pageConfig] || pageConfig.default;
 
     const showReworkAndSubmitToQC = note.status === 'In Review (GH)' || note.status === 'Rework Requested (GH)';
     const showSubmitToCC = note.status === 'QC Approved';
     const showSendToRA = note.status === 'CC Approved';
-    
-    const isEditorReadOnly = !showReworkAndSubmitToQC;
+    const showFinalApprove = note.status === 'In Final Review (GH)';
 
 
     return (
@@ -94,10 +129,10 @@ export default function GroupHeadReviewPage() {
             <header className="flex h-auto items-center justify-between gap-4 border-b bg-background p-4 sm:px-0 flex-wrap">
                 <div className="flex-1">
                      <h1 className="text-xl font-semibold text-foreground">
-                        Group Head Review: {note.companyName}
+                        {currentConfig.title}
                     </h1>
                     <p className="text-muted-foreground text-sm">
-                        {isEditorReadOnly ? `Status: ${note?.status}. This note is locked for editing.` : 'Review the rating note. You can edit the document directly; changes will be tracked.'}
+                        {currentConfig.description}
                     </p>
                 </div>
                 <div className="flex items-center gap-2">
@@ -121,13 +156,19 @@ export default function GroupHeadReviewPage() {
                             <Send className="mr-2 h-4 w-4" /> Send to RA for RR & PR Generation
                         </Button>
                     )}
+                     {showFinalApprove && (
+                        <Button onClick={() => handleAction('final-approve')}>
+                            <Send className="mr-2 h-4 w-4" /> Final Approve
+                        </Button>
+                    )}
                 </div>
             </header>
             <main className="flex-1 pt-6">
                 <Suspense fallback={<Skeleton className="h-[calc(100vh-250px)] w-full" />}>
                    <RatingNoteEditor 
+                        key={note.id + note.status}
                         ref={editorRef} 
-                        isReadOnly={isEditorReadOnly}
+                        isReadOnly={currentConfig.isReadOnly}
                         content={note.editorContent}
                     />
                 </Suspense>

@@ -340,7 +340,7 @@ export const getNotesByRole = (role: Role, userId: string): RatingNote[] => {
         case 'RATING_ANALYST':
             return ratingNotes.filter(note => note.raId === userId && ['Draft', 'Rework Requested', 'Rework Requested (GH)', 'Pending RR & PR (RA)'].includes(note.status));
         case 'GROUP_HEAD':
-            return ratingNotes.filter(note => note.ghId === userId && ['In Review (GH)', 'Rework Requested (GH)', 'QC Approved', 'CC Approved'].includes(note.status));
+            return ratingNotes.filter(note => note.ghId === userId && ['In Review (GH)', 'Rework Requested (GH)', 'QC Approved', 'CC Approved', 'In Final Review (GH)'].includes(note.status));
         case 'QC':
              return ratingNotes.filter(note => note.status === 'In Review (QC)');
         case 'RATING_COMMITTEE':
