@@ -25,7 +25,8 @@ interface AuthContextType {
   claims: AppClaims | null;
   isLoading: boolean;
   error: Error | null;
-  setUserRole?: (role: Role) => void; // Make optional as it's part of mock logic
+  role: Role;
+  setUserRole: (role: Role) => void;
 }
 
 export const AuthContext = createContext<AuthContextType>({
@@ -33,6 +34,8 @@ export const AuthContext = createContext<AuthContextType>({
   claims: null,
   isLoading: true,
   error: null,
+  role: 'RATING_ANALYST',
+  setUserRole: () => {},
 });
 
 
@@ -54,6 +57,31 @@ interface FirebaseProviderProps {
   auth: Auth;
 }
 
+const mockUsers: Record<Role, AppUser> = {
+    RATING_ANALYST: {
+        uid: 'rating.analyst@careedge',
+        email: 'analyst@careedge.com',
+        displayName: 'Taha G',
+        role: 'RATING_ANALYST',
+        photoURL: 'https://i.pravatar.cc/150?u=taha'
+    },
+    GROUP_HEAD: {
+        uid: 'group.head@careedge',
+        email: 'group.head@careedge.com',
+        displayName: 'Group Head',
+        role: 'GROUP_HEAD',
+        photoURL: 'https://i.pravatar.cc/150?u=gh'
+    },
+    CKC_ANALYST: { uid: 'ckc.analyst', email: 'ckc.analyst@careedge.com', displayName: 'CKC Analyst', role: 'CKC_ANALYST' },
+    CKC_CHECKER: { uid: 'ckc.checker', email: 'ckc.checker@careedge.com', displayName: 'CKC Checker', role: 'CKC_CHECKER' },
+    CKC_ADMIN: { uid: 'ckc.admin', email: 'ckc.admin@careedge.com', displayName: 'CKC Admin', role: 'CKC_ADMIN' },
+    RATING_HEAD_SD: { uid: 'rh.sd', email: 'rh.sd@careedge.com', displayName: 'Rating Head SD', role: 'RATING_HEAD_SD' },
+    SYSTEM: { uid: 'system', email: 'system@careedge.com', displayName: 'System', role: 'SYSTEM' },
+    QC: { uid: 'qc', email: 'qc@careedge.com', displayName: 'Quality Control', role: 'QC' },
+    RATING_COMMITTEE: { uid: 'rc', email: 'rc@careedge.com', displayName: 'Rating Committee', role: 'RATING_COMMITTEE' },
+};
+
+
 export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
   children,
   firebaseApp,
@@ -65,49 +93,15 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
   const [claims, setClaims] = useState<AppClaims | null>(null);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
-  const [role, setRole] = useState<Role>('CKC_ANALYST'); // Default to CKC_ANALYST
+  const [role, setRole] = useState<Role>('RATING_ANALYST'); // Default role
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-      if (firebaseUser) {
-        // In a real app, you might fetch custom claims here.
-        // For this prototype, we'll assign a role and derive claims.
-        const appUser: AppUser = {
-          uid: firebaseUser.uid,
-          email: firebaseUser.email || 'analyst@careedge.com',
-          displayName: firebaseUser.displayName || 'Taha G',
-          role: role, // Use the state-managed role
-          photoURL: firebaseUser.photoURL || 'https://i.pravatar.cc/150?u=taha'
-        };
-        const appClaims: AppClaims = {
-          isAdmin: role === 'CKC_ADMIN',
-        };
-        setUser(appUser);
-        setClaims(appClaims);
-      } else {
-        // Handle user being logged out
-        const mockUser: AppUser = {
-          uid: 'mock-user-123',
-          email: 'analyst@careedge.com',
-          displayName: 'Taha G',
-          role: role,
-          photoURL: 'https://i.pravatar.cc/150?u=taha'
-        };
-        const mockClaims: AppClaims = {
-          isAdmin: role === 'CKC_ADMIN',
-        };
-        setUser(mockUser);
-        setClaims(mockClaims);
-      }
-      setIsAuthLoading(false);
-    }, (error) => {
-      setError(error);
-      setIsAuthLoading(false);
-    });
-
-    // Cleanup subscription on unmount
-    return () => unsubscribe();
-  }, [auth, role]); // Rerun effect if auth instance or role changes
+    // This is a mock auth listener. It sets the user based on the selected role.
+    const mockUser = mockUsers[role];
+    setUser(mockUser);
+    setClaims({ isAdmin: role === 'CKC_ADMIN' });
+    setIsAuthLoading(false);
+  }, [role]); // Rerun effect if role changes
 
   const setUserRole = (newRole: Role) => {
     setIsAuthLoading(true);
@@ -122,7 +116,7 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
     auth,
   }), [firebaseApp, firestore, auth]);
 
-  const authContextValue = { user, claims, isLoading: isAuthLoading, error, setUserRole };
+  const authContextValue = { user, claims, isLoading: isAuthLoading, error, role, setUserRole };
   
   return (
     <FirebaseContext.Provider value={firebaseContextValue}>

@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { useAuth, initiateEmailSignIn } from '@/firebase';
+import { useAuth } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 
 import { Button } from '@/components/ui/button';
@@ -19,7 +19,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Loader2 } from 'lucide-react';
-import Image from 'next/image';
+import type { Role } from '@/lib/definitions';
 
 const loginSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email address.' }),
@@ -28,10 +28,17 @@ const loginSchema = z.object({
 
 type LoginFormValues = z.infer<typeof loginSchema>;
 
+const roleUserMap: Record<string, Role> = {
+    'analyst@careedge.com': 'RATING_ANALYST',
+    'group.head@careedge': 'GROUP_HEAD',
+    // Add other roles here
+};
+
+
 export default function LoginPage() {
   const router = useRouter();
   const { toast } = useToast();
-  const auth = useAuth();
+  const { setUserRole } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
 
   const {
@@ -45,15 +52,31 @@ export default function LoginPage() {
   const onSubmit = async (data: LoginFormValues) => {
     setIsLoading(true);
     try {
-      // We are using a mock login system. In a real app, you'd use Firebase Auth.
-      // For this prototype, we'll just check for a specific user.
-      if (data.email === 'analyst@careedge.com' && data.password === 'password') {
-        // This is a simplified "login". The actual user state is managed by the AuthProvider.
+      // This is a simplified "login". The actual user state is managed by the AuthProvider.
+      const validUsers = {
+          'analyst@careedge.com': 'password',
+          'group.head@careedge.com': 'password',
+      };
+
+      const userEmail = data.email.toLowerCase();
+      
+      if (validUsers[userEmail as keyof typeof validUsers] === data.password) {
+        
+        let role: Role = 'RATING_ANALYST'; // Default role
+        if (userEmail === 'group.head@careedge.com') {
+            role = 'GROUP_HEAD';
+        }
+        
+        if(setUserRole) {
+            setUserRole(role);
+        }
+
         toast({
           title: 'Login Successful',
-          description: 'Redirecting to your dashboard...',
+          description: `Redirecting to your dashboard as ${role.replace('_', ' ')}.`,
         });
         router.push('/dashboard');
+
       } else {
         throw new Error('Invalid email or password.');
       }

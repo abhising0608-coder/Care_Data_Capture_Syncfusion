@@ -1,6 +1,15 @@
 export type Role = 'CKC_ANALYST' | 'CKC_CHECKER' | 'CKC_ADMIN' | 'RATING_ANALYST' | 'GROUP_HEAD' | 'RATING_HEAD_SD' | 'SYSTEM' | 'QC' | 'RATING_COMMITTEE';
 export type RequestStatus = 'PENDING' | 'ACCEPTED' | 'IN_PROGRESS' | 'SUBMITTED_FOR_CHECK' | 'SENT_BACK' | 'APPROVED' | 'CLOSED';
-export type CompanyStatus = 'New' | 'Not Started' | 'In Progress' | 'In Review' | 'Completed';
+
+// More granular statuses for the entire rating note workflow
+export type NoteStatus = 
+  | 'Draft'
+  | 'In Review (GH)'
+  | 'Rework Requested'
+  | 'In Review (QC)'
+  | 'Forwarded to QC'
+  | 'Completed';
+
 export type CompanyPriority = 'High' | 'Medium' | 'Low';
 
 
@@ -21,12 +30,14 @@ export type AppUser = {
 };
 
 export interface CompanyDashboard {
-    id: string;
+    id: string; // This will be the rating note ID
     companyName: string;
     ratingCycle: 'Initial' | 'Surveillance';
     priority: CompanyPriority;
     dueDate: string;
-    status: CompanyStatus;
+    status: NoteStatus;
+    raId: string;
+    ghId?: string;
 }
 
 export type CKCRequest = {
@@ -46,7 +57,7 @@ export type CKCRequest = {
   cycle: 'Initial' | 'Surveillance';
   auditedFY: string[];
   provisionalFY: string[];
-  projectionFY: string[];
+  projectionFY: [];
   remarks: string;
   receiptDateTime: string | Date;
   receiptResponseDateTime: string | Date | null;
@@ -125,3 +136,22 @@ export type CompanyInfo = {
     lastUpdatedAt: string;
   };
 };
+
+export interface RatingNote {
+  id: string;
+  companyName: string;
+  companyId: string;
+  ratingCycle: 'Initial' | 'Surveillance';
+  priority: CompanyPriority;
+  dueDate: string;
+  status: NoteStatus;
+  raId: string; // Rating Analyst ID
+  ghId?: string; // Group Head ID
+  qcId?: string; // QC ID
+  editorContent?: string; // The SFDT content of the Syncfusion editor
+  statusHistory: {
+      status: NoteStatus;
+      timestamp: string;
+      actorId: string;
+  }[];
+}

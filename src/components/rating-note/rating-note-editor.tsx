@@ -1,6 +1,6 @@
 
 'use client';
-import { useEffect } from 'react';
+import { useEffect, forwardRef, useImperativeHandle, useRef } from 'react';
 import {
   DocumentEditorContainerComponent,
   Toolbar,
@@ -12,34 +12,61 @@ registerLicense('Ngo9BigBOggjHTQxAR8/V1NBaF5cWWJCe0x3Q3xbf1x0ZFNMyV5bQXVPMyBoS35
 
 DocumentEditorContainerComponent.Inject(Toolbar);
 
-export function RatingNoteEditor() {
-    let container: DocumentEditorContainerComponent | null;
+interface RatingNoteEditorProps {
+    isReadOnly?: boolean;
+    content?: string; // SFDT JSON string
+}
+
+export const RatingNoteEditor = forwardRef<DocumentEditorContainerComponent | null, RatingNoteEditorProps>(
+    ({ isReadOnly = false, content }, ref) => {
+    
+    const editorRef = useRef<DocumentEditorContainerComponent | null>(null);
+    useImperativeHandle(ref, () => editorRef.current, []);
 
     useEffect(() => {
-        // This is a workaround to ensure the editor resizes correctly within a flex container.
         const timer = setTimeout(() => {
-            if (container) {
-                container.resize();
+            if (editorRef.current) {
+                editorRef.current.resize();
+                
+                // Set read-only state
+                editorRef.current.documentEditor.isReadOnly = isReadOnly;
+                
+                // Enable track changes
+                editorRef.current.documentEditor.showTrackChanges = true;
+                
+                if (content) {
+                    editorRef.current.documentEditor.open(content);
+                } else {
+                    // Load a default template or empty document if no content is provided
+                    editorRef.current.documentEditor.open(JSON.stringify({ "sfdt": "{\"sections\":[{\"blocks\":[{\"inlines\":[{\"text\":\"Start drafting the rating note here...\"}]}]}]}" }));
+                }
+
+                // Programmatically turn on track changes
+                setTimeout(() => {
+                    if (editorRef.current) {
+                         editorRef.current.documentEditor.trackChanges = true;
+                    }
+                }, 500); // Delay to ensure editor is fully initialized
+
             }
         }, 200);
 
         return () => clearTimeout(timer);
-    }, [container]);
+    }, [isReadOnly, content]);
 
-  return (
-    <div className="h-full w-full">
-         <style>
-              {`
-                  @import url('https://cdn.syncfusion.com/ej2/material.css');
-              `}
-          </style>
-        <DocumentEditorContainerComponent
-            ref={(scope) => { container = scope; }}
-            height="calc(100vh - 180px)"
-            enableToolbar={true}
-            serviceUrl="https://ej2services.syncfusion.com/production/web-services/api/documenteditor/"
-        />
-    </div>
-  );
-}
+    return (
+        <div className="h-full w-full">
+            <style>
+                {`@import url('https://cdn.syncfusion.com/ej2/material.css');`}
+            </style>
+            <DocumentEditorContainerComponent
+                ref={editorRef}
+                height="calc(100vh - 180px)"
+                enableToolbar={true}
+                serviceUrl="https://ej2services.syncfusion.com/production/web-services/api/documenteditor/"
+            />
+        </div>
+    );
+});
 
+RatingNoteEditor.displayName = 'RatingNoteEditor';

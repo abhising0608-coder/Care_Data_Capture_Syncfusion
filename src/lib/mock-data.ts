@@ -1,27 +1,56 @@
 
-import type { CKCRequest, AppUser, Role, RequestStatus, CompanyInfo, CompanyDashboard } from './definitions';
+import type { CKCRequest, AppUser, Role, RequestStatus, CompanyInfo, CompanyDashboard, RatingNote, NoteStatus } from './definitions';
 
-export const mockCompanies: CompanyDashboard[] = [
-    { id: 'COMP-101', companyName: 'Sun Pharmaceutical Industries Limited', ratingCycle: 'Initial', priority: 'High', dueDate: '1 Jan 26', status: 'Completed' },
-    { id: 'COMP-102', companyName: 'Dr. Reddy’s Laboratories Limited', ratingCycle: 'Surveillance', priority: 'Medium', dueDate: '3 Feb 26', status: 'In Progress' },
-    { id: 'COMP-103', companyName: 'Cipla Limited', ratingCycle: 'Initial', priority: 'Low', dueDate: '10 Mar 26', status: 'New' },
-    { id: 'COMP-104', companyName: 'Lupin Limited', ratingCycle: 'Initial', priority: 'Medium', dueDate: '15 Apr 26', status: 'Not Started' },
-    { id: 'COMP-105', companyName: 'Aurobindo Pharma Limited', ratingCycle: 'Surveillance', priority: 'High', dueDate: '20 May 26', status: 'Completed' },
-    { id: 'COMP-106', companyName: 'Glenmark Pharmaceuticals Limited', ratingCycle: 'Surveillance', priority: 'Medium', dueDate: '25 Jun 26', status: 'In Progress' },
-    { id: 'COMP-107', companyName: 'Torrent Pharmaceuticals Limited', ratingCycle: 'Initial', priority: 'Low', dueDate: '1 Jul 26', status: 'New' },
-    { id: 'COMP-108', companyName: 'Alkem Laboratories Limited', ratingCycle: 'Initial', priority: 'Medium', dueDate: '8 Aug 26', status: 'Not Started' },
-    { id: 'COMP-109', companyName: 'Divi’s Laboratories Limited', ratingCycle: 'Initial', priority: 'High', dueDate: '12 Sep 26', status: 'Completed' },
-    { id: 'COMP-110', companyName: 'Zydus Lifesciences Limited', ratingCycle: 'Surveillance', priority: 'Medium', dueDate: '18 Oct 26', status: 'In Progress' },
-    { id: 'COMP-111', companyName: 'Abbott India Limited', ratingCycle: 'Initial', priority: 'Low', dueDate: '22 Nov 26', status: 'New' },
-    { id: 'COMP-112', companyName: 'Biocon Limited', ratingCycle: 'Surveillance', priority: 'Medium', dueDate: '30 Dec 26', status: 'Not Started' },
-    { id: 'COMP-113', companyName: 'IPCA Laboratories Limited', ratingCycle: 'Initial', priority: 'High', dueDate: '5 Jan 27', status: 'Completed' },
-    { id: 'COMP-114', companyName: 'Alembic Pharmaceuticals Limited', ratingCycle: 'Surveillance', priority: 'Medium', dueDate: '11 Feb 27', status: 'In Progress' },
-    { id: 'COMP-115', companyName: 'Natco Pharma Limited', ratingCycle: 'Initial', priority: 'Low', dueDate: '19 Mar 27', status: 'New' },
-    { id: 'COMP-116', companyName: 'Wockhardt Limited', ratingCycle: 'Surveillance', priority: 'High', dueDate: '23 Apr 27', status: 'In Progress' },
-    { id: 'COMP-117', companyName: 'Laurus Labs Limited', ratingCycle: 'Initial', priority: 'Medium', dueDate: '1 May 27', status: 'Not Started' },
-    { id: 'COMP-118', companyName: 'Ajanta Pharma Limited', ratingCycle: 'Initial', priority: 'Low', dueDate: '9 Jun 27', status: 'New' },
+let ratingNotes: RatingNote[] = [
+    { 
+        id: 'NOTE-001', 
+        companyName: 'Sun Pharmaceutical Industries Limited', 
+        companyId: 'COMP-101',
+        ratingCycle: 'Initial', 
+        priority: 'High', 
+        dueDate: '1 Jan 26', 
+        status: 'Completed',
+        raId: 'rating.analyst@careedge',
+        ghId: 'group.head@careedge',
+        editorContent: '',
+        statusHistory: [
+            { status: 'Draft', timestamp: new Date().toISOString(), actorId: 'rating.analyst@careedge' },
+            { status: 'In Review (GH)', timestamp: new Date().toISOString(), actorId: 'rating.analyst@careedge' },
+            { status: 'In Review (QC)', timestamp: new Date().toISOString(), actorId: 'group.head@careedge' },
+            { status: 'Completed', timestamp: new Date().toISOString(), actorId: 'qc@careedge' },
+        ]
+    },
+    { 
+        id: 'NOTE-002', 
+        companyName: 'Dr. Reddy’s Laboratories Limited', 
+        companyId: 'COMP-102',
+        ratingCycle: 'Surveillance', 
+        priority: 'Medium', 
+        dueDate: '3 Feb 26', 
+        status: 'Draft',
+        raId: 'rating.analyst@careedge',
+        editorContent: '',
+        statusHistory: [
+            { status: 'Draft', timestamp: new Date().toISOString(), actorId: 'rating.analyst@careedge' }
+        ]
+    },
+    { 
+        id: 'NOTE-003', 
+        companyName: 'Cipla Limited', 
+        companyId: 'COMP-103',
+        ratingCycle: 'Initial', 
+        priority: 'Low', 
+        dueDate: '10 Mar 26', 
+        status: 'In Review (GH)',
+        raId: 'rating.analyst@careedge',
+        ghId: 'group.head@careedge',
+        editorContent: '',
+        statusHistory: [
+             { status: 'Draft', timestamp: new Date().toISOString(), actorId: 'rating.analyst@careedge' },
+             { status: 'In Review (GH)', timestamp: new Date().toISOString(), actorId: 'rating.analyst@careedge' }
+        ]
+    },
 ];
-
 
 let requests: CKCRequest[] = [
   {
@@ -77,7 +106,7 @@ let requests: CKCRequest[] = [
     cycle: 'Surveillance',
     auditedFY: ['2022', '2023'],
     provisionalFY: [],
-    projectionFY: ['2025'],
+    projectionFY: [],
     remarks: 'Surveillance for FY22-23.',
     receiptDateTime: '2024-05-02T11:30:00Z',
     createdBy: 'Initiator 2',
@@ -279,6 +308,58 @@ let companyInfoData: Record<string, CompanyInfo> = {
     }
 };
 
+// --- New Rating Note Data Functions ---
+
+export const getNotesByRole = (role: Role, userId: string): RatingNote[] => {
+    switch(role) {
+        case 'RATING_ANALYST':
+            return ratingNotes.filter(note => note.raId === userId && (note.status === 'Draft' || note.status === 'Rework Requested'));
+        case 'GROUP_HEAD':
+            // A GH sees notes assigned to them that are pending their review, or that they have actioned.
+            return ratingNotes.filter(note => note.ghId === userId && ['In Review (GH)', 'Rework Requested', 'Forwarded to QC'].includes(note.status));
+        case 'QC':
+             return ratingNotes.filter(note => note.status === 'In Review (QC)');
+        default:
+            return [];
+    }
+}
+
+export const getNoteById = (id: string): RatingNote | undefined => {
+  const note = ratingNotes.find(r => r.id === id);
+  return note ? JSON.parse(JSON.stringify(note)) : undefined;
+};
+
+export const updateNote = (id: string, updates: Partial<RatingNote>): RatingNote | null => {
+    const noteIndex = ratingNotes.findIndex(r => r.id === id);
+    if (noteIndex === -1) return null;
+    
+    const originalNote = ratingNotes[noteIndex];
+    const updatedNote = { ...originalNote, ...updates };
+
+    ratingNotes[noteIndex] = updatedNote;
+    return JSON.parse(JSON.stringify(updatedNote));
+}
+
+export const updateNoteStatus = (id: string, newStatus: NoteStatus, actorId: string, editorContent?: string) => {
+    const note = getNoteById(id);
+    if (!note) return null;
+
+    note.status = newStatus;
+    note.statusHistory.push({
+        status: newStatus,
+        timestamp: new Date().toISOString(),
+        actorId,
+    });
+    
+    if (editorContent) {
+        note.editorContent = editorContent;
+    }
+    
+    return updateNote(id, note);
+};
+
+
+// --- Old CKC Request Functions (can be deprecated later) ---
 
 export const getRequests = (status?: string, id?: string) => {
   let filteredRequests = requests;
@@ -429,11 +510,10 @@ export const saveOperationalInput = (id: string, data: any) => {
 
 // Company Info Mock Data
 export const getCompanyInfo = (ratingCycleId: string): CompanyInfo | null => {
-    const company = mockCompanies.find(c => c.id === ratingCycleId);
     
     const defaultData = {
         masterSnapshot: {
-            name: company?.companyName || 'Unknown Company',
+            name: 'Unknown Company',
             address: '123 Pharma Lane',
             city: 'Hyderabad',
             zipCode: '500081',

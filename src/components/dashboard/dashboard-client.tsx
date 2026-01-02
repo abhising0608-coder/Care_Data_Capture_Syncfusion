@@ -1,13 +1,15 @@
 'use client';
 
 import * as React from 'react';
+import useSWR from 'swr';
+import { useRouter } from 'next/navigation';
 import {
   ArrowUpDown,
-  ChevronDown,
+  MoreVertical,
+  Search,
   Triangle,
   Square,
   Circle as Dot,
-  MoreVertical,
 } from 'lucide-react';
 import {
   ColumnDef,
@@ -21,12 +23,6 @@ import {
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -46,13 +42,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { Badge } from '@/components/ui/badge';
-import { mockCompanies } from '@/lib/mock-data';
-import type { CompanyDashboard } from '@/lib/definitions';
+import type { RatingNote, NoteStatus } from '@/lib/definitions';
 import { cn } from '@/lib/utils';
-import { useRouter } from 'next/navigation';
-import { useWorkflow } from '@/context/workflow-context';
+import { useAuth } from '@/firebase';
+import { Skeleton } from '../ui/skeleton';
 
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 const PriorityIndicator = ({ priority }: { priority: 'High' | 'Medium' | 'Low' }) => {
   const styles = {
@@ -73,18 +75,21 @@ const PriorityIndicator = ({ priority }: { priority: 'High' | 'Medium' | 'Low' }
   );
 };
 
-const StatusIndicator = ({ status }: { status: string }) => {
+const StatusIndicator = ({ status }: { status: NoteStatus }) => {
     const baseClasses = "flex items-center gap-2";
     switch (status) {
         case 'Completed':
             return <div className={baseClasses}><Dot className="h-3 w-3 fill-green-500 text-green-500" /><span>Completed</span></div>;
-        case 'In Progress':
-        case 'In Review':
-             return <div className={baseClasses}><Dot className="h-3 w-3 fill-blue-500 text-blue-500" /><span>{status}</span></div>;
-        case 'New':
-            return <div className="relative flex items-center gap-2"><Dot className="h-3 w-3 fill-purple-500 text-purple-500" /><span className="absolute -left-1 -top-1 w-5 h-5 border-2 border-dashed border-purple-500 rounded-full"></span><span>New</span></div>;
-        case 'Not Started':
-            return <div className={baseClasses}><Dot className="h-3 w-3 fill-gray-400 text-gray-400" /><span>Not Started</span></div>;
+        case 'Draft':
+             return <div className={baseClasses}><Dot className="h-3 w-3 fill-blue-500 text-blue-500" /><span>Draft</span></div>;
+        case 'In Review (GH)':
+             return <div className={baseClasses}><Dot className="h-3 w-3 fill-yellow-500 text-yellow-500" /><span>In Review (GH)</span></div>;
+        case 'Rework Requested':
+            return <div className={baseClasses}><Dot className="h-3 w-3 fill-orange-500 text-orange-500" /><span>Rework Requested</span></div>;
+        case 'Forwarded to QC':
+            return <div className={baseClasses}><Dot className="h-3 w-3 fill-purple-500 text-purple-500" /><span>Forwarded to QC</span></div>;
+        case 'In Review (QC)':
+            return <div className={baseClasses}><Dot className="h-3 w-3 fill-cyan-500 text-cyan-500" /><span>In Review (QC)</span></div>;
         default:
             return <span>{status}</span>;
     }
@@ -93,20 +98,42 @@ const StatusIndicator = ({ status }: { status: string }) => {
 
 export default function DashboardClient() {
   const router = useRouter();
-  const { startWorkflow } = useWorkflow();
-  const [data] = React.useState<CompanyDashboard[]>(() => mockCompanies);
+  const { user, isLoading: isAuthLoading, role } = useAuth();
+  
+  const { data: notes, isLoading: isNotesLoading } = useSWR<RatingNote[]>(
+      user ? `/api/notes?role=${user.role}&userId=${user.uid}` : null, 
+      fetcher
+  );
+
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
   
-  const handleOpenRatingNote = (companyId: string) => {
-    startWorkflow(companyId);
-    router.push(`/company-information/${companyId}`);
+  const handleAction = (note: RatingNote) => {
+    if (!user) return;
+
+    if (user.role === 'RATING_ANALYST') {
+      router.push(`/rating-note/${note.id}`);
+    } else if (user.role === 'GROUP_HEAD') {
+      router.push(`/gh-review/${note.id}`);
+    }
   };
 
-  const columns: ColumnDef<CompanyDashboard>[] = [
+  const getActionText = (role: string | undefined): string => {
+    switch (role) {
+      case 'RATING_ANALYST':
+        return 'Edit Note';
+      case 'GROUP_HEAD':
+        return 'Review Note';
+      default:
+        return 'View Note';
+    }
+  }
+
+
+  const columns: ColumnDef<RatingNote>[] = [
     {
       id: 'select',
       header: ({ table }) => (
@@ -131,8 +158,7 @@ export default function DashboardClient() {
     },
     {
       accessorKey: 'companyName',
-      header: ({ column }) => {
-        return (
+      header: ({ column }) => (
           <Button
             variant="ghost"
             onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
@@ -140,14 +166,12 @@ export default function DashboardClient() {
             Company Name
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
-        );
-      },
+      ),
       cell: ({ row }) => <div className="capitalize">{row.getValue('companyName')}</div>,
     },
     {
       accessorKey: 'ratingCycle',
-      header: ({ column }) => {
-        return (
+      header: ({ column }) => (
           <Button
             variant="ghost"
             onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
@@ -155,14 +179,12 @@ export default function DashboardClient() {
             Rating Cycle
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
-        );
-      },
+      ),
       cell: ({ row }) => <div>{row.getValue('ratingCycle')}</div>,
     },
     {
       accessorKey: 'priority',
-      header: ({ column }) => {
-         return (
+      header: ({ column }) => (
           <Button
             variant="ghost"
             onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
@@ -170,14 +192,12 @@ export default function DashboardClient() {
             Priority
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
-        );
-      },
+      ),
       cell: ({ row }) => <PriorityIndicator priority={row.getValue('priority')} />,
     },
     {
       accessorKey: 'dueDate',
-      header: ({ column }) => {
-         return (
+      header: ({ column }) => (
           <Button
             variant="ghost"
             onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
@@ -185,8 +205,7 @@ export default function DashboardClient() {
             Due Date
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
-        );
-      },
+      ),
       cell: ({ row }) => <div>{row.getValue('dueDate')}</div>,
     },
     {
@@ -198,7 +217,7 @@ export default function DashboardClient() {
       id: 'actions',
       header: 'Actions',
       cell: ({ row }) => {
-        const company = row.original
+        const note = row.original;
         return (
            <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -208,8 +227,8 @@ export default function DashboardClient() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => handleOpenRatingNote(company.id)}>
-                Open Rating Note
+              <DropdownMenuItem onClick={() => handleAction(note)}>
+                {getActionText(user?.role)}
               </DropdownMenuItem>
               <DropdownMenuItem>View Company Summary</DropdownMenuItem>
               <DropdownMenuItem>View Workflow Status</DropdownMenuItem>
@@ -221,7 +240,7 @@ export default function DashboardClient() {
   ];
 
   const table = useReactTable({
-    data,
+    data: notes || [],
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -239,6 +258,8 @@ export default function DashboardClient() {
     },
   });
 
+  const isLoading = isAuthLoading || isNotesLoading;
+
   return (
     <div className="w-full">
         <div className="flex items-center py-4">
@@ -253,7 +274,7 @@ export default function DashboardClient() {
                 className="max-w-sm pl-10"
                 />
                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-search text-muted-foreground"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
+                    <Search className="h-5 w-5 text-muted-foreground" />
                 </div>
             </div>
         </div>
@@ -262,9 +283,8 @@ export default function DashboardClient() {
           <TableHeader className="bg-muted/50">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
-                  return (
-                    <TableHead key={header.id}>
+                {headerGroup.headers.map((header) => (
+                  <TableHead key={header.id}>
                       {header.isPlaceholder
                         ? null
                         : flexRender(
@@ -272,13 +292,18 @@ export default function DashboardClient() {
                             header.getContext()
                           )}
                     </TableHead>
-                  );
-                })}
+                ))}
               </TableRow>
             ))}
           </TableHeader>
           <TableBody>
-            {table.getRowModel().rows?.length ? (
+            {isLoading ? (
+               Array.from({ length: 5 }).map((_, i) => (
+                    <TableRow key={i}>
+                      <TableCell colSpan={columns.length}><Skeleton className="h-8 w-full" /></TableCell>
+                    </TableRow>
+                  ))
+            ) : table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}
@@ -300,7 +325,7 @@ export default function DashboardClient() {
                   colSpan={columns.length}
                   className="h-24 text-center"
                 >
-                  No results.
+                  No relevant notes found for your role.
                 </TableCell>
               </TableRow>
             )}
