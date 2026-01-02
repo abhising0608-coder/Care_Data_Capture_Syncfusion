@@ -27,7 +27,7 @@ export const RatingNoteEditor = forwardRef<DocumentEditorContainerComponent | nu
         const editorInstance = editorRef.current;
 
         const timer = setTimeout(() => {
-            if (editorInstance) {
+            if (editorInstance && editorInstance.documentEditor) {
                 editorInstance.resize();
                 
                 // Set read-only state
@@ -45,7 +45,7 @@ export const RatingNoteEditor = forwardRef<DocumentEditorContainerComponent | nu
 
                 // Programmatically turn on track changes
                 setTimeout(() => {
-                    if (editorInstance) {
+                    if (editorInstance && editorInstance.documentEditor) {
                          editorInstance.documentEditor.trackChanges = true;
                     }
                 }, 500); // Delay to ensure editor is fully initialized
@@ -55,9 +55,9 @@ export const RatingNoteEditor = forwardRef<DocumentEditorContainerComponent | nu
 
         return () => {
              clearTimeout(timer);
-             if (editorInstance) {
+             if (editorRef.current) {
                 // The destroy method is crucial for preventing memory leaks and runtime errors on unmount.
-                editorInstance.destroy();
+                editorRef.current.destroy();
              }
         };
     }, [isReadOnly, content]);
