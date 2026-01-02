@@ -53,6 +53,7 @@ import type { CKCRequest } from '@/lib/definitions';
 import { Badge } from '../ui/badge';
 import { Skeleton } from '../ui/skeleton';
 import { useAuth } from '@/firebase';
+import { useWorkflow } from '@/context/workflow-context';
 
 type SortConfig = {
   key: keyof CKCRequest;
@@ -93,15 +94,17 @@ export function AcceptedRequestsList() {
   const { toast } = useToast();
   const router = useRouter();
   const { user, claims, isLoading: isUserLoading } = useAuth();
+  const { startWorkflow } = useWorkflow();
   
   const { data: requests, isLoading } = useSWR<CKCRequest[]>('/api/requests?status=ACCEPTED', fetcher);
   
   const handleInitiate = (requestId: string) => {
     toast({
-      title: 'Initiating Data Entry',
-      description: `Loading configuration for request ${requestId}.`,
+      title: 'Initiating Rating Workflow',
+      description: `Loading company information for request ${requestId}.`,
     });
-    router.push(`/operational-input/initiate?requestId=${requestId}`);
+    startWorkflow(requestId);
+    router.push(`/company-information/${requestId}`);
   };
 
   const filteredRequests = React.useMemo(() => {
