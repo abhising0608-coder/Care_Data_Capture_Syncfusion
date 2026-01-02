@@ -6,103 +6,98 @@ import { CheckCircle, Loader, XCircle, Play, Pause, RefreshCw } from 'lucide-rea
 import { Progress } from '@/components/ui/progress';
 
 const testScenarios = [
+  // Step 1-2: RA Login and Company Selection
   {
-    role: "Rating Analyst (RA)",
-    action: "Initiate workflow for an approved request.",
-    status: "PASS",
-    details: "RA clicks 'Initiate' on an accepted request, starting the 3-step process."
+    role: 'Rating Analyst (RA)',
+    action: 'Login and select company "AutoTest Pharma Ltd".',
+    status: 'PASS',
+    details: 'Auto-logins as rating.analyst@careedge and opens the company journey.',
+  },
+  // Step 3-5: Auto-fill Initiation Forms
+  {
+    role: 'Rating Analyst (RA)',
+    action: 'Auto-fill all initiation forms.',
+    status: 'PASS',
+    details: 'Populates Company Information, Financial Input, and Operational Input with mock data.',
+  },
+  // Step 6-7: Initiate and Generate Rating Note
+  {
+    role: 'Rating Analyst (RA)',
+    action: 'Initiate and generate draft Rating Note (RN).',
+    status: 'PASS',
+    details: 'Selects default template, opens editor, auto-generates content, and saves as Draft.',
+  },
+  // Step 8: Submit to GH
+  {
+    role: 'Rating Analyst (RA)',
+    action: 'Submit RN to Group Head.',
+    status: 'PASS',
+    details: 'Status changes to "In Review (GH)". RA logs out.',
+  },
+  // Step 9-10: GH Review
+  {
+    role: 'Group Head (GH)',
+    action: 'Login, review, and edit the RN.',
+    status: 'PASS',
+    details: 'Logs in as group.head@careedge, opens the RN, and auto-applies minor text edits.',
+  },
+  // Step 11: Submit to QC
+  {
+    role: 'Group Head (GH)',
+    action: 'Submit RN to Quality Control (QC).',
+    status: 'PASS',
+    details: 'Status changes to "In Review (QC)". GH logs out.',
+  },
+  // Step 12-13: QC Review and Approval
+  {
+    role: 'Quality Control (QC)',
+    action: 'Login, review, and approve the RN.',
+    status: 'PASS',
+    details: 'Logs in as qc@careedge, reviews in read-only mode, and approves. Status changes to "QC Approved".',
+  },
+  // Step 14: GH to CC
+  {
+    role: 'Group Head (GH)',
+    action: 'Submit RN to Care Committee.',
+    status: 'PASS',
+    details: 'Logs back in, submits the note. Status changes to "In Review (CC)".',
+  },
+  // Step 15-16: CC Review and Approval
+  {
+    role: 'Care Committee (CC)',
+    action: 'Login, review, and approve the RN.',
+    status: 'PASS',
+    details: 'Logs in as cc@careedge, reviews, and approves. Status changes to "CC Approved".',
+  },
+  // Step 17: GH to RA for Final Docs
+  {
+    role: 'Group Head (GH)',
+    action: 'Send note to RA for RR & PR Generation.',
+    status: 'PASS',
+    details: 'Logs back in, sends to RA. Status changes to "Pending RR & PR (RA)".',
+  },
+  // Step 18-19: RA Generates RR and PR
+  {
+    role: 'Rating Analyst (RA)',
+    action: 'Generate Rating Rationale (RR) and Press Release (PR).',
+    status: 'PASS',
+    details: 'Logs back in, opens final docs screen, generates and saves both RR and PR.',
+  },
+  // Step 20: Final Submission
+  {
+    role: 'Rating Analyst (RA)',
+    action: 'Submit all final documents to Group Head.',
+    status: 'PASS',
+    details: 'Final submission is made. Status changes to "In Final Review (GH)".',
   },
   {
-    role: "Rating Analyst (RA)",
-    action: "Complete initiation and create Draft note.",
-    status: "PASS",
-    details: "RA successfully completes Company Info, Operational, and Financial inputs. A new note is created with 'Draft' status."
+    role: 'System',
+    action: 'Complete and close the workflow.',
+    status: 'PASS',
+    details: 'Final approval from GH changes status to "Completed". The end-to-end workflow is successful.',
   },
-  {
-    role: "Rating Analyst (RA)",
-    action: "Submit Draft note to Group Head.",
-    status: "PASS",
-    details: "Note status changes to 'In Review (GH)'. It disappears from the RA's queue and appears in the GH's queue."
-  },
-  {
-    role: "Group Head (GH)",
-    action: "Review note and send back for Rework.",
-    status: "PASS",
-    details: "GH makes edits (with Track Changes) and sends back. Status changes to 'Rework Requested'. Note returns to RA's queue."
-  },
-  {
-    role: "Rating Analyst (RA)",
-    action: "Address rework and re-submit to GH.",
-    status: "PASS",
-    details: "RA sees tracked changes, makes corrections, and re-submits. Status returns to 'In Review (GH)'."
-  },
-  {
-    role: "Group Head (GH)",
-    action: "Submit note to Quality Control (QC).",
-    status: "PASS",
-    details: "Note status changes to 'In Review (QC)'. GH dashboard shows status as 'Forwarded to QC'."
-  },
-  {
-    role: "Quality Control (QC)",
-    action: "Review note and send back to GH.",
-    status: "PASS",
-    details: "QC finds an issue and sends back. Status becomes 'Rework Requested (GH)'. Note returns to GH's queue."
-  },
-  {
-    role: "Group Head (GH)",
-    action: "Correct QC issue and re-submit to QC.",
-    status: "PASS",
-    details: "GH makes a direct edit and re-submits to QC. Status returns to 'In Review (QC)'."
-  },
-  {
-    role: "Quality Control (QC)",
-    action: "Approve note and submit to GH.",
-    status: "PASS",
-    details: "Note status changes to 'QC Approved'. Note returns to GH's queue."
-  },
-  {
-    role: "Group Head (GH)",
-    action: "Submit note to Care Committee (CC).",
-    status: "PASS",
-    details: "Status changes to 'In Review (CC)'. Note appears on CC's dashboard."
-  },
-  {
-    role: "Care Committee (CC)",
-    action: "Approve note and submit to GH.",
-    status: "PASS",
-    details: "Status changes to 'CC Approved'. Note returns to GH's queue."
-  },
-  {
-    role: "Group Head (GH)",
-    action: "Send note to RA for final document generation.",
-    status: "PASS",
-    details: "Status changes to 'Pending RR & PR (RA)'. Note appears in RA's queue. Main RN is locked."
-  },
-  {
-    role: "Rating Analyst (RA)",
-    action: "Generate RR and PR documents.",
-    status: "PASS",
-    details: "RA accesses the final docs page. RR and PR editors correctly load with templates."
-  },
-  {
-    role: "Rating Analyst (RA)",
-    action: "Submit all final documents to GH.",
-    status: "PASS",
-    details: "Status changes to 'In Final Review (GH)'. Note appears in GH's queue for final approval."
-  },
-  {
-    role: "Group Head (GH)",
-    action: "Perform final review and approve.",
-    status: "PASS",
-    details: "GH reviews all documents and gives final approval."
-  },
-  {
-    role: "System",
-    action: "Complete and close the workflow.",
-    status: "PASS",
-    details: "Note status changes to 'Completed'. The end-to-end workflow is successful."
-  }
 ];
+
 
 export function E2ETestRunner() {
   const [currentStep, setCurrentStep] = useState(0);
@@ -145,9 +140,9 @@ export function E2ETestRunner() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Test Automation Dashboard</CardTitle>
+        <CardTitle>Live Automated Workflow Simulation</CardTitle>
         <CardDescription>
-            Watch the simulated test run. Current progress: {currentStep} / {testScenarios.length} steps.
+            This is a real-time simulation of the entire workflow. Progress: {currentStep} / {testScenarios.length} steps.
         </CardDescription>
         <div className="flex items-center gap-4 pt-4">
           {!isRunning && !isFinished && (
