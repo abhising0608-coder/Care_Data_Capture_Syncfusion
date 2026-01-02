@@ -185,7 +185,7 @@ export function E2ETestRunner() {
             </div>
           </div>
         ))}
-        {isRunning && (
+        {isRunning && currentStep < testScenarios.length && (
             <div className="flex items-center gap-4 p-4 border-l-4 border-blue-500 bg-blue-50">
                 <Loader className="h-5 w-5 animate-spin text-blue-600" />
                 <p className="font-semibold text-blue-800">
