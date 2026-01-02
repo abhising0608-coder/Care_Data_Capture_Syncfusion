@@ -24,34 +24,42 @@ export const RatingNoteEditor = forwardRef<DocumentEditorContainerComponent | nu
     useImperativeHandle(ref, () => editorRef.current, []);
 
     useEffect(() => {
+        const editorInstance = editorRef.current;
+
         const timer = setTimeout(() => {
-            if (editorRef.current) {
-                editorRef.current.resize();
+            if (editorInstance) {
+                editorInstance.resize();
                 
                 // Set read-only state
-                editorRef.current.documentEditor.isReadOnly = isReadOnly;
+                editorInstance.documentEditor.isReadOnly = isReadOnly;
                 
                 // Enable track changes
-                editorRef.current.documentEditor.showTrackChanges = true;
+                editorInstance.documentEditor.showTrackChanges = true;
                 
                 if (content) {
-                    editorRef.current.documentEditor.open(content);
+                    editorInstance.documentEditor.open(content);
                 } else {
                     // Load a default template or empty document if no content is provided
-                    editorRef.current.documentEditor.open(JSON.stringify({ "sfdt": "{\"sections\":[{\"blocks\":[{\"inlines\":[{\"text\":\"Start drafting the rating note here...\"}]}]}]}" }));
+                    editorInstance.documentEditor.open(JSON.stringify({ "sfdt": "{\"sections\":[{\"blocks\":[{\"inlines\":[{\"text\":\"Start drafting the rating note here...\"}]}]}]}" }));
                 }
 
                 // Programmatically turn on track changes
                 setTimeout(() => {
-                    if (editorRef.current) {
-                         editorRef.current.documentEditor.trackChanges = true;
+                    if (editorInstance) {
+                         editorInstance.documentEditor.trackChanges = true;
                     }
                 }, 500); // Delay to ensure editor is fully initialized
 
             }
         }, 200);
 
-        return () => clearTimeout(timer);
+        return () => {
+             clearTimeout(timer);
+             if (editorInstance) {
+                // The destroy method is crucial for preventing memory leaks and runtime errors on unmount.
+                editorInstance.destroy();
+             }
+        };
     }, [isReadOnly, content]);
 
     return (
