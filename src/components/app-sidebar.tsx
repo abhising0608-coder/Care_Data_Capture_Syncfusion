@@ -13,7 +13,6 @@ import {
 import {
   LayoutDashboard,
   FileText,
-  TestTube2,
 } from 'lucide-react';
 import { useAuth } from '@/firebase';
 
@@ -27,11 +26,6 @@ const menuItems = [
     href: '/ckc-requests',
     label: 'CKC Requests',
     icon: FileText,
-  },
-   {
-    href: '/e2e-test',
-    label: 'E2E Test Runner',
-    icon: TestTube2,
   },
 ];
 
