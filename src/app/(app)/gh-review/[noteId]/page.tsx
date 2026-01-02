@@ -22,7 +22,6 @@ export default function GroupHeadReviewPage() {
     const { toast } = useToast();
     const { user } = useAuth();
     
-    // Ref to access the editor's instance
     const editorRef = useRef<DocumentEditorContainer | null>(null);
 
     const { data: note, isLoading, mutate } = useSWR<RatingNote>(
@@ -30,11 +29,10 @@ export default function GroupHeadReviewPage() {
       fetcher
     );
 
-    const handleAction = async (action: 'rework' | 'submit-to-qc' | 'submit-to-cc') => {
+    const handleAction = async (action: 'rework' | 'submit-to-qc' | 'submit-to-cc' | 'send-to-ra-for-rr-pr') => {
         if (!editorRef.current || !note || !user) return;
 
         try {
-            // Save the document content from the editor
             const documentContent = await editorRef.current.documentEditor.saveAsBlob('Sfdt');
             const reader = new FileReader();
             reader.readAsText(documentContent);
@@ -53,7 +51,7 @@ export default function GroupHeadReviewPage() {
                 });
 
                 if (!res.ok) {
-                    throw new Error(`Failed to ${action.replace('-', ' ')}`);
+                    throw new Error(`Failed to ${action.replace(/-/g, ' ')}`);
                 }
                 
                 toast({
@@ -61,7 +59,6 @@ export default function GroupHeadReviewPage() {
                     description: `Note has been successfully handled.`
                 });
 
-                // Mutate the local data to reflect the change, then navigate
                 mutate();
                 router.push('/dashboard');
             };
@@ -87,6 +84,9 @@ export default function GroupHeadReviewPage() {
 
     const showReworkAndSubmitToQC = note.status === 'In Review (GH)' || note.status === 'Rework Requested (GH)';
     const showSubmitToCC = note.status === 'QC Approved';
+    const showSendToRA = note.status === 'CC Approved';
+    
+    const isEditorReadOnly = note.status === 'QC Approved' || note.status === 'CC Approved';
 
 
     return (
@@ -97,7 +97,7 @@ export default function GroupHeadReviewPage() {
                         Group Head Review: {note.companyName}
                     </h1>
                     <p className="text-muted-foreground text-sm">
-                        Review the rating note. You can edit the document directly; changes will be tracked.
+                        {isEditorReadOnly ? `Status: ${note?.status}. This note is locked for editing.` : 'Review the rating note. You can edit the document directly; changes will be tracked.'}
                     </p>
                 </div>
                 <div className="flex items-center gap-2">
@@ -116,14 +116,19 @@ export default function GroupHeadReviewPage() {
                             <Send className="mr-2 h-4 w-4" /> Submit to Care Committee
                         </Button>
                     )}
+                    {showSendToRA && (
+                        <Button onClick={() => handleAction('send-to-ra-for-rr-pr')}>
+                            <Send className="mr-2 h-4 w-4" /> Send to RA for RR & PR Generation
+                        </Button>
+                    )}
                 </div>
             </header>
             <main className="flex-1 pt-6">
                 <Suspense fallback={<Skeleton className="h-[calc(100vh-250px)] w-full" />}>
                    <RatingNoteEditor 
                         ref={editorRef} 
-                        isReadOnly={false} // Group Head can edit
-                        content={note.editorContent} // Pass the content to the editor
+                        isReadOnly={isEditorReadOnly}
+                        content={note.editorContent}
                     />
                 </Suspense>
             </main>

@@ -98,6 +98,10 @@ const StatusIndicator = ({ status }: { status: NoteStatus }) => {
              return <div className={baseClasses}><Dot className="h-3 w-3 fill-indigo-500 text-indigo-500" /><span>In Review (CC)</span></div>;
         case 'CC Approved':
             return <div className={baseClasses}><Dot className="h-3 w-3 fill-lime-500 text-lime-500" /><span>CC Approved</span></div>;
+        case 'Pending RR & PR (RA)':
+            return <div className={baseClasses}><Dot className="h-3 w-3 fill-blue-500 text-blue-500" /><span>Pending RR & PR</span></div>;
+        case 'In Final Review (GH)':
+             return <div className={baseClasses}><Dot className="h-3 w-3 fill-yellow-500 text-yellow-500" /><span>In Final Review</span></div>;
         default:
             return <span>{status}</span>;
     }
@@ -122,6 +126,11 @@ export default function DashboardClient() {
   const handleAction = (note: RatingNote) => {
     if (!user) return;
 
+    if (note.status === 'Pending RR & PR (RA)') {
+        router.push(`/rating-note/final-documents/${note.id}`);
+        return;
+    }
+
     switch(user.role) {
         case 'RATING_ANALYST':
             router.push(`/rating-note/${note.id}`);
@@ -142,7 +151,10 @@ export default function DashboardClient() {
     }
   };
 
-  const getActionText = (role: Role | undefined): string => {
+  const getActionText = (role: Role | undefined, note: RatingNote): string => {
+    if (note.status === 'Pending RR & PR (RA)') {
+        return 'Generate RR & PR';
+    }
     switch (role) {
       case 'RATING_ANALYST':
         return 'Edit Note';
@@ -253,7 +265,7 @@ export default function DashboardClient() {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={() => handleAction(note)}>
-                {getActionText(user?.role)}
+                {getActionText(user?.role, note)}
               </DropdownMenuItem>
               <DropdownMenuItem>View Company Summary</DropdownMenuItem>
               <DropdownMenuItem>View Workflow Status</DropdownMenuItem>

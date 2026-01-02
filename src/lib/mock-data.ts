@@ -13,12 +13,16 @@ let ratingNotes: RatingNote[] = [
         raId: 'rating.analyst@careedge',
         ghId: 'group.head@careedge',
         qcId: 'qc.user@careedge',
+        ccId: 'cc.user@careedge',
         editorContent: '',
         statusHistory: [
             { status: 'Draft', timestamp: new Date().toISOString(), actorId: 'rating.analyst@careedge' },
             { status: 'In Review (GH)', timestamp: new Date().toISOString(), actorId: 'rating.analyst@careedge' },
             { status: 'In Review (QC)', timestamp: new Date().toISOString(), actorId: 'group.head@careedge' },
-            { status: 'Completed', timestamp: new Date().toISOString(), actorId: 'qc@careedge' },
+            { status: 'QC Approved', timestamp: new Date().toISOString(), actorId: 'qc.user@careedge' },
+            { status: 'In Review (CC)', timestamp: new Date().toISOString(), actorId: 'group.head@careedge' },
+            { status: 'CC Approved', timestamp: new Date().toISOString(), actorId: 'cc.user@careedge' },
+            { status: 'Completed', timestamp: new Date().toISOString(), actorId: 'group.head@careedge' },
         ]
     },
     { 
@@ -276,9 +280,9 @@ let operationalInputData: Record<string, any> = {
 };
 
 export const mockCompanies = [
-    { id: 'COMP-101', companyName: 'Reliance Industries' },
-    { id: 'COMP-102', companyName: 'Tata Consultancy Services' },
-    { id: 'COMP-103', companyName: 'HDFC Bank' },
+    { id: 'COMP-101', companyName: 'Sun Pharmaceutical Industries Limited' },
+    { id: 'COMP-102', companyName: 'Dr. Reddy’s Laboratories Limited' },
+    { id: 'COMP-103', companyName: 'Cipla Limited' },
 ];
 
 export const mockTemplates = [
@@ -334,13 +338,13 @@ let companyInfoData: Record<string, CompanyInfo> = {
 export const getNotesByRole = (role: Role, userId: string): RatingNote[] => {
     switch(role) {
         case 'RATING_ANALYST':
-            return ratingNotes.filter(note => note.raId === userId && ['Draft', 'Rework Requested', 'Rework Requested (GH)'].includes(note.status));
+            return ratingNotes.filter(note => note.raId === userId && ['Draft', 'Rework Requested', 'Rework Requested (GH)', 'Pending RR & PR (RA)'].includes(note.status));
         case 'GROUP_HEAD':
             return ratingNotes.filter(note => note.ghId === userId && ['In Review (GH)', 'Rework Requested (GH)', 'QC Approved', 'CC Approved'].includes(note.status));
         case 'QC':
              return ratingNotes.filter(note => note.status === 'In Review (QC)');
         case 'RATING_COMMITTEE':
-            return ratingNotes.filter(note => note.ccId === userId && note.status === 'In Review (CC)');
+            return ratingNotes.filter(note => note.status === 'In Review (CC)');
         default:
             // Return all notes for admin-like roles or an empty array for others
             return ['CKC_ADMIN', 'SYSTEM'].includes(role) ? ratingNotes : [];
@@ -379,10 +383,25 @@ export const updateNoteStatus = (id: string, newStatus: NoteStatus, actorId: str
     }
     
     // Assign to specific roles on status change
-    if (newStatus === 'In Review (QC)') {
-        note.qcId = 'qc.user@careedge';
-    } else if (newStatus === 'In Review (CC)') {
-        note.ccId = 'cc.user@careedge';
+    switch (newStatus) {
+        case 'In Review (GH)':
+            note.ghId = 'group.head@careedge';
+            break;
+        case 'In Review (QC)':
+            note.qcId = 'qc.user@careedge';
+            break;
+        case 'In Review (CC)':
+            note.ccId = 'cc.user@careedge';
+            break;
+        case 'Rework Requested': // GH sends back to RA
+             note.raId = note.raId; // Stays with original RA
+             break;
+        case 'Rework Requested (GH)': // QC or CC sends back to GH
+            note.ghId = note.ghId; // Stays with original GH
+            break;
+        case 'Pending RR & PR (RA)':
+            note.raId = note.raId; // Assign back to RA
+            break;
     }
     
     return updateNote(id, note);

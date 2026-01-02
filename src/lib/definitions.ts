@@ -5,14 +5,14 @@ export type RequestStatus = 'PENDING' | 'ACCEPTED' | 'IN_PROGRESS' | 'SUBMITTED_
 export type NoteStatus = 
   | 'Draft'
   | 'In Review (GH)'
-  | 'Rework Requested'
+  | 'Rework Requested' // From GH to RA
   | 'In Review (QC)'
-  | 'Rework Requested (GH)'
+  | 'Rework Requested (GH)' // From QC/CC to GH
   | 'QC Approved'
-  | 'Forwarded to QC'
   | 'In Review (CC)'
-  | 'Rework Requested (CC)'
   | 'CC Approved'
+  | 'Pending RR & PR (RA)'
+  | 'In Final Review (GH)'
   | 'Completed';
 
 export type CompanyPriority = 'High' | 'Medium' | 'Low';
@@ -155,6 +155,8 @@ export interface RatingNote {
   qcId?: string; // QC ID
   ccId?: string; // Care Committee ID
   editorContent?: string; // The SFDT content of the Syncfusion editor
+  rrContent?: string; // Rating Rationale content
+  prContent?: string; // Press Release content
   statusHistory: {
       status: NoteStatus;
       timestamp: string;

@@ -25,6 +25,9 @@ export async function POST(
     case 'submit-to-cc':
       newStatus = 'In Review (CC)';
       break;
+    case 'send-to-ra-for-rr-pr':
+      newStatus = 'Pending RR & PR (RA)';
+      break;
     default:
       return NextResponse.json({ message: 'Invalid action' }, { status: 400 });
   }
