@@ -159,7 +159,7 @@ export default function FinalDocumentsPage() {
                     <Card>
                         <CardHeader><CardTitle>Approved Rating Note</CardTitle></CardHeader>
                         <CardContent>
-                             <RatingNoteEditor ref={rnEditorRef} isReadOnly={true} content={note.editorContent} />
+                             <RatingNoteEditor key="rn" ref={rnEditorRef} isReadOnly={true} content={note.editorContent} />
                         </CardContent>
                     </Card>
                 </TabsContent>
@@ -168,7 +168,7 @@ export default function FinalDocumentsPage() {
                      <Card>
                         <CardHeader><CardTitle>Rating Rationale (RR)</CardTitle></CardHeader>
                         <CardContent>
-                            <RatingNoteEditor ref={rrEditorRef} isReadOnly={false} content={rrContent} />
+                            <RatingNoteEditor key="rr" ref={rrEditorRef} isReadOnly={false} content={rrContent} />
                         </CardContent>
                     </Card>
                 </TabsContent>
@@ -177,7 +177,7 @@ export default function FinalDocumentsPage() {
                      <Card>
                         <CardHeader><CardTitle>Press Release (PR)</CardTitle></CardHeader>
                         <CardContent>
-                            <RatingNoteEditor ref={prEditorRef} isReadOnly={false} content={prContent} />
+                            <RatingNoteEditor key="pr" ref={prEditorRef} isReadOnly={false} content={prContent} />
                         </CardContent>
                     </Card>
                  </TabsContent>
