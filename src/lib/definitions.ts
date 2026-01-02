@@ -7,6 +7,8 @@ export type NoteStatus =
   | 'In Review (GH)'
   | 'Rework Requested'
   | 'In Review (QC)'
+  | 'Rework Requested (GH)'
+  | 'QC Approved'
   | 'Forwarded to QC'
   | 'Completed';
 

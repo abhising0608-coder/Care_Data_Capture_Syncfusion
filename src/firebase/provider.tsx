@@ -72,12 +72,18 @@ const mockUsers: Record<Role, AppUser> = {
         role: 'GROUP_HEAD',
         photoURL: 'https://i.pravatar.cc/150?u=gh'
     },
+    QC: {
+        uid: 'qc.user@careedge',
+        email: 'qc.user@careedge.com',
+        displayName: 'QC User',
+        role: 'QC',
+        photoURL: 'https://i.pravatar.cc/150?u=qc'
+    },
     CKC_ANALYST: { uid: 'ckc.analyst', email: 'ckc.analyst@careedge.com', displayName: 'CKC Analyst', role: 'CKC_ANALYST' },
     CKC_CHECKER: { uid: 'ckc.checker', email: 'ckc.checker@careedge.com', displayName: 'CKC Checker', role: 'CKC_CHECKER' },
     CKC_ADMIN: { uid: 'ckc.admin', email: 'ckc.admin@careedge.com', displayName: 'CKC Admin', role: 'CKC_ADMIN' },
     RATING_HEAD_SD: { uid: 'rh.sd', email: 'rh.sd@careedge.com', displayName: 'Rating Head SD', role: 'RATING_HEAD_SD' },
     SYSTEM: { uid: 'system', email: 'system@careedge.com', displayName: 'System', role: 'SYSTEM' },
-    QC: { uid: 'qc', email: 'qc@careedge.com', displayName: 'Quality Control', role: 'QC' },
     RATING_COMMITTEE: { uid: 'rc', email: 'rc@careedge.com', displayName: 'Rating Committee', role: 'RATING_COMMITTEE' },
 };
 

@@ -85,11 +85,15 @@ const StatusIndicator = ({ status }: { status: NoteStatus }) => {
         case 'In Review (GH)':
              return <div className={baseClasses}><Dot className="h-3 w-3 fill-yellow-500 text-yellow-500" /><span>In Review (GH)</span></div>;
         case 'Rework Requested':
-            return <div className={baseClasses}><Dot className="h-3 w-3 fill-orange-500 text-orange-500" /><span>Rework Requested</span></div>;
+             return <div className={baseClasses}><Dot className="h-3 w-3 fill-orange-500 text-orange-500" /><span>Rework Requested</span></div>;
         case 'Forwarded to QC':
             return <div className={baseClasses}><Dot className="h-3 w-3 fill-purple-500 text-purple-500" /><span>Forwarded to QC</span></div>;
         case 'In Review (QC)':
-            return <div className={baseClasses}><Dot className="h-3 w-3 fill-cyan-500 text-cyan-500" /><span>In Review (QC)</span></div>;
+            return <div className={base-classes}><Dot className="h-3 w-3 fill-cyan-500 text-cyan-500" /><span>In Review (QC)</span></div>;
+        case 'QC Approved':
+            return <div className={baseClasses}><Dot className="h-3 w-3 fill-teal-500 text-teal-500" /><span>QC Approved</span></div>;
+        case 'Rework Requested (GH)':
+            return <div className={baseClasses}><Dot className="h-3 w-3 fill-pink-500 text-pink-500" /><span>Rework Requested (GH)</span></div>;
         default:
             return <span>{status}</span>;
     }
@@ -114,10 +118,20 @@ export default function DashboardClient() {
   const handleAction = (note: RatingNote) => {
     if (!user) return;
 
-    if (user.role === 'RATING_ANALYST') {
-      router.push(`/rating-note/${note.id}`);
-    } else if (user.role === 'GROUP_HEAD') {
-      router.push(`/gh-review/${note.id}`);
+    switch(user.role) {
+        case 'RATING_ANALYST':
+            router.push(`/rating-note/${note.id}`);
+            break;
+        case 'GROUP_HEAD':
+             router.push(`/gh-review/${note.id}`);
+             break;
+        case 'QC':
+            router.push(`/qc-review/${note.id}`);
+            break;
+        default:
+            // Default view action if any
+            router.push(`/rating-note/${note.id}`);
+            break;
     }
   };
 
@@ -126,6 +140,8 @@ export default function DashboardClient() {
       case 'RATING_ANALYST':
         return 'Edit Note';
       case 'GROUP_HEAD':
+        return 'Review Note';
+      case 'QC':
         return 'Review Note';
       default:
         return 'View Note';

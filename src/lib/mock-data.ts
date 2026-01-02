@@ -12,6 +12,7 @@ let ratingNotes: RatingNote[] = [
         status: 'Completed',
         raId: 'rating.analyst@careedge',
         ghId: 'group.head@careedge',
+        qcId: 'qc.user@careedge',
         editorContent: '',
         statusHistory: [
             { status: 'Draft', timestamp: new Date().toISOString(), actorId: 'rating.analyst@careedge' },
@@ -313,14 +314,14 @@ let companyInfoData: Record<string, CompanyInfo> = {
 export const getNotesByRole = (role: Role, userId: string): RatingNote[] => {
     switch(role) {
         case 'RATING_ANALYST':
-            return ratingNotes.filter(note => note.raId === userId && (note.status === 'Draft' || note.status === 'Rework Requested'));
+            return ratingNotes.filter(note => note.raId === userId && ['Draft', 'Rework Requested', 'Rework Requested (GH)'].includes(note.status));
         case 'GROUP_HEAD':
-            // A GH sees notes assigned to them that are pending their review, or that they have actioned.
-            return ratingNotes.filter(note => note.ghId === userId && ['In Review (GH)', 'Rework Requested', 'Forwarded to QC'].includes(note.status));
+            return ratingNotes.filter(note => note.ghId === userId && ['In Review (GH)', 'Rework Requested (GH)', 'QC Approved', 'Forwarded to QC'].includes(note.status));
         case 'QC':
              return ratingNotes.filter(note => note.status === 'In Review (QC)');
         default:
-            return [];
+            // Return all notes for admin-like roles or an empty array for others
+            return ['CKC_ADMIN', 'SYSTEM'].includes(role) ? ratingNotes : [];
     }
 }
 
@@ -353,6 +354,11 @@ export const updateNoteStatus = (id: string, newStatus: NoteStatus, actorId: str
     
     if (editorContent) {
         note.editorContent = editorContent;
+    }
+    
+    // Assign to QC user when submitted to QC
+    if (newStatus === 'In Review (QC)') {
+        note.qcId = 'qc.user@careedge';
     }
     
     return updateNote(id, note);
