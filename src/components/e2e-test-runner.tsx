@@ -107,7 +107,7 @@ const testScenarios = [
 export function E2ETestRunner() {
   const [currentStep, setCurrentStep] = useState(0);
   const [isRunning, setIsRunning] = useState(false);
-  const [results, setResults] = useState<typeof testScenarios>([]);
+  const [results, setResults] = useState<(typeof testScenarios[0])[]>([]);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -159,7 +159,7 @@ export function E2ETestRunner() {
            {isFinished && (
             <Button onClick={handleReset} variant="destructive"><RefreshCw className="mr-2 h-4 w-4" /> Run Again</Button>
            )}
-           {!isFinished && results.length > 0 && !isRunning && (
+           {!isRunning && results.length > 0 && !isFinished && (
                <Button onClick={handleStart}><Play className="mr-2 h-4 w-4" /> Resume</Button>
            )}
         </div>
