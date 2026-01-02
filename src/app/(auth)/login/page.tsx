@@ -30,8 +30,9 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 
 const roleUserMap: Record<string, Role> = {
     'analyst@careedge.com': 'RATING_ANALYST',
-    'group.head@careedge': 'GROUP_HEAD',
-    // Add other roles here
+    'group.head@careedge.com': 'GROUP_HEAD',
+    'qc@careedge.com': 'QC',
+    'cc.user@careedge': 'RATING_COMMITTEE'
 };
 
 
@@ -53,29 +54,30 @@ export default function LoginPage() {
     setIsLoading(true);
     try {
       // This is a simplified "login". The actual user state is managed by the AuthProvider.
-      const validUsers = {
+      const validUsers: Record<string, string> = {
           'analyst@careedge.com': 'password',
           'group.head@careedge.com': 'password',
+          'qc@careedge.com': 'password',
+          'cc.user@careedge': 'password',
       };
 
       const userEmail = data.email.toLowerCase();
       
-      if (validUsers[userEmail as keyof typeof validUsers] === data.password) {
+      if (validUsers[userEmail] === data.password) {
         
-        let role: Role = 'RATING_ANALYST'; // Default role
-        if (userEmail === 'group.head@careedge.com') {
-            role = 'GROUP_HEAD';
-        }
+        const role: Role | undefined = roleUserMap[userEmail];
         
-        if(setUserRole) {
+        if(setUserRole && role) {
             setUserRole(role);
-        }
 
-        toast({
-          title: 'Login Successful',
-          description: `Redirecting to your dashboard as ${role.replace('_', ' ')}.`,
-        });
-        router.push('/dashboard');
+            toast({
+              title: 'Login Successful',
+              description: `Redirecting to your dashboard as ${role.replace('_', ' ')}.`,
+            });
+            router.push('/dashboard');
+        } else {
+            throw new Error('Role not found for this user.');
+        }
 
       } else {
         throw new Error('Invalid email or password.');

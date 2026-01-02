@@ -22,6 +22,19 @@ import { useRouter } from 'next/navigation';
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
+const roleDisplayNames: Record<Role, string> = {
+  RATING_ANALYST: 'Rating Analyst',
+  GROUP_HEAD: 'Group Head',
+  QC: 'Quality Control',
+  RATING_COMMITTEE: 'Rating Committee',
+  CKC_ANALYST: 'CKC Analyst',
+  CKC_CHECKER: 'CKC Checker',
+  CKC_ADMIN: 'CKC Admin',
+  RATING_HEAD_SD: 'Rating Head SD',
+  SYSTEM: 'System',
+};
+
+
 export function AppHeader() {
   const { data: pendingRequests } = useSWR<CKCRequest[]>('/api/requests?status=PENDING', fetcher);
   const { user, setUserRole } = useAuth();
@@ -46,21 +59,10 @@ export function AppHeader() {
       </div>
 
       <div className="flex items-center gap-4">
-        {user && (
-          <Select value={user.role} onValueChange={(value) => setUserRole && setUserRole(value as Role)}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Select a role" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="RATING_ANALYST">Rating Analyst</SelectItem>
-              <SelectItem value="GROUP_HEAD">Group Head</SelectItem>
-              <SelectItem value="QC">Quality Control</SelectItem>
-              <SelectItem value="RATING_COMMITTEE">Rating Committee</SelectItem>
-              <SelectItem value="CKC_ANALYST">CKC Analyst</SelectItem>
-              <SelectItem value="CKC_CHECKER">CKC Checker</SelectItem>
-              <SelectItem value="CKC_ADMIN">CKC Admin</SelectItem>
-            </SelectContent>
-          </Select>
+        {user && user.role && (
+          <div className="flex h-10 w-auto items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background">
+            <span>{roleDisplayNames[user.role] || user.role}</span>
+          </div>
         )}
 
         <Button asChild variant="ghost" size="icon" className="rounded-full relative text-muted-foreground">
