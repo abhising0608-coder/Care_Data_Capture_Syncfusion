@@ -17,6 +17,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
 
+// Default empty content for new documents
+const newDocContent = JSON.stringify({ "sfdt": "{\"sections\":[{\"blocks\":[{\"inlines\":[{\"text\":\"Start drafting here...\"}]}]}]}" });
+
 export default function FinalDocumentsPage() {
     const params = useParams();
     const router = useRouter();
@@ -28,24 +31,43 @@ export default function FinalDocumentsPage() {
     const rrEditorRef = useRef<DocumentEditorContainer | null>(null);
     const prEditorRef = useRef<DocumentEditorContainer | null>(null);
 
+    const [activeTab, setActiveTab] = useState('rating-note');
+    const [rrContent, setRrContent] = useState<string | undefined>(undefined);
+    const [prContent, setPrContent] = useState<string | undefined>(undefined);
     const [rrGenerated, setRrGenerated] = useState(false);
     const [prGenerated, setPrGenerated] = useState(false);
 
     const { data: note, isLoading, mutate } = useSWR<RatingNote>(
       noteId ? `/api/notes/${noteId}` : null,
-      fetcher
+      fetcher,
+      {
+          onSuccess: (data) => {
+              if (data.rrContent) {
+                  setRrContent(data.rrContent);
+                  setRrGenerated(true);
+              }
+              if (data.prContent) {
+                  setPrContent(data.prContent);
+                  setPrGenerated(true);
+              }
+          }
+      }
     );
     
     const handleGenerate = (docType: 'rr' | 'pr') => {
         if (docType === 'rr') {
+            setRrContent(note?.rrContent || newDocContent);
             setRrGenerated(true);
+            setActiveTab('rating-rationale');
             toast({ title: 'Success', description: 'Rating Rationale editor is now available.' });
         } else if (docType === 'pr') {
              if (!rrGenerated) {
                 toast({ variant: 'destructive', title: 'Error', description: 'Please generate the Rating Rationale before generating the Press Release.' });
                 return;
             }
+            setPrContent(note?.prContent || newDocContent);
             setPrGenerated(true);
+            setActiveTab('press-release');
             toast({ title: 'Success', description: 'Press Release editor is now available.' });
         }
     };
@@ -60,13 +82,13 @@ export default function FinalDocumentsPage() {
             const rrContentBlob = await rrEditorRef.current.documentEditor.saveAsBlob('Sfdt');
             const prContentBlob = await prEditorRef.current.documentEditor.saveAsBlob('Sfdt');
             
-            const rrContent = await new Promise<string>(resolve => {
+            const finalRrContent = await new Promise<string>(resolve => {
                 const reader = new FileReader();
                 reader.onloadend = () => resolve(reader.result as string);
                 reader.readAsText(rrContentBlob);
             });
 
-            const prContent = await new Promise<string>(resolve => {
+            const finalPrContent = await new Promise<string>(resolve => {
                 const reader = new FileReader();
                 reader.onloadend = () => resolve(reader.result as string);
                 reader.readAsText(prContentBlob);
@@ -77,8 +99,8 @@ export default function FinalDocumentsPage() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
                     status: 'In Final Review (GH)',
-                    rrContent,
-                    prContent,
+                    rrContent: finalRrContent,
+                    prContent: finalPrContent,
                  }),
             });
 
@@ -126,7 +148,7 @@ export default function FinalDocumentsPage() {
                 </div>
             </header>
 
-            <Tabs defaultValue="rating-note" className="w-full">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                 <TabsList>
                     <TabsTrigger value="rating-note"><FileText className="mr-2 h-4 w-4" />Rating Note (Read-only)</TabsTrigger>
                     <TabsTrigger value="rating-rationale" disabled={!rrGenerated}><FileText className="mr-2 h-4 w-4" />Rating Rationale</TabsTrigger>
@@ -146,7 +168,7 @@ export default function FinalDocumentsPage() {
                      <Card>
                         <CardHeader><CardTitle>Rating Rationale (RR)</CardTitle></CardHeader>
                         <CardContent>
-                            <RatingNoteEditor ref={rrEditorRef} isReadOnly={false} content={note.rrContent} />
+                            <RatingNoteEditor ref={rrEditorRef} isReadOnly={false} content={rrContent} />
                         </CardContent>
                     </Card>
                 </TabsContent>
@@ -155,7 +177,7 @@ export default function FinalDocumentsPage() {
                      <Card>
                         <CardHeader><CardTitle>Press Release (PR)</CardTitle></CardHeader>
                         <CardContent>
-                            <RatingNoteEditor ref={prEditorRef} isReadOnly={false} content={note.prContent} />
+                            <RatingNoteEditor ref={prEditorRef} isReadOnly={false} content={prContent} />
                         </CardContent>
                     </Card>
                  </TabsContent>
