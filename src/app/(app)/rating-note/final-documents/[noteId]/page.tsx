@@ -158,7 +158,7 @@ export default function FinalDocumentsPage() {
                             <RatingNoteEditor ref={prEditorRef} isReadOnly={false} content={note.prContent} />
                         </CardContent>
                     </Card>
-                </TabsContent>
+                 </TabsContent>
             </Tabs>
 
             <div className="grid md:grid-cols-2 gap-4 mt-4">
