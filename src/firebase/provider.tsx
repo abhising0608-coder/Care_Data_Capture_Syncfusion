@@ -73,15 +73,15 @@ const mockUsers: Record<Role, AppUser> = {
         photoURL: 'https://i.pravatar.cc/150?u=gh'
     },
     QC: {
-        uid: 'qc.user@careedge',
-        email: 'qc.user@careedge.com',
+        uid: 'qc@careedge.com',
+        email: 'qc@careedge.com',
         displayName: 'QC User',
         role: 'QC',
         photoURL: 'https://i.pravatar.cc/150?u=qc'
     },
     RATING_COMMITTEE: {
-        uid: 'cc.user@careedge',
-        email: 'cc.user@careedge.com',
+        uid: 'cc@careedge.com',
+        email: 'cc@careedge.com',
         displayName: 'Care Committee',
         role: 'RATING_COMMITTEE',
         photoURL: 'https://i.pravatar.cc/150?u=cc'

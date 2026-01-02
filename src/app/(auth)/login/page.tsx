@@ -32,7 +32,7 @@ const roleUserMap: Record<string, Role> = {
     'analyst@careedge.com': 'RATING_ANALYST',
     'group.head@careedge.com': 'GROUP_HEAD',
     'qc@careedge.com': 'QC',
-    'cc.user@careedge': 'RATING_COMMITTEE'
+    'cc@careedge.com': 'RATING_COMMITTEE'
 };
 
 
@@ -58,7 +58,7 @@ export default function LoginPage() {
           'analyst@careedge.com': 'password',
           'group.head@careedge.com': 'password',
           'qc@careedge.com': 'password',
-          'cc.user@careedge': 'password',
+          'cc@careedge.com': 'password',
       };
 
       const userEmail = data.email.toLowerCase();

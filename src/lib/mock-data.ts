@@ -12,16 +12,16 @@ let ratingNotes: RatingNote[] = [
         status: 'Completed',
         raId: 'rating.analyst@careedge',
         ghId: 'group.head@careedge',
-        qcId: 'qc.user@careedge',
-        ccId: 'cc.user@careedge',
+        qcId: 'qc@careedge.com',
+        ccId: 'cc@careedge.com',
         editorContent: '',
         statusHistory: [
             { status: 'Draft', timestamp: new Date().toISOString(), actorId: 'rating.analyst@careedge' },
             { status: 'In Review (GH)', timestamp: new Date().toISOString(), actorId: 'rating.analyst@careedge' },
             { status: 'In Review (QC)', timestamp: new Date().toISOString(), actorId: 'group.head@careedge' },
-            { status: 'QC Approved', timestamp: new Date().toISOString(), actorId: 'qc.user@careedge' },
+            { status: 'QC Approved', timestamp: new Date().toISOString(), actorId: 'qc@careedge.com' },
             { status: 'In Review (CC)', timestamp: new Date().toISOString(), actorId: 'group.head@careedge' },
-            { status: 'CC Approved', timestamp: new Date().toISOString(), actorId: 'cc.user@careedge' },
+            { status: 'CC Approved', timestamp: new Date().toISOString(), actorId: 'cc@careedge.com' },
             { status: 'Completed', timestamp: new Date().toISOString(), actorId: 'group.head@careedge' },
         ]
     },
@@ -388,10 +388,10 @@ export const updateNoteStatus = (id: string, newStatus: NoteStatus, actorId: str
             note.ghId = 'group.head@careedge';
             break;
         case 'In Review (QC)':
-            note.qcId = 'qc.user@careedge';
+            note.qcId = 'qc@careedge.com';
             break;
         case 'In Review (CC)':
-            note.ccId = 'cc.user@careedge';
+            note.ccId = 'cc@careedge.com';
             break;
         case 'Rework Requested': // GH sends back to RA
              note.raId = note.raId; // Stays with original RA
