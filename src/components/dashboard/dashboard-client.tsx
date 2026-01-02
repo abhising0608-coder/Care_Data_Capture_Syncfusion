@@ -9,7 +9,7 @@ import {
   Search,
   Triangle,
   Square,
-  Circle as Dot,
+  Dot,
 } from 'lucide-react';
 import {
   ColumnDef,
@@ -152,6 +152,7 @@ export default function DashboardClient() {
   };
 
   const getActionText = (role: Role | undefined, note: RatingNote): string => {
+    if (!role) return 'View Note'; // Add guard clause
     if (note.status === 'Pending RR & PR (RA)') {
         return 'Generate RR & PR';
     }
