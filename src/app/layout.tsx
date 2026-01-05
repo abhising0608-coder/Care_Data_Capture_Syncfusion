@@ -1,11 +1,8 @@
 'use client';
+import '../syncfusion-license'; // CRITICAL: This must be the first import.
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
-import { registerLicense } from '@syncfusion/ej2-base';
 import { FirebaseClientProvider } from '@/firebase';
-
-// Register the Syncfusion license key at the module level
-registerLicense('Ngo9BigBOggjHTQxAR8/V1JGaF5cXGpCf0x3QXxbf1x2ZFRHal5ZTndbUj0eQnxTdEBiW35bcndXTmFVV01/VkleYQ==');
 
 
 export default function RootLayout({

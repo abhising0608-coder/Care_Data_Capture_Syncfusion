@@ -5,10 +5,6 @@ import {
   DocumentEditorContainerComponent,
   Toolbar,
 } from '@syncfusion/ej2-react-documenteditor';
-import { registerLicense } from '@syncfusion/ej2-base';
-
-// Register your Syncfusion license key
-registerLicense('Ngo9BigBOggjHTQxAR8/V1NBaF5cWWJCe0x3Q3xbf1x0ZFNMyV5bQXVPMyBoS35RdURhW35ednBRR2BeWUJ1');
 
 DocumentEditorContainerComponent.Inject(Toolbar);
 
@@ -37,7 +33,15 @@ export const RatingNoteEditor = forwardRef<DocumentEditorContainerComponent | nu
                 editorInstance.documentEditor.showTrackChanges = true;
                 
                 if (content) {
-                    editorInstance.documentEditor.open(content);
+                   try {
+                        // Attempt to parse the content. If it fails, open an error message.
+                        JSON.parse(content);
+                        editorInstance.documentEditor.open(content);
+                   } catch (e) {
+                       console.error("Invalid SFDT content provided:", e);
+                       // Load a fallback if content is invalid
+                       editorInstance.documentEditor.open(JSON.stringify({ "sfdt": "{\"sections\":[{\"blocks\":[{\"inlines\":[{\"text\":\"Error: Could not load document.\"}]}]}]}" }));
+                   }
                 } else {
                     // Load a default template or empty document if no content is provided
                     editorInstance.documentEditor.open(JSON.stringify({ "sfdt": "{\"sections\":[{\"blocks\":[{\"inlines\":[{\"text\":\"Start drafting the rating note here...\"}]}]}]}" }));
@@ -57,7 +61,8 @@ export const RatingNoteEditor = forwardRef<DocumentEditorContainerComponent | nu
              clearTimeout(timer);
              if (editorRef.current) {
                 // The destroy method is crucial for preventing memory leaks and runtime errors on unmount.
-                editorRef.current.destroy();
+                // Setting the ref to null is a safer way to handle cleanup in some React versions.
+                editorRef.current = null;
              }
         };
     }, [isReadOnly, content]);
