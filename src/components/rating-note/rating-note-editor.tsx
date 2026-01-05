@@ -4,10 +4,12 @@ import React, { forwardRef, useImperativeHandle, useRef, useEffect } from 'react
 import {
   DocumentEditorContainerComponent,
   Toolbar,
+  SfdtExport,
+  WordExport,
 } from '@syncfusion/ej2-react-documenteditor';
 
-// Toolbar module is injected to handle toolbar actions
-DocumentEditorContainerComponent.Inject(Toolbar);
+// Inject the required modules for toolbar, SFDT, and DOCX export functionality.
+DocumentEditorContainerComponent.Inject(Toolbar, SfdtExport, WordExport);
 
 interface RatingNoteEditorProps {
     isReadOnly?: boolean;
@@ -59,10 +61,10 @@ export const RatingNoteEditor = forwardRef<DocumentEditorContainerComponent | nu
             // The cleanup function - this is the critical fix.
             return () => {
                 clearTimeout(timer);
-                if (editorInstance) {
+                if (editorRef.current) {
                     // destroy() is the official Syncfusion method to clean up the component instance.
                     // This prevents memory leaks and errors on page navigation.
-                    editorInstance.destroy();
+                    editorRef.current.destroy();
                 }
             };
         }, [content, isReadOnly]); // Rerun effect if content or read-only status changes.
