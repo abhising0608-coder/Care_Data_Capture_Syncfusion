@@ -44,7 +44,8 @@ const getMasterRatingNoteData = (noteId: string, companyName: string): RatingNot
       recommendedShortTerm: "CARE A1+",
       finalRating: "",
       unsupportedRatings: "Nil",
-      absenceOfPendingDocs: "Yes"
+      absenceOfPendingDocs: "Yes",
+      totalVolume: "500.00" // Example value
     },
     analyst: {
       analyst1: "Abhay Baghel",

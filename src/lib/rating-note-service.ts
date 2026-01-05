@@ -16,11 +16,11 @@ async function getSfdTemplateFromStorage(path: string): Promise<string> {
                             {
                                 "cells": [
                                     {
-                                        "blocks": [{ "inlines": [{ "text": "{{company.name}}", "characterFormat": { "bold": true } }] }],
+                                        "blocks": [{ "inlines": [{ "text": "<<Company name>>", "characterFormat": { "bold": true } }] }],
                                         "cellFormat": { "borders": { "border": { "hasNoneStyle": true } } }
                                     },
                                     {
-                                        "blocks": [{ "inlines": [{ "text": "RCM Date: {{workflowContext.committeeDate}}", "characterFormat": { "bold": true } }], "paragraphFormat": { "textAlignment": "Right" } }],
+                                        "blocks": [{ "inlines": [{ "text": "RCM Date: {{workflowContext.committeeDate}}", "characterFormat": { "bold": false } }], "paragraphFormat": { "textAlignment": "Right" } }],
                                         "cellFormat": { "borders": { "border": { "hasNoneStyle": true } } }
                                     }
                                 ]
@@ -99,7 +99,7 @@ async function getSfdTemplateFromStorage(path: string): Promise<string> {
                     {
                         "type": "Table",
                         "rows": [
-                            { "cells": [{ "blocks": [{ "inlines": [{ "text": "Analyst 1", "characterFormat": { "bold": true } }] }], "cellFormat": { "borders": { "border": { "hasNoneStyle": true } } } }, { "blocks": [{ "inlines": [{ "text": "Analyst 2", "characterFormat": { "bold": true } }] }], "cellFormat": { "borders": { "border": { "hasNoneStyle": true } } } }, { "blocks": [{ "inlines": [{ "text": "Group Head", "characterFormat": { "bold": true } }] }], "cellFormat": { "borders": { "border": { "hasNoneStyle": true } } } }, { "blocks": [{ "inlines": [{ "text": "Rating Head", "characterFormat": { "bold": true } }] }], "cellFormat": { "borders": { "border": { "hasNoneStyle": true } } } }] },
+                            { "cells": [{ "blocks": [{ "inlines": [{ "text": "Analyst 1", "characterFormat": { "bold": true } }] }], "cellFormat": { "shading": { "backgroundColor": "rgb(4, 53, 102)" }, "fontColor":"#ffffff" } }, { "blocks": [{ "inlines": [{ "text": "Analyst 2", "characterFormat": { "bold": true } }] }], "cellFormat": { "shading": { "backgroundColor": "rgb(4, 53, 102)" }, "fontColor":"#ffffff" } }, { "blocks": [{ "inlines": [{ "text": "Group Head", "characterFormat": { "bold": true } }] }], "cellFormat": { "shading": { "backgroundColor": "rgb(4, 53, 102)" }, "fontColor":"#ffffff" } }, { "blocks": [{ "inlines": [{ "text": "Rating Head", "characterFormat": { "bold": true } }] }], "cellFormat": { "shading": { "backgroundColor": "rgb(4, 53, 102)" }, "fontColor":"#ffffff" } }] },
                             { "cells": [{ "blocks": [{ "inlines": [{ "text": "{{analyst.analyst1}}" }] }] }, { "blocks": [{ "inlines": [{ "text": "{{analyst.analyst2}}" }] }] }, { "blocks": [{ "inlines": [{ "text": "{{analyst.groupHead}}" }] }] }, { "blocks": [{ "inlines": [{ "text": "{{analyst.ratingHead}}" }] }] }] }
                         ],
                         "tableFormat": { "borders": { "border": { "lineStyle": "Single", "lineWidth": 1 } } }
@@ -110,11 +110,11 @@ async function getSfdTemplateFromStorage(path: string): Promise<string> {
                     {
                         "type": "Table",
                         "rows": [
-                            { "cells": [{ "blocks": [{ "inlines": [{ "text": "Rating Team Recommendation", "characterFormat": { "bold": true, "fontColor": "#ffffff" } }] }], "cellFormat": { "shading": { "backgroundColor": "rgb(4, 53, 102)" }, "columnSpan": 2 } }, { "blocks": [{ "inlines": [{ "text": "Long Term Rating and Outlook", "characterFormat": { "bold": true, "fontColor": "#ffffff" } }] }], "cellFormat": { "shading": { "backgroundColor": "rgb(4, 53, 102)" } } }, { "blocks": [{ "inlines": [{ "text": "Short Term Rating", "characterFormat": { "bold": true, "fontColor": "#ffffff" } }] }], "cellFormat": { "shading": { "backgroundColor": "rgb(4, 53, 102)" } } }] },
-                            { "cells": [{ "blocks": [{ "inlines": [{ "text": "Ratings" }] }], "cellFormat": { "columnSpan": 2 } }, { "blocks": [{ "inlines": [{ "text": "{{rating.recommendedLongTerm}}" }] }] }, { "blocks": [{ "inlines": [{ "text": "{{rating.recommendedShortTerm}}" }] }] }] },
-                            { "cells": [{ "blocks": [{ "inlines": [{ "text": "Unsupported Ratings if any" }] }], "cellFormat": { "columnSpan": 2 } }, { "blocks": [{ "inlines": [{ "text": "{{rating.unsupportedRatings}}" }] }] }, { "blocks": [{ "inlines": [{ "text": " " }] }] }] },
-                            { "cells": [{ "blocks": [{ "inlines": [{ "text": "Rating in the absence of pending steps/documents" }] }], "cellFormat": { "columnSpan": 2 } }, { "blocks": [{ "inlines": [{ "text": "{{rating.absenceOfPendingDocs}}" }] }] }, { "blocks": [{ "inlines": [{ "text": " " }] }] }] },
-                            { "cells": [{ "blocks": [{ "inlines": [{ "text": "Rationale, in case the rating recommendation is different from final model rating output" }] }], "cellFormat": { "columnSpan": 2 } }, { "blocks": [{ "inlines": [{ "text": " " }] }] }, { "blocks": [{ "inlines": [{ "text": " " }] }] }] }
+                            { "cells": [{ "blocks": [{ "inlines": [{ "text": "Rating Team Recommendation", "characterFormat": { "bold": true, "fontColor": "#ffffff" } }] }], "cellFormat": { "shading": { "backgroundColor": "rgb(4, 53, 102)" } } }, { "blocks": [{ "inlines": [{ "text": "Long Term Rating and Outlook", "characterFormat": { "bold": true, "fontColor": "#ffffff" } }] }], "cellFormat": { "shading": { "backgroundColor": "rgb(4, 53, 102)" } } }, { "blocks": [{ "inlines": [{ "text": "Short Term Rating", "characterFormat": { "bold": true, "fontColor": "#ffffff" } }] }], "cellFormat": { "shading": { "backgroundColor": "rgb(4, 53, 102)" } } }] },
+                            { "cells": [{ "blocks": [{ "inlines": [{ "text": "Ratings" }] }] }, { "blocks": [{ "inlines": [{ "text": "{{rating.recommendedLongTerm}}" }] }] }, { "blocks": [{ "inlines": [{ "text": "{{rating.recommendedShortTerm}}" }] }] }] },
+                            { "cells": [{ "blocks": [{ "inlines": [{ "text": "Unsupported Ratings if any" }] }] }, { "blocks": [{ "inlines": [{ "text": "{{rating.unsupportedRatings}}" }] }] }, { "blocks": [{ "inlines": [{ "text": " " }] }] }] },
+                            { "cells": [{ "blocks": [{ "inlines": [{ "text": "Rating in the absence of pending steps/documents" }] }] }, { "blocks": [{ "inlines": [{ "text": "{{rating.absenceOfPendingDocs}}" }] }] }, { "blocks": [{ "inlines": [{ "text": " " }] }] }] },
+                            { "cells": [{ "blocks": [{ "inlines": [{ "text": "Rationale, in case the rating recommendation is different from final model rating output" }] }] }, { "blocks": [{ "inlines": [{ "text": " " }] }] }, { "blocks": [{ "inlines": [{ "text": " " }] }] }] }
                         ],
                         "tableFormat": { "borders": { "border": { "lineStyle": "Single", "lineWidth": 1 } } }
                     },
@@ -280,7 +280,9 @@ export async function getBoundRatingNoteSfdt(ratingNoteData: RatingNoteDataSchem
     const sfdtTemplateString = await getSfdTemplateFromStorage(ratingNoteData.documentMeta.sfdtStoragePath);
 
     // 2. Perform placeholder data binding.
-    const placeholderBoundSfdtString = bindPlaceholders(sfdtTemplateString, ratingNoteData.dataBindings);
+    // We bind data from both workflowContext and the main dataBindings object
+    const combinedDataForBinding = { ...ratingNoteData.dataBindings, workflowContext: ratingNoteData.workflowContext };
+    const placeholderBoundSfdtString = bindPlaceholders(sfdtTemplateString, combinedDataForBinding);
     
     // 3. Parse the SFDT for table manipulation.
     let sfdtObject = JSON.parse(placeholderBoundSfdtString);
