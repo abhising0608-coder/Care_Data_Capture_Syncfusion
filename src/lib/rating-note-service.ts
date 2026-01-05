@@ -4,36 +4,187 @@ import type { RatingNoteDataSchema, TableDefinition } from './definitions';
 // In a real app, this would fetch from Firebase Storage based on the path in the JSON
 async function getSfdTemplateFromStorage(path: string): Promise<string> {
     console.log(`Fetching template from simulated storage path: ${path}`);
-    // This is a placeholder for a 40-page SFDT document template.
-    // The structure is simplified to include placeholders for data binding.
-    const fullTemplate = {
-            "sections": [
-                {
-                    "blocks": [
-                        { "inlines": [{ "text": "Company Name: {{company.name}}", "characterFormat": { "bold": true } }] },
-                        { "inlines": [{ "text": "Industry: {{company.natureOfBusiness}}" }] },
-                        { "inlines": [{ "text": "" }] },
-                        { "inlines": [{ "text": "Rating Recommendation", "characterFormat": { "bold": true } }] },
-                        {
-                            "inlines": [
-                                { "text": "Long Term: " },
-                                { "text": "{{rating.recommendedLongTerm}}" }
-                            ]
-                        },
-                         { "inlines": [{ "text": "" }] },
-                        { "inlines": [{ "text": "Analyst Details", "characterFormat": { "bold": true } }] },
-                        {
-                            "inlines": [
-                                { "text": "Primary Analyst: " },
-                                { "text": "{{analyst.analyst1}}" }
-                            ]
-                        }
-                    ]
+    
+    // This is a production-grade SFDT for Page 1 of the Rating Note.
+    const page1Template = {
+        "sections": [
+            {
+                "blocks": [
+                    {
+                        "type": "Table",
+                        "rows": [
+                            {
+                                "cells": [
+                                    {
+                                        "blocks": [{ "inlines": [{ "text": "{{company.name}}", "characterFormat": { "bold": true } }] }],
+                                        "cellFormat": { "borders": { "border": { "hasNoneStyle": true } } }
+                                    },
+                                    {
+                                        "blocks": [{ "inlines": [{ "text": "RCM Date: {{workflowContext.committeeDate}}", "characterFormat": { "bold": true } }], "paragraphFormat": { "textAlignment": "Right" } }],
+                                        "cellFormat": { "borders": { "border": { "hasNoneStyle": true } } }
+                                    }
+                                ]
+                            }
+                        ],
+                        "tableFormat": { "borders": {} }
+                    },
+                    {
+                        "inlines": [{ "text": "NOTE FOR RATING COMMITTEE", "characterFormat": { "bold": true } }],
+                        "paragraphFormat": { "textAlignment": "Center" }
+                    },
+                    {
+                        "type": "Table",
+                        "rows": [{
+                            "cells": [{
+                                "blocks": [
+                                    { "inlines": [{ "text": "Disclosure of Interest of Independent/Non-Executive Directors of CARE:" }] },
+                                    { "inlines": [{ "text": "OR" }], "paragraphFormat": { "textAlignment": "Center" } },
+                                    { "inlines": [{ "text": "Disclosure of Interest of Managing Director & CEO:" }] }
+                                ],
+                                "cellFormat": { "borders": { "border": { "lineStyle": "Single", "lineWidth": 1 } } }
+                            }]
+                        }],
+                        "tableFormat": { "borders": {} }
+                    },
+                    {
+                        "inlines": [{ "text": "Rating of Bank facilities/Instruments of ₹{{rating.totalVolume}} crore*", "characterFormat": { "bold": true } }],
+                        "paragraphFormat": { "textAlignment": "Center" }
+                    },
+                    {
+                        "type": "Table",
+                        "rows": [
+                            {
+                                "rowFormat": { "isHeader": true },
+                                "cells": [
+                                    { "blocks": [{ "inlines": [{ "text": "Mandate ID", "characterFormat": { "bold": true, "fontColor": "#ffffff" } }] }], "cellFormat": { "shading": { "backgroundColor": "rgb(4, 53, 102)" }, "verticalAlignment": "Middle" } },
+                                    { "blocks": [{ "inlines": [{ "text": "Facilities/Instruments", "characterFormat": { "bold": true, "fontColor": "#ffffff" } }] }], "cellFormat": { "shading": { "backgroundColor": "rgb(4, 53, 102)" }, "verticalAlignment": "Middle" } },
+                                    { "blocks": [{ "inlines": [{ "text": "Volume (₹ crore)", "characterFormat": { "bold": true, "fontColor": "#ffffff" } }] }], "cellFormat": { "shading": { "backgroundColor": "rgb(4, 53, 102)" }, "verticalAlignment": "Middle" } },
+                                    { "blocks": [{ "inlines": [{ "text": "Existing Rating", "characterFormat": { "bold": true, "fontColor": "#ffffff" } }] }], "cellFormat": { "shading": { "backgroundColor": "rgb(4, 53, 102)" }, "verticalAlignment": "Middle" } },
+                                    { "blocks": [{ "inlines": [{ "text": "Agenda Type", "characterFormat": { "bold": true, "fontColor": "#ffffff" } }] }], "cellFormat": { "shading": { "backgroundColor": "rgb(4, 53, 102)" }, "verticalAlignment": "Middle" } }
+                                ]
+                            },
+                            {
+                                "cells": [
+                                    { "blocks": [{ "inlines": [{ "text": "{{workflowContext.mandateId}}" }] }] },
+                                    { "blocks": [{ "inlines": [{ "text": " " }] }] },
+                                    { "blocks": [{ "inlines": [{ "text": " " }] }] },
+                                    { "blocks": [{ "inlines": [{ "text": " " }] }] },
+                                    { "blocks": [{ "inlines": [{ "text": "Initial/Surveillance/Review/etc." }] }, { "inlines": [{ "text": "Withdrawn#" }] }] }
+                                ]
+                            }
+                        ],
+                        "tableFormat": { "borders": { "border": { "lineStyle": "Single", "lineWidth": 1 } } }
+                    },
+                    { "inlines": [{ "text": "*# Details in Section 7.18", "characterFormat": { "fontSize": 8 } }] },
+                    { "blocks": [] },
+                    {
+                        "type": "Table",
+                        "rows": [
+                            {
+                                "cells": [
+                                    { "blocks": [{ "inlines": [{ "text": "Date of last committee review", "characterFormat": { "fontColor": "#ffffff" } }] }], "cellFormat": { "shading": { "backgroundColor": "rgb(4, 53, 102)" } } },
+                                    { "blocks": [{ "inlines": [{ "text": " " }] }] }
+                                ]
+                            },
+                            {
+                                "cells": [
+                                    { "blocks": [{ "inlines": [{ "text": "Review period", "characterFormat": { "fontColor": "#ffffff" } }] }], "cellFormat": { "shading": { "backgroundColor": "rgb(4, 53, 102)" } } },
+                                    { "blocks": [{ "inlines": [{ "text": " " }] }] }
+                                ]
+                            }
+                        ],
+                        "tableFormat": { "borders": { "border": { "lineStyle": "Single", "lineWidth": 1 } }, "preferredWidth": 50, "preferredWidthType": "Percentage" }
+                    },
+                    { "blocks": [] },
+                    {
+                        "type": "Table",
+                        "rows": [
+                            { "cells": [{ "blocks": [{ "inlines": [{ "text": "Analyst 1", "characterFormat": { "bold": true } }] }], "cellFormat": { "borders": { "border": { "hasNoneStyle": true } } } }, { "blocks": [{ "inlines": [{ "text": "Analyst 2", "characterFormat": { "bold": true } }] }], "cellFormat": { "borders": { "border": { "hasNoneStyle": true } } } }, { "blocks": [{ "inlines": [{ "text": "Group Head", "characterFormat": { "bold": true } }] }], "cellFormat": { "borders": { "border": { "hasNoneStyle": true } } } }, { "blocks": [{ "inlines": [{ "text": "Rating Head", "characterFormat": { "bold": true } }] }], "cellFormat": { "borders": { "border": { "hasNoneStyle": true } } } }] },
+                            { "cells": [{ "blocks": [{ "inlines": [{ "text": "{{analyst.analyst1}}" }] }] }, { "blocks": [{ "inlines": [{ "text": "{{analyst.analyst2}}" }] }] }, { "blocks": [{ "inlines": [{ "text": "{{analyst.groupHead}}" }] }] }, { "blocks": [{ "inlines": [{ "text": "{{analyst.ratingHead}}" }] }] }] }
+                        ],
+                        "tableFormat": { "borders": { "border": { "lineStyle": "Single", "lineWidth": 1 } } }
+                    },
+                    {
+                        "inlines": [{ "text": "Rating Recommendation:", "characterFormat": { "bold": true, "fontColor": "rgb(4, 53, 102)", "underline": "Single" } }]
+                    },
+                    {
+                        "type": "Table",
+                        "rows": [
+                            { "cells": [{ "blocks": [{ "inlines": [{ "text": "Rating Team Recommendation", "characterFormat": { "bold": true, "fontColor": "#ffffff" } }] }], "cellFormat": { "shading": { "backgroundColor": "rgb(4, 53, 102)" }, "columnSpan": 2 } }, { "blocks": [{ "inlines": [{ "text": "Long Term Rating and Outlook", "characterFormat": { "bold": true, "fontColor": "#ffffff" } }] }], "cellFormat": { "shading": { "backgroundColor": "rgb(4, 53, 102)" } } }, { "blocks": [{ "inlines": [{ "text": "Short Term Rating", "characterFormat": { "bold": true, "fontColor": "#ffffff" } }] }], "cellFormat": { "shading": { "backgroundColor": "rgb(4, 53, 102)" } } }] },
+                            { "cells": [{ "blocks": [{ "inlines": [{ "text": "Ratings" }] }], "cellFormat": { "columnSpan": 2 } }, { "blocks": [{ "inlines": [{ "text": "{{rating.recommendedLongTerm}}" }] }] }, { "blocks": [{ "inlines": [{ "text": "{{rating.recommendedShortTerm}}" }] }] }] },
+                            { "cells": [{ "blocks": [{ "inlines": [{ "text": "Unsupported Ratings if any" }] }], "cellFormat": { "columnSpan": 2 } }, { "blocks": [{ "inlines": [{ "text": "{{rating.unsupportedRatings}}" }] }] }, { "blocks": [{ "inlines": [{ "text": " " }] }] }] },
+                            { "cells": [{ "blocks": [{ "inlines": [{ "text": "Rating in the absence of pending steps/documents" }] }], "cellFormat": { "columnSpan": 2 } }, { "blocks": [{ "inlines": [{ "text": "{{rating.absenceOfPendingDocs}}" }] }] }, { "blocks": [{ "inlines": [{ "text": " " }] }] }] },
+                            { "cells": [{ "blocks": [{ "inlines": [{ "text": "Rationale, in case the rating recommendation is different from final model rating output" }] }], "cellFormat": { "columnSpan": 2 } }, { "blocks": [{ "inlines": [{ "text": " " }] }] }, { "blocks": [{ "inlines": [{ "text": " " }] }] }] }
+                        ],
+                        "tableFormat": { "borders": { "border": { "lineStyle": "Single", "lineWidth": 1 } } }
+                    },
+                    {
+                        "inlines": [
+                            { "text": "QC/Sector Specialist: " },
+                            { "text": "<NAME>", "characterFormat": { "bold": true } },
+                            { "text": " (" },
+                            { "text": "Click here", "characterFormat": { "fontColor": "rgb(0, 0, 255)", "underline": "Single" }, "navigationLink": "#qc-comments" },
+                            { "text": " to view incorporated QC comments)" }
+                        ]
+                    },
+                    {
+                        "type": "Table",
+                        "rows": [
+                            { "cells": [{ "blocks": [{ "inlines": [{ "text": "QC Observations (only exceptions)", "characterFormat": { "bold": true, "fontColor": "#ffffff" } }] }], "cellFormat": { "shading": { "backgroundColor": "rgb(4, 53, 102)" } } }, { "blocks": [{ "inlines": [{ "text": "Reason for not accepting / not acting on the same", "characterFormat": { "bold": true, "fontColor": "#ffffff" } }] }], "cellFormat": { "shading": { "backgroundColor": "rgb(4, 53, 102)" } } }] },
+                            { "cells": [{ "blocks": [{ "inlines": [{ "text": " " }] }] }, { "blocks": [{ "inlines": [{ "text": " " }] }] }] },
+                            { "cells": [{ "blocks": [{ "inlines": [{ "text": " " }] }] }, { "blocks": [{ "inlines": [{ "text": " " }] }] }] }
+                        ],
+                        "tableFormat": { "borders": { "border": { "lineStyle": "Single", "lineWidth": 1 } } }
+                    },
+                    {
+                        "inlines": [
+                            { "text": "CARE and other CRAs (" },
+                            { "text": "Click here", "characterFormat": { "fontColor": "rgb(0, 0, 255)", "underline": "Single" }, "navigationLink": "#cra-history" },
+                            { "text": " for their history, sensitivities and key factors)" }
+                        ]
+                    },
+                    {
+                        "inlines": [
+                            { "text": "Summary of hygiene checks: (" },
+                            { "text": "Click here", "characterFormat": { "fontColor": "rgb(0, 0, 255)", "underline": "Single" }, "navigationLink": "#hygiene-checks" },
+                            { "text": " for details)" }
+                        ]
+                    },
+                    {
+                        "type": "Table",
+                        "rows": [
+                            { "cells": [{ "blocks": [{ "inlines": [{ "text": "Particulars", "characterFormat": { "bold": true, "fontColor": "#ffffff" } }] }], "cellFormat": { "shading": { "backgroundColor": "rgb(4, 53, 102)" } } }, { "blocks": [{ "inlines": [{ "text": "Yes/No/NA", "characterFormat": { "bold": true, "fontColor": "#ffffff" } }] }], "cellFormat": { "shading": { "backgroundColor": "rgb(4, 53, 102)" } } }] },
+                            { "cells": [{ "blocks": [{ "inlines": [{ "text": "Any negative observation on NDS" }] }] }, { "blocks": [{ "inlines": [{ "text": " " }] }] }] },
+                            { "cells": [{ "blocks": [{ "inlines": [{ "text": "Any negative highlights in CIBIL / Watchout Investors" }] }] }, { "blocks": [{ "inlines": [{ "text": " " }] }] }] },
+                            { "cells": [{ "blocks": [{ "inlines": [{ "text": "Any negative observation from Bank statements" }] }] }, { "blocks": [{ "inlines": [{ "text": " " }] }] }] },
+                            { "cells": [{ "blocks": [{ "inlines": [{ "text": "Any negative highlight in client’s regulatory inspection declaration" }] }] }, { "blocks": [{ "inlines": [{ "text": " " }] }] }] },
+                            { "cells": [{ "blocks": [{ "inlines": [{ "text": "Any adverse/negative qualification or observation in auditor report" }] }] }, { "blocks": [{ "inlines": [{ "text": " " }] }] }] },
+                            { "cells": [{ "blocks": [{ "inlines": [{ "text": "Is any of the debt listed?" }] }] }, { "blocks": [{ "inlines": [{ "text": " " }] }] }] },
+                            { "cells": [{ "blocks": [{ "inlines": [{ "text": "Any historical default or settlement in the company/group?" }] }] }, { "blocks": [{ "inlines": [{ "text": " " }] }] }] }
+                        ],
+                        "tableFormat": { "borders": { "border": { "lineStyle": "Single", "lineWidth": 1 } } }
+                    }
+                ],
+                "headersFooters": {
+                    "footer": {
+                        "blocks": [{
+                            "type": "Table",
+                            "rows": [{
+                                "cells": [
+                                    { "blocks": [{ "inlines": [{ "fieldType": "Page" }, { "text": " " }] }] },
+                                    { "blocks": [{ "inlines": [{ "text": "Mfg. (General) Sector Version 1", "characterFormat": { "fontSize": 8 } }], "paragraphFormat": { "textAlignment": "Right" } }] }
+                                ]
+                            }],
+                            "tableFormat": { "borders": { "top": { "lineStyle": "Single", "lineWidth": 1 } }, "cellSpacing": 0 }
+                        }]
+                    }
                 }
-            ]
-        };
-    return JSON.stringify(fullTemplate);
+            }
+        ]
+    };
+    return JSON.stringify(page1Template);
 }
+
 
 /**
  * A simple data binding engine to replace placeholders in the SFDT.
@@ -112,12 +263,18 @@ function bindTables(sfdtObject: any, tables: { [key: string]: TableDefinition })
 export async function getBoundRatingNoteSfdt(ratingNoteData: RatingNoteDataSchema): Promise<string> {
     
     // If the note already has saved content, use that instead of re-binding.
-    if (ratingNoteData.editorContent) {
+    if (ratingNoteData.editorContent && ratingNoteData.editorContent.length > 50) { // Basic check for non-empty content
         console.log("Loading existing editor content.");
-        return ratingNoteData.editorContent;
+        try {
+            // Validate it's proper JSON before returning
+            JSON.parse(ratingNoteData.editorContent);
+            return ratingNoteData.editorContent;
+        } catch (e) {
+            console.error("Existing editor content is invalid, falling back to template binding.", e);
+        }
     }
     
-    console.log("No existing content found. Starting new data binding process.");
+    console.log("No valid existing content found. Starting new data binding process.");
 
     // 1. Fetch the raw SFDT template from the path specified in the metadata.
     const sfdtTemplateString = await getSfdTemplateFromStorage(ratingNoteData.documentMeta.sfdtStoragePath);
