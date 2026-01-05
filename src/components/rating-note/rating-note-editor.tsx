@@ -78,7 +78,6 @@ export const RatingNoteEditor = forwardRef<DocumentEditorContainerComponent | nu
                     ref={editorRef}
                     height="calc(100vh - 180px)"
                     enableToolbar={true}
-                    serviceUrl="https://ej2services.syncfusion.com/production/web-services/api/documenteditor/"
                 />
             </div>
         );
