@@ -6,6 +6,7 @@ import {
   Toolbar,
 } from '@syncfusion/ej2-react-documenteditor';
 
+// Toolbar module is injected to handle toolbar actions
 DocumentEditorContainerComponent.Inject(Toolbar);
 
 interface RatingNoteEditorProps {
@@ -21,50 +22,54 @@ export const RatingNoteEditor = forwardRef<DocumentEditorContainerComponent | nu
 
     useEffect(() => {
         const editorInstance = editorRef.current;
+        let timer: NodeJS.Timeout;
 
-        const timer = setTimeout(() => {
-            if (editorInstance && editorInstance.documentEditor) {
-                editorInstance.resize();
-                
-                // Set read-only state
-                editorInstance.documentEditor.isReadOnly = isReadOnly;
-                
-                // Enable track changes
-                editorInstance.documentEditor.showTrackChanges = true;
-                
-                if (content) {
-                   try {
-                        // Attempt to parse the content. If it fails, open an error message.
-                        JSON.parse(content);
-                        editorInstance.documentEditor.open(content);
-                   } catch (e) {
-                       console.error("Invalid SFDT content provided:", e);
-                       // Load a fallback if content is invalid
-                       editorInstance.documentEditor.open(JSON.stringify({ "sfdt": "{\"sections\":[{\"blocks\":[{\"inlines\":[{\"text\":\"Error: Could not load document.\"}]}]}]}" }));
-                   }
-                } else {
-                    // Load a default template or empty document if no content is provided
-                    editorInstance.documentEditor.open(JSON.stringify({ "sfdt": "{\"sections\":[{\"blocks\":[{\"inlines\":[{\"text\":\"Start drafting the rating note here...\"}]}]}]}" }));
-                }
-
-                // Programmatically turn on track changes
-                setTimeout(() => {
-                    if (editorInstance && editorInstance.documentEditor) {
-                         editorInstance.documentEditor.trackChanges = true;
+        if (editorInstance) {
+            timer = setTimeout(() => {
+                if (editorInstance && editorInstance.documentEditor) {
+                    editorInstance.resize();
+                    
+                    editorInstance.documentEditor.isReadOnly = isReadOnly;
+                    editorInstance.documentEditor.showTrackChanges = true;
+                    
+                    if (content) {
+                       try {
+                            JSON.parse(content);
+                            editorInstance.documentEditor.open(content);
+                       } catch (e) {
+                           console.error("Invalid SFDT content provided:", e);
+                           editorInstance.documentEditor.open(JSON.stringify({ "sfdt": "{\"sections\":[{\"blocks\":[{\"inlines\":[{\"text\":\"Error: Could not load document.\"}]}]}]}" }));
+                       }
+                    } else {
+                        editorInstance.documentEditor.open(JSON.stringify({ "sfdt": "{\"sections\":[{\"blocks\":[{\"inlines\":[{\"text\":\"Start drafting the rating note here...\"}]}]}]}" }));
                     }
-                }, 500); // Delay to ensure editor is fully initialized
 
-            }
-        }, 200);
+                    setTimeout(() => {
+                        if (editorInstance && editorInstance.documentEditor) {
+                             editorInstance.documentEditor.trackChanges = true;
+                        }
+                    }, 500);
 
+                }
+            }, 200);
+        }
+
+        // --- ROBUST CLEANUP ---
+        // This is the critical fix. It ensures the component is properly destroyed
+        // when the component unmounts (e.g., when navigating away from the page).
         return () => {
-             clearTimeout(timer);
+             if (timer) {
+                clearTimeout(timer);
+             }
              if (editorRef.current) {
                 // The destroy method is crucial for preventing memory leaks and runtime errors on unmount.
-                // Setting the ref to null is a safer way to handle cleanup in some React versions.
+                editorRef.current.destroy();
+                // Setting the ref to null helps prevent any lingering async operations
+                // from trying to access the destroyed instance.
                 editorRef.current = null;
              }
         };
+    // Ensure the effect re-runs if the content or read-only state changes.
     }, [isReadOnly, content]);
 
     return (
