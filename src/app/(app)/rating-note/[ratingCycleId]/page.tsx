@@ -5,7 +5,7 @@ import { Suspense, useRef, useEffect, useState, useCallback } from 'react';
 import useSWR from 'swr';
 import { useParams, useRouter } from 'next/navigation';
 import { Save, Send, FileDown, Loader2 } from 'lucide-react';
-import type { DocumentEditorContainer } from '@syncfusion/ej2-documenteditor';
+import type { DocumentEditorContainer } from '@syncfusion/ej2-react-documenteditor';
 
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -16,6 +16,9 @@ import { useAuth } from '@/firebase';
 import { getBoundRatingNoteSfdt } from '@/lib/rating-note-service';
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
+
+// Define NoteStatus and UserRole types locally if they are not globally available
+type NoteStatus = 'Draft' | 'Rework Requested' | 'In Review (GH)' | 'In Review (QC)' | 'QC Approved' | 'In Review (CC)' | 'CC Approved' | 'Pending RR & PR (RA)' | 'In Final Review (GH)' | 'Completed';
 
 export default function RatingNotePage() {
     const params = useParams();
@@ -28,7 +31,6 @@ export default function RatingNotePage() {
     const [boundSfdt, setBoundSfdt] = useState<string | null>(null);
     const [isBinding, setIsBinding] = useState(true);
 
-    // Fetch the main RatingNote object which contains the master data schema
     const { data: note, isLoading: isNoteLoading, mutate } = useSWR<RatingNote>(
       noteId ? `/api/notes/${noteId}` : null,
       fetcher
@@ -38,7 +40,6 @@ export default function RatingNotePage() {
         if (!note || !note.ratingNoteData) return;
         setIsBinding(true);
         try {
-            // Pass the full data schema to the binding service
             const finalSfdt = await getBoundRatingNoteSfdt(note.ratingNoteData);
             setBoundSfdt(finalSfdt);
         } catch (error) {
@@ -48,8 +49,7 @@ export default function RatingNotePage() {
                 title: 'Error Loading Document',
                 description: 'Could not load the document template or bind data.',
             });
-            // Load an error message into the editor
-            const errorSfdt = JSON.stringify({ "sfdt": "{\"sections\":[{\"blocks\":[{\"inlines\":[{\"text\":\"Error: Document failed to load.\"}]}]}]}" });
+            const errorSfdt = JSON.stringify({ "sections": [{"blocks":[{"inlines":[{"text":"Error: Document failed to load."}]}]}] });
             setBoundSfdt(errorSfdt);
         } finally {
             setIsBinding(false);
@@ -65,7 +65,6 @@ export default function RatingNotePage() {
     const handleSave = async (isSubmitting: boolean = false) => {
         if (!editorRef.current || !note || !note.ratingNoteData || !user) return;
         
-        // Serialize the document content from the editor
         const sfdtString = await editorRef.current.documentEditor.save('Sfdt');
         
         const updatedRatingNoteData: Partial<RatingNoteDataSchema> = {
@@ -73,7 +72,7 @@ export default function RatingNotePage() {
             editorContent: sfdtString,
             audit: {
                 ...note.ratingNoteData.audit,
-                version: note.ratingNoteData.audit.version + 1,
+                version: (note.ratingNoteData.audit.version || 0) + 1,
                 lastSavedBy: user.displayName || 'Unknown User',
                 lastSavedRole: user.role,
                 lastSavedAt: new Date().toISOString(),
@@ -90,7 +89,6 @@ export default function RatingNotePage() {
         }
 
         try {
-            // We post the entire updated RatingNote object
             const payload: Partial<RatingNote> = {
                 ratingNoteData: updatedRatingNoteData as RatingNoteDataSchema,
                 status: isSubmitting ? 'In Review (GH)' : note.status,
@@ -108,7 +106,7 @@ export default function RatingNotePage() {
                 description: `Rating note has been ${isSubmitting ? 'submitted to Group Head' : 'saved'}.`,
             });
             
-            mutate(); // Re-fetch data to reflect saved state
+            mutate();
 
             if (isSubmitting) {
                 router.push('/dashboard');
@@ -142,7 +140,7 @@ export default function RatingNotePage() {
     
     const isLoading = isNoteLoading || isBinding;
 
-    if (isLoading || !note) {
+    if (isLoading || !boundSfdt) {
       return (
          <div className="flex h-full w-full flex-col p-4 sm:p-6 lg:p-8">
             <div className="flex items-center justify-center flex-col h-[calc(100vh-250px)] w-full bg-muted/50 rounded-lg">
@@ -154,18 +152,15 @@ export default function RatingNotePage() {
       )
     }
 
-    // Determine editability based on role and status from the FSD
-    const canEdit = (userRole: Role, noteStatus: NoteStatus) => {
+    const canEdit = (userRole: Role | undefined, noteStatus: NoteStatus) => {
+        if (!userRole) return false;
         if (userRole === 'RATING_ANALYST' && (noteStatus === 'Draft' || noteStatus === 'Rework Requested')) {
             return true;
         }
-        // In a real app, you'd check permissions from the JSON schema
-        // const permissions = note.ratingNoteData?.permissions[userRole];
-        // if (permissions?.editableSections) return true;
         return false;
     };
     
-    const isReadOnly = !canEdit(user?.role as Role, note.status);
+    const isReadOnly = !canEdit(user?.role, note.status as NoteStatus);
 
     return (
         <div className="flex h-full w-full flex-col">
@@ -200,10 +195,10 @@ export default function RatingNotePage() {
             <main className="flex-1 pt-6">
                 <Suspense fallback={<Skeleton className="h-[calc(100vh-250px)] w-full" />}>
                    <RatingNoteEditor 
-                        key={note.id + note.ratingNoteData?.audit.version} // Re-mount editor on version change
+                        key={note.id + (note.ratingNoteData?.audit.version || 0)} // Re-mount editor on version change
                         ref={editorRef} 
                         isReadOnly={isReadOnly}
-                        content={boundSfdt} // Pass the bound SFDT to the editor
+                        content={boundSfdt}
                    />
                 </Suspense>
             </main>

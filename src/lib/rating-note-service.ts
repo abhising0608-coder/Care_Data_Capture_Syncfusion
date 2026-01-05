@@ -6,8 +6,7 @@ async function getSfdTemplateFromStorage(path: string): Promise<string> {
     console.log(`Fetching template from simulated storage path: ${path}`);
     // This is a placeholder for a 40-page SFDT document template.
     // The structure is simplified to include placeholders for data binding.
-    const simpleTemplate = {
-        "sfdt": JSON.stringify({
+    const fullTemplate = {
             "sections": [
                 {
                     "blocks": [
@@ -32,9 +31,8 @@ async function getSfdTemplateFromStorage(path: string): Promise<string> {
                     ]
                 }
             ]
-        })
-    };
-    return simpleTemplate.sfdt;
+        };
+    return JSON.stringify(fullTemplate);
 }
 
 /**
