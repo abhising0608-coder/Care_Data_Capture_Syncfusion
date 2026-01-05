@@ -1,12 +1,35 @@
 
 import type { RatingNoteDataSchema, TableDefinition } from './definitions';
 import * as template from './rating-note-template.json';
+import pako from 'pako';
 
 // In a real app, this would fetch from Firebase Storage based on the path in the JSON
 async function getSfdTemplateFromStorage(path: string): Promise<string> {
     console.log(`Loading template from local import: rating-note-template.json`);
-    // Directly use the imported JSON object and stringify it for the editor.
-    return JSON.stringify(template);
+    
+    // The imported JSON is an object like { sfdt: "base64_string" }
+    const base64String = (template as any).sfdt;
+
+    try {
+        // 1. Decode base64 to a Uint8Array
+        const binaryString = atob(base64String);
+        const len = binaryString.length;
+        const bytes = new Uint8Array(len);
+        for (let i = 0; i < len; i++) {
+            bytes[i] = binaryString.charCodeAt(i);
+        }
+
+        // 2. Decompress the gzipped data using pako
+        const decompressed = pako.inflate(bytes, { to: 'string' });
+        
+        // 3. Return the decompressed SFDT JSON string
+        return decompressed;
+
+    } catch (error) {
+        console.error("Failed to decode or decompress SFDT content:", error);
+        // Fallback to an error message if anything goes wrong
+        return JSON.stringify({ "sfdt": "{\"sections\":[{\"blocks\":[{\"inlines\":[{\"text\":\"Error: Could not load or parse the document template.\"}]}]}]}" });
+    }
 }
 
 
@@ -101,7 +124,7 @@ export async function getBoundRatingNoteSfdt(ratingNoteData: RatingNoteDataSchem
     
     console.log("No valid existing content found. Starting new data binding process.");
 
-    // 1. Fetch the raw SFDT template from the path specified in the metadata.
+    // 1. Fetch and decompress the raw SFDT template from the path specified in the metadata.
     const sfdtTemplateString = await getSfdTemplateFromStorage(ratingNoteData.documentMeta.sfdtStoragePath);
 
     // 2. Perform placeholder data binding.
