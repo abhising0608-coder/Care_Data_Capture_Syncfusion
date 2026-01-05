@@ -5,7 +5,7 @@ import { Suspense, useRef, useEffect, useState, useCallback } from 'react';
 import useSWR from 'swr';
 import { useParams, useRouter } from 'next/navigation';
 import { Save, Send, FileDown, Loader2 } from 'lucide-react';
-import type { DocumentEditorContainer } from '@syncfusion/ej2-react-documenteditor';
+import type { DocumentEditorContainer } from '@syncfusion/ej2-documenteditor';
 
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
