@@ -16,7 +16,7 @@ async function getSfdTemplateFromStorage(path: string): Promise<string> {
                             {
                                 "cells": [
                                     {
-                                        "blocks": [{ "inlines": [{ "text": "<<Company name>>", "characterFormat": { "bold": true } }] }],
+                                        "blocks": [{ "inlines": [{ "text": "{{company.name}}", "characterFormat": { "bold": true } }] }],
                                         "cellFormat": { "borders": { "border": { "hasNoneStyle": true } } }
                                     },
                                     {
@@ -99,7 +99,7 @@ async function getSfdTemplateFromStorage(path: string): Promise<string> {
                     {
                         "type": "Table",
                         "rows": [
-                            { "cells": [{ "blocks": [{ "inlines": [{ "text": "Analyst 1", "characterFormat": { "bold": true } }] }], "cellFormat": { "shading": { "backgroundColor": "rgb(4, 53, 102)" }, "fontColor":"#ffffff" } }, { "blocks": [{ "inlines": [{ "text": "Analyst 2", "characterFormat": { "bold": true } }] }], "cellFormat": { "shading": { "backgroundColor": "rgb(4, 53, 102)" }, "fontColor":"#ffffff" } }, { "blocks": [{ "inlines": [{ "text": "Group Head", "characterFormat": { "bold": true } }] }], "cellFormat": { "shading": { "backgroundColor": "rgb(4, 53, 102)" }, "fontColor":"#ffffff" } }, { "blocks": [{ "inlines": [{ "text": "Rating Head", "characterFormat": { "bold": true } }] }], "cellFormat": { "shading": { "backgroundColor": "rgb(4, 53, 102)" }, "fontColor":"#ffffff" } }] },
+                            { "cells": [{ "blocks": [{ "inlines": [{ "text": "Analyst 1", "characterFormat": { "bold": true, "fontColor": "#ffffff" } }] }], "cellFormat": { "shading": { "backgroundColor": "rgb(4, 53, 102)" }} }, { "blocks": [{ "inlines": [{ "text": "Analyst 2", "characterFormat": { "bold": true, "fontColor": "#ffffff" } }] }], "cellFormat": { "shading": { "backgroundColor": "rgb(4, 53, 102)" }} }, { "blocks": [{ "inlines": [{ "text": "Group Head", "characterFormat": { "bold": true, "fontColor": "#ffffff" } }] }], "cellFormat": { "shading": { "backgroundColor": "rgb(4, 53, 102)" }} }, { "blocks": [{ "inlines": [{ "text": "Rating Head", "characterFormat": { "bold": true, "fontColor": "#ffffff" } }] }], "cellFormat": { "shading": { "backgroundColor": "rgb(4, 53, 102)" }} }] },
                             { "cells": [{ "blocks": [{ "inlines": [{ "text": "{{analyst.analyst1}}" }] }] }, { "blocks": [{ "inlines": [{ "text": "{{analyst.analyst2}}" }] }] }, { "blocks": [{ "inlines": [{ "text": "{{analyst.groupHead}}" }] }] }, { "blocks": [{ "inlines": [{ "text": "{{analyst.ratingHead}}" }] }] }] }
                         ],
                         "tableFormat": { "borders": { "border": { "lineStyle": "Single", "lineWidth": 1 } } }
