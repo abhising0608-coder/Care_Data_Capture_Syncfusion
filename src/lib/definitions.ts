@@ -1,3 +1,4 @@
+
 export type Role = 'CKC_ANALYST' | 'CKC_CHECKER' | 'CKC_ADMIN' | 'RATING_ANALYST' | 'GROUP_HEAD' | 'RATING_HEAD_SD' | 'SYSTEM' | 'QC' | 'RATING_COMMITTEE';
 export type RequestStatus = 'PENDING' | 'ACCEPTED' | 'IN_PROGRESS' | 'SUBMITTED_FOR_CHECK' | 'SENT_BACK' | 'APPROVED' | 'CLOSED';
 
@@ -150,7 +151,8 @@ export interface RatingNote {
   priority: CompanyPriority;
   dueDate: string;
   status: NoteStatus;
-  raId: string; // Rating Analyst ID
+  currentActor: Role;
+  initiatedBy: string; // RA's ID
   ghId?: string; // Group Head ID
   qcId?: string; // QC ID
   ccId?: string; // Care Committee ID
@@ -162,4 +164,106 @@ export interface RatingNote {
       timestamp: string;
       actorId: string;
   }[];
+  // This will hold the full JSON data structure
+  ratingNoteData?: RatingNoteDataSchema; 
+}
+
+
+// --- New FSD-based Schema Definitions ---
+
+export interface DocumentMeta {
+  templateId: string;
+  templateVersion: string;
+  sector: string;
+  totalPagesExpected: number;
+  sfdtStoragePath: string;
+  language: string;
+  currency: string;
+  unit: string;
+}
+
+export interface WorkflowContext {
+  mandateId: string;
+  ratingType: string;
+  committeeDate: string;
+  currentStage: string;
+  status: string;
+}
+
+export interface DataBindings {
+  company: {
+    name: string;
+    cin: string;
+    incorporationDate: string;
+    natureOfBusiness: string;
+    groupName: string;
+    registeredOffice: string;
+    website: string;
+  };
+  management: {
+    ceo: string;
+    cfo: string;
+    chairman: string;
+    companySecretary: string;
+    employees: number;
+  };
+  rating: {
+    recommendedLongTerm: string;
+    recommendedShortTerm: string;
+    finalRating: string;
+    unsupportedRatings: string;
+    absenceOfPendingDocs: string;
+  };
+  analyst: {
+    analyst1: string;
+    analyst2: string;
+    groupHead: string;
+    ratingHead: string;
+  };
+}
+
+export interface TableRowData {
+  [key: string]: string | number;
+}
+
+export interface TableDefinition {
+  sfdtTableId: string;
+  repeatable?: boolean;
+  financialYearScoped?: boolean;
+  columns?: string[];
+  rows?: TableRowData[];
+  years?: string[];
+  metrics?: {
+    [metricName: string]: (string | number)[];
+  };
+}
+
+export interface Tables {
+  [tableName: string]: TableDefinition;
+}
+
+export interface Permissions {
+  [role: string]: {
+    editableSections?: string[];
+    readOnly?: boolean;
+  };
+}
+
+export interface Audit {
+  version: number;
+  lastSavedBy: string;
+  lastSavedRole: Role;
+  lastSavedAt: string;
+  changeSummary: string;
+}
+
+// This is the master schema for the entire rating note data
+export interface RatingNoteDataSchema {
+  documentMeta: DocumentMeta;
+  workflowContext: WorkflowContext;
+  dataBindings: DataBindings;
+  tables: Tables;
+  permissions: Permissions;
+  audit: Audit;
+  editorContent?: string; // To store the latest SFDT
 }

@@ -1,5 +1,103 @@
 
-import type { CKCRequest, AppUser, Role, RequestStatus, CompanyInfo, CompanyDashboard, RatingNote, NoteStatus } from './definitions';
+import type { CKCRequest, AppUser, Role, RequestStatus, CompanyInfo, RatingNote, NoteStatus, RatingNoteDataSchema } from './definitions';
+
+
+// --- FSD-based Master JSON Data Structure ---
+
+const getMasterRatingNoteData = (noteId: string, companyName: string): RatingNoteDataSchema => ({
+  documentMeta: {
+    templateId: "RATING_NOTE_PHARMA_V1",
+    templateVersion: "1.0",
+    sector: "PHARMA",
+    totalPagesExpected: 41,
+    sfdtStoragePath: "templates/pharma_rating_note_v1.sfdt", // Simulated path
+    language: "en-IN",
+    currency: "INR",
+    unit: "Crore"
+  },
+  workflowContext: {
+    mandateId: noteId.replace('NOTE', 'MAND'),
+    ratingType: "Surveillance",
+    committeeDate: "2026-01-15",
+    currentStage: "RATING_ANALYST",
+    status: "IN_PROGRESS"
+  },
+  dataBindings: {
+    company: {
+      name: companyName,
+      cin: "L24230MH2001PLC123456",
+      incorporationDate: "2001-04-12",
+      natureOfBusiness: "Pharmaceutical Formulations and APIs",
+      groupName: `${companyName} Group`,
+      registeredOffice: "Mumbai, Maharashtra",
+      website: `www.${companyName.toLowerCase().replace(/ /g, '')}.com`
+    },
+    management: {
+      ceo: "Mr. Rajesh Mehta",
+      cfo: "Ms. Neha Sharma",
+      chairman: "Mr. Suresh Mehta",
+      companySecretary: "Ms. Pooja Jain",
+      employees: 1850
+    },
+    rating: {
+      recommendedLongTerm: "CARE AA-; Stable",
+      recommendedShortTerm: "CARE A1+",
+      finalRating: "",
+      unsupportedRatings: "Nil",
+      absenceOfPendingDocs: "Yes"
+    },
+    analyst: {
+      analyst1: "Abhay Baghel",
+      analyst2: "Ankit Verma",
+      groupHead: "Sanjay Khanna",
+      ratingHead: "R. Narayanan"
+    }
+  },
+  tables: {
+    manufacturingFacilities: {
+      sfdtTableId: "TABLE_MFG_FACILITIES",
+      repeatable: true,
+      columns: ["location", "productSegment", "regulatoryApproval", "lastAudit"],
+      rows: [
+        { "location": "Ahmedabad, Gujarat", "productSegment": "Formulation (Oral Solid Dosage)", "regulatoryApproval": "USFDA", "lastAudit": "Oct-23" },
+        { "location": "Vapi, Gujarat", "productSegment": "API", "regulatoryApproval": "USFDA", "lastAudit": "Jun-23" }
+      ]
+    },
+    geographySales: {
+      sfdtTableId: "TABLE_GEO_SALES",
+      financialYearScoped: true,
+      rows: [
+        { "region": "Domestic", "FY22": 1926, "FY23": 2063, "FY24": 2200, "shareFY24": 44 },
+        { "region": "Export", "FY22": 2441, "FY23": 2424, "FY24": 2782, "shareFY24": 56 }
+      ]
+    },
+    financials: {
+        sfdtTableId: "TABLE_FINANCIALS",
+        years: ["FY22", "FY23", "FY24", "FY25P"],
+        metrics: {
+          "totalIncome": [4367, 4487, 4982, 5200],
+          "pbidlt": [780, 810, 890, 920],
+          "pat": [320, 340, 385, 410],
+          "totalDebt": [2100, 2250, 2380, 2400]
+        }
+    }
+  },
+  permissions: {
+    "RATING_ANALYST": { "editableSections": ["company", "financials", "rationale", "tables"] },
+    "GROUP_HEAD": { "editableSections": ["rating.finalRating", "rating.deviationComment"] },
+    "QC": { "editableSections": ["qcComments"] },
+    "OTHERS": { "readOnly": true }
+  },
+  audit: {
+    version: 1,
+    lastSavedBy: "System",
+    lastSavedRole: "SYSTEM",
+    lastSavedAt: new Date().toISOString(),
+    changeSummary: "Initial creation"
+  },
+  editorContent: "" // Start with empty editor content
+});
+
 
 let ratingNotes: RatingNote[] = [
     { 
@@ -10,7 +108,8 @@ let ratingNotes: RatingNote[] = [
         priority: 'High', 
         dueDate: '1 Jan 26', 
         status: 'Completed',
-        raId: 'rating.analyst@careedge',
+        currentActor: 'SYSTEM',
+        initiatedBy: 'rating.analyst@careedge',
         ghId: 'group.head@careedge',
         qcId: 'qc@careedge.com',
         ccId: 'cc@careedge.com',
@@ -23,7 +122,8 @@ let ratingNotes: RatingNote[] = [
             { status: 'In Review (CC)', timestamp: new Date().toISOString(), actorId: 'group.head@careedge' },
             { status: 'CC Approved', timestamp: new Date().toISOString(), actorId: 'cc@careedge.com' },
             { status: 'Completed', timestamp: new Date().toISOString(), actorId: 'group.head@careedge' },
-        ]
+        ],
+        ratingNoteData: getMasterRatingNoteData('NOTE-001', 'Sun Pharmaceutical Industries Limited')
     },
     { 
         id: 'NOTE-002', 
@@ -33,11 +133,13 @@ let ratingNotes: RatingNote[] = [
         priority: 'Medium', 
         dueDate: '3 Feb 26', 
         status: 'Draft',
-        raId: 'rating.analyst@careedge',
+        currentActor: 'RATING_ANALYST',
+        initiatedBy: 'rating.analyst@careedge',
         editorContent: '',
         statusHistory: [
             { status: 'Draft', timestamp: new Date().toISOString(), actorId: 'rating.analyst@careedge' }
-        ]
+        ],
+        ratingNoteData: getMasterRatingNoteData('NOTE-002', 'Dr. Reddy’s Laboratories Limited')
     },
     { 
         id: 'NOTE-003', 
@@ -47,13 +149,15 @@ let ratingNotes: RatingNote[] = [
         priority: 'Low', 
         dueDate: '10 Mar 26', 
         status: 'In Review (GH)',
-        raId: 'rating.analyst@careedge',
+        currentActor: 'GROUP_HEAD',
+        initiatedBy: 'rating.analyst@careedge',
         ghId: 'group.head@careedge',
         editorContent: '',
         statusHistory: [
              { status: 'Draft', timestamp: new Date().toISOString(), actorId: 'rating.analyst@careedge' },
              { status: 'In Review (GH)', timestamp: new Date().toISOString(), actorId: 'rating.analyst@careedge' }
-        ]
+        ],
+        ratingNoteData: getMasterRatingNoteData('NOTE-003', 'Cipla Limited')
     },
 ];
 
@@ -283,6 +387,21 @@ export const mockCompanies = [
     { id: 'COMP-101', companyName: 'Sun Pharmaceutical Industries Limited' },
     { id: 'COMP-102', companyName: 'Dr. Reddy’s Laboratories Limited' },
     { id: 'COMP-103', companyName: 'Cipla Limited' },
+    { id: 'COMP-104', companyName: 'Lupin Limited' },
+    { id: 'COMP-105', companyName: 'Aurobindo Pharma Limited' },
+    { id: 'COMP-106', companyName: 'Glenmark Pharmaceuticals Limited' },
+    { id: 'COMP-107', companyName: 'Torrent Pharmaceuticals Limited' },
+    { id: 'COMP-108', companyName: 'Alkem Laboratories Limited' },
+    { id: 'COMP-109', companyName: 'Divi’s Laboratories Limited' },
+    { id: 'COMP-110', companyName: 'Zydus Lifesciences Limited' },
+    { id: 'COMP-111', companyName: 'Abbott India Limited' },
+    { id: 'COMP-112', companyName: 'Biocon Limited' },
+    { id: 'COMP-113', companyName: 'IPCA Laboratories Limited' },
+    { id: 'COMP-114', companyName: 'Alembic Pharmaceuticals Limited' },
+    { id: 'COMP-115', companyName: 'Natco Pharma Limited' },
+    { id: 'COMP-116', companyName: 'Wockhardt Limited' },
+    { id: 'COMP-117', companyName: 'Laurus Labs Limited' },
+    { id: 'COMP-118', companyName: 'Ajanta Pharma Limited' },
 ];
 
 export const mockTemplates = [
@@ -338,21 +457,27 @@ let companyInfoData: Record<string, CompanyInfo> = {
 export const getNotesByRole = (role: Role, userId: string): RatingNote[] => {
     switch(role) {
         case 'RATING_ANALYST':
-            return ratingNotes.filter(note => note.raId === userId && ['Draft', 'Rework Requested', 'Rework Requested (GH)', 'Pending RR & PR (RA)'].includes(note.status));
+            // RA sees all notes they initiated, regardless of current actor
+            return ratingNotes.filter(note => note.initiatedBy === userId);
         case 'GROUP_HEAD':
-            return ratingNotes.filter(note => note.ghId === userId && ['In Review (GH)', 'Rework Requested (GH)', 'QC Approved', 'CC Approved', 'In Final Review (GH)'].includes(note.status));
         case 'QC':
-             return ratingNotes.filter(note => note.status === 'In Review (QC)');
         case 'RATING_COMMITTEE':
-            return ratingNotes.filter(note => note.status === 'In Review (CC)');
+             // Other roles see notes only when they are the current actor
+            return ratingNotes.filter(note => note.currentActor === role);
         default:
-            // Return all notes for admin-like roles or an empty array for others
+            // Admin-like roles can see everything
             return ['CKC_ADMIN', 'SYSTEM'].includes(role) ? ratingNotes : [];
     }
 }
 
 export const getNoteById = (id: string): RatingNote | undefined => {
   const note = ratingNotes.find(r => r.id === id);
+  if (!note) return undefined;
+
+  // If the note doesn't have the new data structure, create it on the fly
+  if (!note.ratingNoteData) {
+      note.ratingNoteData = getMasterRatingNoteData(note.id, note.companyName);
+  }
   return note ? JSON.parse(JSON.stringify(note)) : undefined;
 };
 
@@ -360,8 +485,16 @@ export const updateNote = (id: string, updates: Partial<RatingNote>): RatingNote
     const noteIndex = ratingNotes.findIndex(r => r.id === id);
     if (noteIndex === -1) return null;
     
+    // Ensure we're not overwriting the whole object, but merging updates
     const originalNote = ratingNotes[noteIndex];
-    const updatedNote = { ...originalNote, ...updates };
+    const updatedNote = { 
+        ...originalNote, 
+        ...updates,
+        // If ratingNoteData is part of the update, merge it deeply
+        ratingNoteData: updates.ratingNoteData 
+            ? { ...originalNote.ratingNoteData, ...updates.ratingNoteData } as RatingNoteDataSchema
+            : originalNote.ratingNoteData
+    };
 
     ratingNotes[noteIndex] = updatedNote;
     return JSON.parse(JSON.stringify(updatedNote));
@@ -378,29 +511,40 @@ export const updateNoteStatus = (id: string, newStatus: NoteStatus, actorId: str
         actorId,
     });
     
-    if (editorContent) {
-        note.editorContent = editorContent;
+    if (editorContent && note.ratingNoteData) {
+        note.ratingNoteData.editorContent = editorContent;
     }
     
-    // Assign to specific roles on status change
+    // Update currentActor based on the new status
     switch (newStatus) {
         case 'In Review (GH)':
-            note.ghId = 'group.head@careedge';
+            note.currentActor = 'GROUP_HEAD';
             break;
         case 'In Review (QC)':
-            note.qcId = 'qc@careedge.com';
+            note.currentActor = 'QC';
             break;
         case 'In Review (CC)':
-            note.ccId = 'cc@careedge.com';
+            note.currentActor = 'RATING_COMMITTEE';
             break;
         case 'Rework Requested': // GH sends back to RA
-             note.raId = note.raId; // Stays with original RA
+             note.currentActor = 'RATING_ANALYST';
              break;
+        case 'QC Approved':
+        case 'CC Approved':
         case 'Rework Requested (GH)': // QC or CC sends back to GH
-            note.ghId = note.ghId; // Stays with original GH
+            note.currentActor = 'GROUP_HEAD';
             break;
         case 'Pending RR & PR (RA)':
-            note.raId = note.raId; // Assign back to RA
+            note.currentActor = 'RATING_ANALYST';
+            break;
+         case 'In Final Review (GH)':
+            note.currentActor = 'GROUP_HEAD';
+            break;
+        case 'Draft':
+             note.currentActor = 'RATING_ANALYST';
+             break;
+        case 'Completed':
+            note.currentActor = 'SYSTEM';
             break;
     }
     
