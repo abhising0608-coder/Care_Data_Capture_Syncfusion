@@ -123,7 +123,7 @@ async function getSfdTemplateFromStorage(path: string): Promise<string> {
                         "tableFormat": { "borders": { "border": { "lineStyle": "Single", "lineWidth": 1 } }, "cellSpacing": 0, "leftIndent": 0 }
                     },
                     { "paragraphFormat": { "spaceAfter": 12 } },
-                    {
+                     {
                         "inlines": [
                             { "text": "QC/Sector Specialist: <NAME> (", "characterFormat": { "fontSize": 10 } },
                             { "text": "Click here", "characterFormat": { "fontColor": "rgb(0, 0, 255)", "underline": "Single", "fontSize": 10 }, "navigationLink": "#qc-comments" },
