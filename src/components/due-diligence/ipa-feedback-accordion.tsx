@@ -153,10 +153,10 @@ export function IPAFeedbackAccordion({ firms, companyId }: IPAFeedbackAccordionP
                                                 <TableCell><Badge variant={statusVariant(contact.status!)}>{contact.status}</Badge></TableCell>
                                                 <TableCell className="text-right">
                                                     <div className="flex gap-1 justify-end">
-                                                        <Button variant="ghost" size="icon" onClick={() => toast({title: "Placeholder", description: "Navigate to IPA feedback capture page."})}>
+                                                        <Button variant="ghost" size="icon" onClick={() => toast({title: "Placeholder", description: "Navigate to IPA feedback capture page."})} disabled={contact.discussionHappened !== 'Yes'}>
                                                             <Eye className="h-4 w-4" />
                                                         </Button>
-                                                        <Button variant="ghost" size="icon" onClick={() => openEmailModal(contact)}><Mail className="h-4 w-4" /></Button>
+                                                        <Button variant="ghost" size="icon" onClick={() => openEmailModal(contact)} disabled={contact.discussionHappened !== 'No'}><Mail className="h-4 w-4" /></Button>
                                                         <Button variant="ghost" size="icon" onClick={() => openUploadModal(contact)}><Upload className="h-4 w-4" /></Button>
                                                     </div>
                                                 </TableCell>
