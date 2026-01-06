@@ -1,4 +1,5 @@
 
+
 export type Role = 'CKC_ANALYST' | 'CKC_CHECKER' | 'CKC_ADMIN' | 'RATING_ANALYST' | 'GROUP_HEAD' | 'RATING_HEAD_SD' | 'SYSTEM' | 'QC' | 'RATING_COMMITTEE';
 export type RequestStatus = 'PENDING' | 'ACCEPTED' | 'IN_PROGRESS' | 'SUBMITTED_FOR_CHECK' | 'SENT_BACK' | 'APPROVED' | 'CLOSED';
 
@@ -17,6 +18,8 @@ export type NoteStatus =
   | 'Completed';
 
 export type CompanyPriority = 'High' | 'Medium' | 'Low';
+
+export type DTFeedbackStatus = 'Pending' | 'In Progress' | 'Completed';
 
 
 export type StatusHistory = {
@@ -142,6 +145,24 @@ export type CompanyInfo = {
     lastUpdatedAt: string;
   };
 };
+
+export interface DTContact {
+    id: string;
+    name: string;
+    email: string;
+    contact: string;
+    discussionHappened: 'Yes' | 'No';
+    minutesCaptured: 'Yes' | 'No' | 'Partial';
+    minutesCapturedOn: string | null;
+    status: DTFeedbackStatus;
+}
+
+export interface DTFirm {
+    id: string;
+    firmName: string;
+    contacts: DTContact[];
+}
+
 
 export interface RatingNote {
   id: string;

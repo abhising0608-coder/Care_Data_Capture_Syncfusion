@@ -1,5 +1,6 @@
 
-import type { CKCRequest, AppUser, Role, RequestStatus, CompanyInfo, RatingNote, NoteStatus, RatingNoteDataSchema } from './definitions';
+
+import type { CKCRequest, AppUser, Role, RequestStatus, CompanyInfo, RatingNote, NoteStatus, RatingNoteDataSchema, DTFirm, DTContact, DTFeedbackStatus } from './definitions';
 
 
 // --- FSD-based Master JSON Data Structure ---
@@ -385,24 +386,12 @@ let operationalInputData: Record<string, any> = {
 };
 
 export const mockCompanies = [
-    { id: 'COMP-101', companyName: 'Sun Pharmaceutical Industries Limited' },
-    { id: 'COMP-102', companyName: 'Dr. Reddy’s Laboratories Limited' },
-    { id: 'COMP-103', companyName: 'Cipla Limited' },
-    { id: 'COMP-104', companyName: 'Lupin Limited' },
-    { id: 'COMP-105', companyName: 'Aurobindo Pharma Limited' },
-    { id: 'COMP-106', companyName: 'Glenmark Pharmaceuticals Limited' },
-    { id: 'COMP-107', companyName: 'Torrent Pharmaceuticals Limited' },
-    { id: 'COMP-108', companyName: 'Alkem Laboratories Limited' },
-    { id: 'COMP-109', companyName: 'Divi’s Laboratories Limited' },
-    { id: 'COMP-110', companyName: 'Zydus Lifesciences Limited' },
-    { id: 'COMP-111', companyName: 'Abbott India Limited' },
-    { id: 'COMP-112', companyName: 'Biocon Limited' },
-    { id: 'COMP-113', companyName: 'IPCA Laboratories Limited' },
-    { id: 'COMP-114', companyName: 'Alembic Pharmaceuticals Limited' },
-    { id: 'COMP-115', companyName: 'Natco Pharma Limited' },
-    { id: 'COMP-116', companyName: 'Wockhardt Limited' },
-    { id: 'COMP-117', companyName: 'Laurus Labs Limited' },
-    { id: 'COMP-118', companyName: 'Ajanta Pharma Limited' },
+    { id: 'COMP-101', companyName: 'Sun Pharmaceutical Industries Limited', ratingAnalystId: 'rating.analyst@careedge', groupHeadId: 'group.head@careedge' },
+    { id: 'COMP-102', companyName: 'Dr. Reddy’s Laboratories Limited', ratingAnalystId: 'rating.analyst@careedge', groupHeadId: 'group.head@careedge' },
+    { id: 'COMP-103', companyName: 'Cipla Limited', ratingAnalystId: 'rating.analyst@careedge', groupHeadId: 'group.head@careedge' },
+    { id: 'COMP-104', companyName: 'Lupin Limited', ratingAnalystId: 'another.analyst', groupHeadId: 'another.gh' },
+    { id: 'COMP-105', companyName: 'Aurobindo Pharma Limited', ratingAnalystId: 'rating.analyst@careedge', groupHeadId: 'group.head@careedge' },
+    { id: 'COMP-106', companyName: 'Glenmark Pharmaceuticals Limited', ratingAnalystId: 'another.analyst', groupHeadId: 'group.head@careedge' },
 ];
 
 export const mockTemplates = [
@@ -417,6 +406,35 @@ export const mockCriteria = [
     { id: 'criteria-003', name: 'Criteria for Bank Loans' },
     { id: 'criteria-004', name: 'Parent and Group Support' },
 ];
+
+let dtFeedbackData: Record<string, DTFirm[]> = {
+    'COMP-101': [
+        {
+            id: 'DTF-001',
+            firmName: 'ABC Associates',
+            contacts: [
+                { id: 'DTC-001', name: 'John Doe', email: 'john.doe@abcfirm.com', contact: '9876543210', discussionHappened: 'No', minutesCaptured: 'No', minutesCapturedOn: null, status: 'Pending' },
+                { id: 'DTC-002', name: 'Jane Smith', email: 'jane.smith@abcfirm.com', contact: '8765432109', discussionHappened: 'No', minutesCaptured: 'No', minutesCapturedOn: null, status: 'Pending' },
+            ]
+        },
+         {
+            id: 'DTF-002',
+            firmName: 'PR Firm',
+            contacts: [
+                { id: 'DTC-003', name: 'Peter Jones', email: 'peter.jones@prfirm.com', contact: '7654321098', discussionHappened: 'No', minutesCaptured: 'No', minutesCapturedOn: null, status: 'Pending' },
+            ]
+        }
+    ],
+    'COMP-102': [
+        {
+            id: 'DTF-003',
+            firmName: 'New India Associates',
+            contacts: [
+                 { id: 'DTC-004', name: 'Sam Wilson', email: 'sam.wilson@newindia.com', contact: '6543210987', discussionHappened: 'No', minutesCaptured: 'No', minutesCapturedOn: null, status: 'Pending' },
+            ]
+        }
+    ]
+};
 
 
 let companyInfoData: Record<string, CompanyInfo> = {
@@ -442,7 +460,11 @@ let companyInfoData: Record<string, CompanyInfo> = {
         contactDetails: [],
         auditorDetails: [],
         bankerDetails: [],
-        dtDetails: [],
+        dtDetails: [
+            { id: 'DT-001', firmName: 'ABC Associates', contactPerson: 'John Doe', emailId: 'john.doe@abcfirm.com', contactNo: '9876543210' },
+            { id: 'DT-002', firmName: 'ABC Associates', contactPerson: 'Jane Smith', emailId: 'jane.smith@abcfirm.com', contactNo: '8765432109' },
+            { id: 'DT-003', firmName: 'PR Firm', contactPerson: 'Peter Jones', emailId: 'peter.jones@prfirm.com', contactNo: '7654321098' },
+        ],
         ipaDetails: [],
         thirdPartyDetails: [],
         syncStatus: {
@@ -455,7 +477,56 @@ let companyInfoData: Record<string, CompanyInfo> = {
 
 // --- New Rating Note Data Functions ---
 
+export const getCompaniesByRole = (user: AppUser | null) => {
+    if (!user) return [];
+    switch (user.role) {
+        case 'RATING_ANALYST':
+            return mockCompanies.filter(c => c.ratingAnalystId === user.uid);
+        case 'GROUP_HEAD':
+            return mockCompanies.filter(c => c.groupHeadId === user.uid);
+        case 'RATING_HEAD_SD':
+             return mockCompanies; // Assuming RH sees all
+        default:
+            return mockCompanies; // Other roles see all for now
+    }
+};
+
+export const getDTFeedbackByCompanyId = (companyId: string): DTFirm[] => {
+    return dtFeedbackData[companyId] || [];
+}
+
+export const updateDTFeedback = (companyId: string, firmId: string, contactId: string, updates: Partial<DTContact>) => {
+    const firms = dtFeedbackData[companyId];
+    if (firms) {
+        const firm = firms.find(f => f.id === firmId);
+        if (firm) {
+            const contact = firm.contacts.find(c => c.id === contactId);
+            if (contact) {
+                Object.assign(contact, updates);
+
+                // Derive status
+                if (contact.minutesCaptured === 'Yes') {
+                    contact.status = 'Completed';
+                } else if (contact.minutesCaptured === 'Partial' || contact.discussionHappened === 'Yes') {
+                    contact.status = 'In Progress';
+                } else {
+                    contact.status = 'Pending';
+                }
+                 if(contact.minutesCaptured !== 'No') {
+                    contact.minutesCapturedOn = new Date().toISOString();
+                } else {
+                    contact.minutesCapturedOn = null;
+                }
+
+                return contact;
+            }
+        }
+    }
+    return null;
+};
+
 export const getNotesByRole = (role: Role, userId: string): RatingNote[] => {
+    if (!userId) return [];
     switch(role) {
         case 'RATING_ANALYST':
             // RA sees all notes they initiated, regardless of current actor
@@ -467,7 +538,7 @@ export const getNotesByRole = (role: Role, userId: string): RatingNote[] => {
             return ratingNotes.filter(note => note.currentActor === role);
         default:
             // Admin-like roles can see everything
-            return ['CKC_ADMIN', 'SYSTEM'].includes(role) ? ratingNotes : [];
+            return ['CKC_ADMIN', 'SYSTEM', 'RATING_HEAD_SD'].includes(role) ? ratingNotes : [];
     }
 }
 

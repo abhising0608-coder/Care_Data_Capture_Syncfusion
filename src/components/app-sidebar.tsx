@@ -9,11 +9,15 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarFooter,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubContent,
 } from '@/components/ui/sidebar';
 import {
   LayoutDashboard,
   FileText,
   TestTube2,
+  Briefcase,
 } from 'lucide-react';
 import { useAuth } from '@/firebase';
 
@@ -28,6 +32,14 @@ const menuItems = [
     label: 'CKC Requests',
     icon: FileText,
   },
+  {
+    id: 'due-diligence',
+    label: 'Due Diligence',
+    icon: Briefcase,
+    subItems: [
+        { href: '/due-diligence/dt-feedback', label: 'DT Feedback' },
+    ]
+  },
    {
     href: '/e2e-test',
     label: 'E2E Test Runner',
@@ -39,6 +51,12 @@ export function AppSidebar() {
   const pathname = usePathname();
   const { user } = useAuth();
 
+  const isSubItemActive = (subItems: any[] | undefined) => {
+    if (!subItems) return false;
+    return subItems.some(item => pathname.startsWith(item.href));
+  };
+
+
   return (
     <Sidebar>
       <SidebarHeader className="p-4 flex items-center justify-center">
@@ -47,18 +65,38 @@ export function AppSidebar() {
       <SidebarContent>
         <SidebarMenu>
           {menuItems.map((item) => (
-            <SidebarMenuItem key={item.href}>
-              <SidebarMenuButton
-                asChild
-                isActive={pathname === item.href}
-                tooltip={{ children: item.label, side: 'right' }}
-                className="justify-start"
-              >
-                <a href={item.href}>
-                  <item.icon className="h-4 w-4" />
-                  <span className="text-sm">{item.label}</span>
-                </a>
-              </SidebarMenuButton>
+            <SidebarMenuItem key={item.href || item.id}>
+                {item.subItems ? (
+                     <SidebarMenuSub>
+                        <SidebarMenuButton
+                            isActive={pathname.startsWith(`/${item.id}`)}
+                            tooltip={{ children: item.label, side: 'right' }}
+                            className="justify-start"
+                            >
+                            <item.icon className="h-4 w-4" />
+                            <span className="text-sm">{item.label}</span>
+                        </SidebarMenuButton>
+                        <SidebarMenuSubContent>
+                            {item.subItems.map(subItem => (
+                                <SidebarMenuSubButton key={subItem.href} asChild isActive={pathname === subItem.href}>
+                                     <a href={subItem.href}>{subItem.label}</a>
+                                </SidebarMenuSubButton>
+                            ))}
+                        </SidebarMenuSubContent>
+                    </SidebarMenuSub>
+                ) : (
+                    <SidebarMenuButton
+                        asChild
+                        isActive={pathname === item.href}
+                        tooltip={{ children: item.label, side: 'right' }}
+                        className="justify-start"
+                    >
+                        <a href={item.href!}>
+                        <item.icon className="h-4 w-4" />
+                        <span className="text-sm">{item.label}</span>
+                        </a>
+                    </SidebarMenuButton>
+                 )}
             </SidebarMenuItem>
           ))}
         </SidebarMenu>
