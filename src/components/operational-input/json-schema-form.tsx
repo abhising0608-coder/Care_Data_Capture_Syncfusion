@@ -19,7 +19,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useEffect, useMemo, useState } from 'react';
 import { Skeleton } from '../ui/skeleton';
-import { PlusCircle, Trash2, Check, RefreshCw, Pencil, X, ChevronsUp, ChevronsDown, ArrowRight } from 'lucide-react';
+import { PlusCircle, Trash2, Check, RefreshCw, Pencil, X, ChevronsUp, ChevronsDown, Save } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { SyncfusionSpreadsheet } from './syncfusion-spreadsheet';
 import { GeographyWiseSalesSpreadsheet } from './geography-wise-sales-spreadsheet';
@@ -499,8 +499,8 @@ export function JsonSchemaForm({ schema, onSubmit, onCancel, requestId, dataKey,
             </Accordion>
             <div className="flex justify-end gap-4">
               <Button type="submit">
-                {submitButtonText || (isLastStep ? 'Finish' : 'Save & Continue')}
-                <ArrowRight className="ml-2 h-4 w-4" />
+                <Save className="h-4 w-4" />
+                {submitButtonText || (isLastStep ? 'Finish' : 'Save & Mark as Complete')}
               </Button>
             </div>
           </form>

@@ -64,14 +64,13 @@ export default function OperationalInputFlowPage() {
             });
             
             mutate(payload, false);
+            completeStep('operational-input');
 
             toast({
                 title: 'Data Saved',
                 description: `Operational data has been saved successfully.`,
             });
             
-            completeStep('operational-input');
-            router.push(`/due-diligence/${ratingCycleId}`);
         } catch (error) {
             console.error("Failed to save data:", error);
             toast({
@@ -102,7 +101,7 @@ export default function OperationalInputFlowPage() {
                             requestId={ratingCycleId!}
                             dataKey={dataKey}
                             isLastStep={false}
-                            submitButtonText="Save & Continue to Next Step"
+                            submitButtonText="Save & Mark as Complete"
                         />
                     )}
                 </Suspense>

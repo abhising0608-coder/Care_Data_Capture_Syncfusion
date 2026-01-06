@@ -32,7 +32,6 @@ export function WorkflowStepper() {
   }
 
   const currentStepId = getStepIdFromPath();
-  const currentStepIndex = workflowSteps.findIndex(step => step.id === currentStepId);
 
   const getStepHref = (stepId: string) => {
       if (!ratingCycleId) return '#';
@@ -49,13 +48,14 @@ export function WorkflowStepper() {
     <nav aria-label="Progress">
       <ol role="list" className="space-y-4 md:flex md:space-x-8 md:space-y-0">
         {workflowSteps.map((step, stepIdx) => {
-          const isCompleted = completedSteps.includes(step.id) && step.id !== currentStepId;
+          const isCompleted = completedSteps.includes(step.id);
           const isCurrent = step.id === currentStepId;
 
           let status: 'complete' | 'current' | 'upcoming' = 'upcoming';
           if (isCompleted) {
             status = 'complete';
-          } else if (isCurrent) {
+          }
+          if (isCurrent) {
             status = 'current';
           }
           
@@ -69,7 +69,7 @@ export function WorkflowStepper() {
           );
           
            const mainTextClasses = cn("text-sm font-medium", {
-            "text-green-600": status === 'complete',
+            "text-green-600 group-hover:text-green-800": status === 'complete',
             "text-primary": status === 'current',
             "text-muted-foreground group-hover:text-foreground": status === 'upcoming',
           });
@@ -82,8 +82,8 @@ export function WorkflowStepper() {
           return (
             <li key={step.name} className="md:flex-1">
               <Link
-                  href={isCompleted ? getStepHref(step.id) : '#'}
-                  className={cn(stepClasses, !isCompleted && "pointer-events-none")}
+                  href={getStepHref(step.id)}
+                  className={stepClasses}
                   aria-current={status === 'current' ? 'step' : undefined}
                 >
                 <span className="flex items-center">
@@ -92,8 +92,8 @@ export function WorkflowStepper() {
                 </span>
                 <span className={subTextClasses}>
                     {status === 'complete' && 'Completed'}
-                    {status === 'current' && 'Current Step'}
-                    {status === 'upcoming' && 'Upcoming'}
+                    {status === 'current' && 'In Progress'}
+                    {status === 'upcoming' && 'Not Started'}
                   </span>
                 </Link>
             </li>

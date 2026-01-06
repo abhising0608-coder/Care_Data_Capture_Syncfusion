@@ -2,19 +2,24 @@
 
 import { Button } from "@/components/ui/button";
 import { useWorkflow } from "@/context/workflow-context";
-import { ArrowRight } from "lucide-react";
+import { Save } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
+import { useToast } from "@/hooks/use-toast";
 
 export default function ManageInstrumentPage() {
   const router = useRouter();
   const params = useParams();
   const { completeStep } = useWorkflow();
   const ratingCycleId = params.ratingCycleId as string;
+  const { toast } = useToast();
 
   const handleSubmit = () => {
     // TODO: Add actual data saving logic
     completeStep('manage-instrument');
-    router.push(`/notes/new/${ratingCycleId}`);
+    toast({
+      title: 'Manage Instrument Complete',
+      description: 'Step has been marked as complete.',
+    });
   };
 
   return (
@@ -33,8 +38,8 @@ export default function ManageInstrumentPage() {
       
        <div className="flex justify-end gap-4">
           <Button type="button" onClick={handleSubmit}>
-            Save & Continue
-            <ArrowRight className="ml-2 h-4 w-4" />
+            <Save className="mr-2 h-4 w-4" />
+            Save & Mark as Complete
           </Button>
       </div>
     </div>

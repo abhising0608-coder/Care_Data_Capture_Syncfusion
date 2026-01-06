@@ -14,7 +14,7 @@ import type { CompanyInfo, Role } from '@/lib/definitions';
 import { Skeleton } from '@/components/ui/skeleton';
 import { CompanyMasterInfo } from '@/components/company-information/company-master-info';
 import { DetailBlock } from '@/components/company-information/detail-block';
-import { Save, Ban, ArrowRight } from 'lucide-react';
+import { Save } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useWorkflow } from '@/context/workflow-context';
 
@@ -121,13 +121,12 @@ export default function CompanyInformationPage() {
             }
 
             mutate(`/api/rating-workflow/company-info/${ratingCycleId}`);
+            completeStep('company-information');
             toast({
                 title: 'Success',
-                description: 'Company information has been saved.',
+                description: 'Company information has been saved and step marked as complete.',
             });
-            completeStep('company-information');
-            router.push(`/operational-input/${ratingCycleId}`);
-
+            
         } catch (e: any) {
             console.error(e);
             toast({
@@ -170,8 +169,8 @@ export default function CompanyInformationPage() {
                         <div className="flex items-center gap-4">
                             {!isReadOnly && (
                                 <Button type="submit">
-                                    Save & Continue to Next Step
-                                    <ArrowRight className="ml-2 h-4 w-4" />
+                                    <Save className="mr-2 h-4 w-4" />
+                                    Save & Mark as Complete
                                 </Button>
                             )}
                         </div>
