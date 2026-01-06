@@ -149,7 +149,7 @@ export type CompanyInfo = {
 export type QuestionnaireItem = {
   srNo: number;
   particulars: string;
-  remarks: string;
+  remarks?: string;
 };
 
 export interface DTContact {
@@ -297,5 +297,3 @@ export interface RatingNoteDataSchema {
   audit: Audit;
   editorContent?: string; // To store the latest SFDT
 }
-
-    

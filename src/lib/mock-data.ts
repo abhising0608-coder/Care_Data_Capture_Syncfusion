@@ -551,30 +551,30 @@ export const updateDTFeedback = (companyId: string, firmId: string, contactId: s
     if (firms) {
         const firm = firms.find(f => f.id === firmId);
         if (firm) {
-            const contact = firm.contacts.find(c => c.id === contactId);
-            if (contact) {
-                Object.assign(contact, updates);
+            const contactIndex = firm.contacts.findIndex(c => c.id === contactId);
+            if (contactIndex !== -1) {
+                const originalContact = firm.contacts[contactIndex];
+                
+                // Merge updates
+                const updatedContact = { ...originalContact, ...updates };
 
-                // Derive status
+                // Derive status logic
                 if (updates.status === 'Completed') {
-                    contact.minutesCaptured = 'Yes';
+                    updatedContact.minutesCaptured = 'Yes';
                 } else if (updates.summary || (updates.questionnaire && updates.questionnaire.some(q => q.remarks))) {
-                    contact.status = 'In Progress';
-                    contact.minutesCaptured = 'Partial';
+                    updatedContact.status = 'In Progress';
+                    updatedContact.minutesCaptured = 'Partial';
                 } else if (updates.discussionHappened === 'No') {
-                     contact.status = 'In Progress';
-                     contact.minutesCaptured = 'No';
-                } else {
-                     contact.status = 'Pending';
-                     contact.minutesCaptured = 'No';
+                     updatedContact.status = 'In Progress';
+                     updatedContact.minutesCaptured = 'No';
                 }
 
-
-                if (updates.minutesCaptured && updates.minutesCaptured !== 'No') {
-                    contact.minutesCapturedOn = new Date().toISOString();
+                if (!updatedContact.minutesCapturedOn && (updatedContact.minutesCaptured === 'Partial' || updatedContact.minutesCaptured === 'Yes')) {
+                    updatedContact.minutesCapturedOn = new Date().toISOString();
                 }
 
-                return contact;
+                firm.contacts[contactIndex] = updatedContact;
+                return updatedContact;
             }
         }
     }
@@ -865,5 +865,3 @@ export const saveCompanyInfo = (ratingCycleId: string, data: CompanyInfo): Compa
     companyInfoData[ratingCycleId] = data;
     return JSON.parse(JSON.stringify(data));
 }
-
-    

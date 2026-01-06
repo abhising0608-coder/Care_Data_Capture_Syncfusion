@@ -32,18 +32,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: 'Missing required parameters for update' }, { status: 400 });
   }
   
-  const existingRecord = getDTFeedbackByContactId(companyId, firmId, contactId);
-
-  let result;
-  if(existingRecord && existingRecord.contact.status) {
-    result = updateDTFeedback(companyId, firmId, contactId, updates);
-  } else {
-    result = createDTRecord(companyId, firmId, contactId, updates.discussionHappened as 'Yes' | 'No');
-  }
-
+  const result = updateDTFeedback(companyId, firmId, contactId, updates);
 
   if (!result) {
-      return NextResponse.json({ message: 'Failed to update or create feedback' }, { status: 500 });
+      return NextResponse.json({ message: 'Failed to update feedback' }, { status: 500 });
   }
 
   return NextResponse.json(result);

@@ -1,11 +1,11 @@
 'use client';
 
 import { useParams, useRouter } from 'next/navigation';
-import useSWR from 'swr';
+import useSWR, { useSWRConfig } from 'swr';
 import { useForm, FormProvider, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { useEffect, useMemo } from 'react';
+import { useEffect } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -16,6 +16,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Save, Mail, ArrowLeft, Download } from 'lucide-react';
 import type { DTFirm, DTContact, QuestionnaireItem } from '@/lib/definitions';
+import { useAuth } from '@/firebase';
 
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
@@ -43,9 +44,11 @@ export default function DTFeedbackCapturePage() {
     const params = useParams();
     const router = useRouter();
     const { toast } = useToast();
+    const { mutate } = useSWRConfig();
+    const { user } = useAuth();
     const [companyId, firmId, contactId] = params.slug || [];
 
-    const { data, error, isLoading, mutate } = useSWR<{ firm: DTFirm, contact: DTContact }>(
+    const { data, error, isLoading } = useSWR<{ firm: DTFirm, contact: DTContact }>(
         companyId && firmId && contactId ? `/api/due-diligence/dt-feedback?companyId=${companyId}&firmId=${firmId}&contactId=${contactId}` : null,
         fetcher
     );
@@ -79,8 +82,7 @@ export default function DTFeedbackCapturePage() {
         }
 
         const newStatus = isFinal ? 'Completed' : 'In Progress';
-        const newMinutesCaptured = isFinal ? 'Yes' : 'Partial';
-
+        
         try {
             await fetch('/api/due-diligence/dt-feedback', {
                 method: 'POST',
@@ -91,11 +93,11 @@ export default function DTFeedbackCapturePage() {
                         questionnaire: formData.questionnaire,
                         summary: formData.summary,
                         status: newStatus,
-                        minutesCaptured: newMinutesCaptured,
                     }
                 }),
             });
-            mutate(); // revalidate SWR
+            
+            mutate(`/api/due-diligence/dt-feedback?companyId=${companyId}`);
             toast({ title: 'Success', description: `Feedback saved ${isFinal ? 'and marked as complete' : 'as draft'}.` });
             if (isFinal) {
                 router.back();
@@ -105,7 +107,7 @@ export default function DTFeedbackCapturePage() {
         }
     };
 
-    const isReadOnly = data?.contact?.status === 'Completed';
+    const isReadOnly = data?.contact?.status === 'Completed' || (user && user.role !== 'RATING_ANALYST');
 
 
     if (isLoading) {
@@ -217,11 +219,11 @@ export default function DTFeedbackCapturePage() {
                         <Button type="button" variant="outline" disabled={isReadOnly} onClick={() => toast({title: "Placeholder", description: "Export to PDF functionality to be implemented."})}>
                             <Download className="mr-2 h-4 w-4" />Export PDF
                         </Button>
-                        <Button type="button" variant="outline" disabled={isReadOnly} onClick={() => toast({title: "Placeholder", description: "Email to DT functionality to be implemented."})}>
-                            <Mail className="mr-2 h-4 w-4" />Email to DT
-                        </Button>
                          {!isReadOnly && (
                             <>
+                                <Button type="button" variant="outline" onClick={() => toast({title: "Placeholder", description: "Email to DT functionality to be implemented."})}>
+                                    <Mail className="mr-2 h-4 w-4" />Email to DT
+                                </Button>
                                 <Button type="button" variant="outline" onClick={form.handleSubmit(data => handleSave(data, false))}>
                                     <Save className="mr-2 h-4 w-4" />Save Draft
                                 </Button>
