@@ -20,7 +20,7 @@ import { useAuth } from '@/firebase';
 const menuItems = [
   {
     href: '/dashboard',
-    label: 'Dashboard',
+    label: 'Company Listing Page',
     icon: LayoutDashboard,
   },
   {

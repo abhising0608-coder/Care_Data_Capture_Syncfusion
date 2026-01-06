@@ -311,7 +311,7 @@ export default function DashboardClient() {
   return (
     <div className="w-full">
         <div className="flex items-center py-4">
-            <h1 className="text-2xl font-semibold">Dashboard</h1>
+            <h1 className="text-2xl font-semibold">Company Listing Page</h1>
             <div className="ml-auto relative">
                 <Input
                 placeholder="Search companies..."

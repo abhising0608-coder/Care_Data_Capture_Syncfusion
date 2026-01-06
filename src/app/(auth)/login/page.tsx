@@ -72,7 +72,7 @@ export default function LoginPage() {
 
             toast({
               title: 'Login Successful',
-              description: `Redirecting to your dashboard as ${role.replace('_', ' ')}.`,
+              description: `Redirecting to the company listing page as ${role.replace('_', ' ')}.`,
             });
             router.push('/dashboard');
         } else {
