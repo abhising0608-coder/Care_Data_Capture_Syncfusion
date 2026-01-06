@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getDTFeedbackByCompanyId, updateDTFeedback } from '@/lib/mock-data';
+import { getDTFeedbackByCompanyId, updateDTFeedback, createDTRecord } from '@/lib/mock-data';
 import type { DTContact } from '@/lib/definitions';
 
 export async function GET(request: Request) {
@@ -16,7 +16,21 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const { companyId, firmId, contactId, updates } = await request.json() as { 
+  const body = await request.json();
+
+  if (body.action === 'create') {
+      const { companyId, firmId, contactId, discussionHappened } = body;
+       if (!companyId || !firmId || !contactId || !discussionHappened) {
+            return NextResponse.json({ message: 'Missing required parameters for creation' }, { status: 400 });
+       }
+       const newRecord = createDTRecord(companyId, firmId, contactId, discussionHappened);
+       if (!newRecord) {
+           return NextResponse.json({ message: 'Failed to create record' }, { status: 500 });
+       }
+       return NextResponse.json(newRecord);
+  }
+
+  const { companyId, firmId, contactId, updates } = body as { 
       companyId: string, 
       firmId: string, 
       contactId: string, 
@@ -24,7 +38,7 @@ export async function POST(request: Request) {
   };
 
   if (!companyId || !firmId || !contactId || !updates) {
-    return NextResponse.json({ message: 'Missing required parameters' }, { status: 400 });
+    return NextResponse.json({ message: 'Missing required parameters for update' }, { status: 400 });
   }
   
   const updatedContact = updateDTFeedback(companyId, firmId, contactId, updates);
@@ -35,3 +49,5 @@ export async function POST(request: Request) {
 
   return NextResponse.json(updatedContact);
 }
+
+    

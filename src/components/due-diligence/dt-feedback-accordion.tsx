@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useSWRConfig } from 'swr';
-import { Eye, Mail, Pencil, Trash2, Upload, MoreVertical, Check, X, FileText, MessageSquare } from 'lucide-react';
+import { Eye, Mail, Pencil, Trash2, Upload, MoreVertical, Check, RefreshCcw, FileText, MessageSquare } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
@@ -15,6 +15,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Textarea } from '@/components/ui/textarea';
 import type { DTFirm, DTContact, DTFeedbackStatus } from '@/lib/definitions';
 import { useToast } from '@/hooks/use-toast';
+import { Card, CardContent } from '../ui/card';
 
 interface DTFeedbackAccordionProps {
     firms: DTFirm[];
@@ -30,28 +31,54 @@ export function DTFeedbackAccordion({ firms, companyId }: DTFeedbackAccordionPro
     const [isUploadModalOpen, setUploadModalOpen] = useState(false);
     const [activeContact, setActiveContact] = useState<DTContact | null>(null);
     const [minutesContent, setMinutesContent] = useState('');
+    const [selectedContacts, setSelectedContacts] = useState<Record<string, {contactId: string, discussionHappened: 'Yes' | 'No' | ''}>>({});
 
-    const handleDiscussionChange = async (firmId: string, contactId: string, value: 'Yes' | 'No') => {
+    const handleDiscussionChange = (firmId: string, contact: DTContact, value: 'Yes' | 'No' | '') => {
+        setSelectedContacts(prev => ({
+            ...prev,
+            [firmId]: { contactId: contact.id, discussionHappened: value }
+        }));
+    };
+    
+    const handleCreateRecord = async (firmId: string) => {
+        const selection = selectedContacts[firmId];
+        if (!selection || !selection.contactId || !selection.discussionHappened) {
+            toast({ variant: 'destructive', title: 'Error', description: 'Please select a contact and discussion status.' });
+            return;
+        }
+
         try {
             await fetch('/api/due-diligence/dt-feedback', {
                 method: 'POST',
-                body: JSON.stringify({ companyId, firmId, contactId, updates: { discussionHappened: value } }),
+                body: JSON.stringify({ 
+                    companyId, 
+                    firmId, 
+                    contactId: selection.contactId, 
+                    updates: { discussionHappened: selection.discussionHappened, status: 'Pending' } 
+                }),
             });
             mutate(`/api/due-diligence/dt-feedback?companyId=${companyId}`);
+            toast({ title: 'Success', description: 'DT discussion record created.' });
+            // Reset selection for this firm
+            setSelectedContacts(prev => ({...prev, [firmId]: {contactId: '', discussionHappened: ''}}));
         } catch (error) {
-            toast({ variant: 'destructive', title: 'Error', description: 'Failed to update status.' });
+            toast({ variant: 'destructive', title: 'Error', description: 'Failed to create record.' });
         }
-    };
+    }
     
+    const handleResetSelection = (firmId: string) => {
+         setSelectedContacts(prev => ({...prev, [firmId]: {contactId: '', discussionHappened: ''}}));
+    }
+
     const openCaptureModal = (contact: DTContact) => {
         setActiveContact(contact);
-        setMinutesContent('Placeholder for existing minutes...'); // Load existing minutes here
+        setMinutesContent(contact.minutesContent || 'Placeholder for existing minutes...'); // Load existing minutes here
         setCaptureModalOpen(true);
     };
 
     const openViewModal = (contact: DTContact) => {
         setActiveContact(contact);
-        setMinutesContent('Placeholder for saved minutes content...'); // Load saved minutes
+        setMinutesContent(contact.minutesContent || 'No minutes captured.'); // Load saved minutes
         setViewModalOpen(true);
     };
 
@@ -74,7 +101,7 @@ export function DTFeedbackAccordion({ firms, companyId }: DTFeedbackAccordionPro
                     contactId: activeContact.id, 
                     updates: { 
                         minutesCaptured: newStatus,
-                        // In a real app, you'd save `minutesContent`
+                        minutesContent,
                     } 
                 }),
             });
@@ -112,61 +139,69 @@ export function DTFeedbackAccordion({ firms, companyId }: DTFeedbackAccordionPro
                     <AccordionItem value={firm.id} key={firm.id}>
                         <AccordionTrigger className="text-lg font-semibold">{firm.firmName}</AccordionTrigger>
                         <AccordionContent>
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead>Contact Person</TableHead>
-                                        <TableHead>Discussion Happened?</TableHead>
-                                        <TableHead>Minutes Captured</TableHead>
-                                        <TableHead>Minutes Captured On</TableHead>
-                                        <TableHead>Email</TableHead>
-                                        <TableHead>Contact No.</TableHead>
-                                        <TableHead>Status</TableHead>
-                                        <TableHead className="text-right">Actions</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {firm.contacts.map((contact) => (
-                                        <TableRow key={contact.id}>
-                                            <TableCell>{contact.name}</TableCell>
-                                            <TableCell>
-                                                 <Select
-                                                    value={contact.discussionHappened}
-                                                    onValueChange={(value: 'Yes' | 'No') => handleDiscussionChange(firm.id, contact.id, value)}
-                                                >
-                                                    <SelectTrigger className="w-[100px]">
-                                                        <SelectValue />
-                                                    </SelectTrigger>
-                                                    <SelectContent>
-                                                        <SelectItem value="Yes">Yes</SelectItem>
-                                                        <SelectItem value="No">No</SelectItem>
-                                                    </SelectContent>
-                                                </Select>
-                                            </TableCell>
-                                            <TableCell><Badge variant={minutesVariant(contact.minutesCaptured)}>{contact.minutesCaptured}</Badge></TableCell>
-                                            <TableCell>{contact.minutesCapturedOn ? format(parseISO(contact.minutesCapturedOn), 'dd-MMM-yyyy') : 'N/A'}</TableCell>
-                                            <TableCell>{contact.email}</TableCell>
-                                            <TableCell>{contact.contact}</TableCell>
-                                            <TableCell><Badge variant={statusVariant(contact.status)}>{contact.status}</Badge></TableCell>
-                                            <TableCell className="text-right">
-                                                 <DropdownMenu>
-                                                    <DropdownMenuTrigger asChild>
-                                                        <Button variant="ghost" size="icon">
-                                                            <MoreVertical className="h-4 w-4" />
-                                                        </Button>
-                                                    </DropdownMenuTrigger>
-                                                    <DropdownMenuContent align="end">
-                                                        <DropdownMenuItem onClick={() => openViewModal(contact)}><Eye className="mr-2 h-4 w-4" />View Minutes</DropdownMenuItem>
-                                                        <DropdownMenuItem onClick={() => openCaptureModal(contact)}><Pencil className="mr-2 h-4 w-4" />Capture/Edit Minutes</DropdownMenuItem>
-                                                        <DropdownMenuItem><Mail className="mr-2 h-4 w-4" />Send Feedback Email</DropdownMenuItem>
-                                                        <DropdownMenuItem onClick={() => openUploadModal(contact)}><Upload className="mr-2 h-4 w-4" />Upload Document</DropdownMenuItem>
-                                                    </DropdownMenuContent>
-                                                </DropdownMenu>
-                                            </TableCell>
+                            <div className="p-4 border rounded-lg bg-background space-y-4">
+                               <div className="flex items-center gap-4 p-4 border-b">
+                                    <Select 
+                                        onValueChange={(value) => handleDiscussionChange(firm.id, firm.contacts.find(c => c.id === value)!, selectedContacts[firm.id]?.discussionHappened || '')}
+                                        value={selectedContacts[firm.id]?.contactId || ''}
+                                    >
+                                        <SelectTrigger className="w-[200px]"><SelectValue placeholder="Select Contact" /></SelectTrigger>
+                                        <SelectContent>{firm.contacts.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent>
+                                    </Select>
+                                     <Select
+                                        value={selectedContacts[firm.id]?.discussionHappened || ''}
+                                        onValueChange={(value: 'Yes' | 'No') => handleDiscussionChange(firm.id, firm.contacts.find(c => c.id === selectedContacts[firm.id]?.contactId)!, value)}
+                                        disabled={!selectedContacts[firm.id]?.contactId}
+                                    >
+                                        <SelectTrigger className="w-[200px]"><SelectValue placeholder="Discussion Happened?" /></SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="Yes">Yes</SelectItem>
+                                            <SelectItem value="No">No</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                    <Button size="icon" onClick={() => handleCreateRecord(firm.id)}><Check className="h-4 w-4" /></Button>
+                                    <Button size="icon" variant="outline" onClick={() => handleResetSelection(firm.id)}><RefreshCcw className="h-4 w-4" /></Button>
+                               </div>
+
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Contact Person</TableHead>
+                                            <TableHead>Discussion Happened?</TableHead>
+                                            <TableHead>Minutes Captured</TableHead>
+                                            <TableHead>Minutes Captured On</TableHead>
+                                            <TableHead>Email</TableHead>
+                                            <TableHead>Contact No.</TableHead>
+                                            <TableHead>Status</TableHead>
+                                            <TableHead className="text-right">Actions</TableHead>
                                         </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {firm.contacts.filter(c => c.status).map((contact) => (
+                                            <TableRow key={contact.id}>
+                                                <TableCell>{contact.name}</TableCell>
+                                                <TableCell><Badge variant={contact.discussionHappened === 'Yes' ? 'default' : 'secondary'}>{contact.discussionHappened}</Badge></TableCell>
+                                                <TableCell><Badge variant={minutesVariant(contact.minutesCaptured)}>{contact.minutesCaptured}</Badge></TableCell>
+                                                <TableCell>{contact.minutesCapturedOn ? format(parseISO(contact.minutesCapturedOn), 'dd-MMM-yyyy') : 'N/A'}</TableCell>
+                                                <TableCell>{contact.email}</TableCell>
+                                                <TableCell>{contact.contact}</TableCell>
+                                                <TableCell><Badge variant={statusVariant(contact.status!)}>{contact.status}</Badge></TableCell>
+                                                <TableCell className="text-right">
+                                                    <div className="flex gap-1 justify-end">
+                                                        <Button variant="ghost" size="icon" onClick={() => openViewModal(contact)}><Eye className="h-4 w-4" /></Button>
+                                                        <Button variant="ghost" size="icon" onClick={() => openCaptureModal(contact)} disabled={contact.discussionHappened === 'No'}><Pencil className="h-4 w-4" /></Button>
+                                                        <Button variant="ghost" size="icon" disabled={contact.discussionHappened === 'Yes'}><Mail className="h-4 w-4" /></Button>
+                                                        <Button variant="ghost" size="icon" onClick={() => openUploadModal(contact)}><Upload className="h-4 w-4" /></Button>
+                                                    </div>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))}
+                                         {firm.contacts.filter(c => c.status).length === 0 && (
+                                            <TableRow><TableCell colSpan={8} className="text-center h-24">No discussion records created for this firm yet.</TableCell></TableRow>
+                                        )}
+                                    </TableBody>
+                                </Table>
+                            </div>
                         </AccordionContent>
                     </AccordionItem>
                 ))}
@@ -201,7 +236,7 @@ export function DTFeedbackAccordion({ firms, companyId }: DTFeedbackAccordionPro
                     <DialogHeader>
                         <DialogTitle>View Minutes for {activeContact?.name}</DialogTitle>
                     </DialogHeader>
-                    <div className="py-4 prose prose-sm max-w-none">
+                    <div className="py-4 prose prose-sm max-w-none prose-p:text-muted-foreground">
                        <p>{minutesContent}</p>
                     </div>
                      <DialogFooter>
@@ -231,3 +266,4 @@ export function DTFeedbackAccordion({ firms, companyId }: DTFeedbackAccordionPro
         </>
     );
 }
+    

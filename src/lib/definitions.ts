@@ -151,10 +151,11 @@ export interface DTContact {
     name: string;
     email: string;
     contact: string;
-    discussionHappened: 'Yes' | 'No';
+    discussionHappened: 'Yes' | 'No' | '';
     minutesCaptured: 'Yes' | 'No' | 'Partial';
     minutesCapturedOn: string | null;
-    status: DTFeedbackStatus;
+    status: DTFeedbackStatus | null;
+    minutesContent?: string;
 }
 
 export interface DTFirm {
@@ -288,3 +289,5 @@ export interface RatingNoteDataSchema {
   audit: Audit;
   editorContent?: string; // To store the latest SFDT
 }
+
+    

@@ -46,7 +46,6 @@ const getMasterRatingNoteData = (noteId: string, companyName: string): RatingNot
       finalRating: "",
       unsupportedRatings: "Nil",
       absenceOfPendingDocs: "Yes",
-      totalVolume: "500.00" // Example value
     },
     analyst: {
       analyst1: "Abhay Baghel",
@@ -413,15 +412,15 @@ let dtFeedbackData: Record<string, DTFirm[]> = {
             id: 'DTF-001',
             firmName: 'ABC Associates',
             contacts: [
-                { id: 'DTC-001', name: 'John Doe', email: 'john.doe@abcfirm.com', contact: '9876543210', discussionHappened: 'No', minutesCaptured: 'No', minutesCapturedOn: null, status: 'Pending' },
-                { id: 'DTC-002', name: 'Jane Smith', email: 'jane.smith@abcfirm.com', contact: '8765432109', discussionHappened: 'No', minutesCaptured: 'No', minutesCapturedOn: null, status: 'Pending' },
+                { id: 'DTC-001', name: 'John Doe', email: 'john.doe@abcfirm.com', contact: '9876543210', discussionHappened: '', minutesCaptured: 'No', minutesCapturedOn: null, status: null, minutesContent: '' },
+                { id: 'DTC-002', name: 'Jane Smith', email: 'jane.smith@abcfirm.com', contact: '8765432109', discussionHappened: 'Yes', minutesCaptured: 'Partial', minutesCapturedOn: new Date().toISOString(), status: 'In Progress', minutesContent: 'Initial discussion held.' },
             ]
         },
          {
             id: 'DTF-002',
             firmName: 'PR Firm',
             contacts: [
-                { id: 'DTC-003', name: 'Peter Jones', email: 'peter.jones@prfirm.com', contact: '7654321098', discussionHappened: 'No', minutesCaptured: 'No', minutesCapturedOn: null, status: 'Pending' },
+                { id: 'DTC-003', name: 'Peter Jones', email: 'peter.jones@prfirm.com', contact: '7654321098', discussionHappened: '', minutesCaptured: 'No', minutesCapturedOn: null, status: null, minutesContent: '' },
             ]
         }
     ],
@@ -430,7 +429,7 @@ let dtFeedbackData: Record<string, DTFirm[]> = {
             id: 'DTF-003',
             firmName: 'New India Associates',
             contacts: [
-                 { id: 'DTC-004', name: 'Sam Wilson', email: 'sam.wilson@newindia.com', contact: '6543210987', discussionHappened: 'No', minutesCaptured: 'No', minutesCapturedOn: null, status: 'Pending' },
+                 { id: 'DTC-004', name: 'Sam Wilson', email: 'sam.wilson@newindia.com', contact: '6543210987', discussionHappened: '', minutesCaptured: 'No', minutesCapturedOn: null, status: null, minutesContent: '' },
             ]
         }
     ]
@@ -492,8 +491,26 @@ export const getCompaniesByRole = (user: AppUser | null) => {
 };
 
 export const getDTFeedbackByCompanyId = (companyId: string): DTFirm[] => {
-    return dtFeedbackData[companyId] || [];
+    const firms = dtFeedbackData[companyId] || [];
+    // Ensure all contacts have a non-null status for filtering
+    return firms.map(firm => ({
+        ...firm,
+        contacts: firm.contacts.map(c => ({...c, status: c.status || null}))
+    }));
 }
+
+export const createDTRecord = (companyId: string, firmId: string, contactId: string, discussionHappened: 'Yes' | 'No') => {
+    const firm = dtFeedbackData[companyId]?.find(f => f.id === firmId);
+    if (!firm) return null;
+    
+    const contact = firm.contacts.find(c => c.id === contactId);
+    if (!contact) return null;
+
+    contact.discussionHappened = discussionHappened;
+    contact.status = 'Pending';
+    
+    return contact;
+};
 
 export const updateDTFeedback = (companyId: string, firmId: string, contactId: string, updates: Partial<DTContact>) => {
     const firms = dtFeedbackData[companyId];
@@ -809,3 +826,5 @@ export const saveCompanyInfo = (ratingCycleId: string, data: CompanyInfo): Compa
     companyInfoData[ratingCycleId] = data;
     return JSON.parse(JSON.stringify(data));
 }
+
+    
