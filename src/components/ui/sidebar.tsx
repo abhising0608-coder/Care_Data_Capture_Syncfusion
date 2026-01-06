@@ -682,7 +682,7 @@ const SidebarMenuSkeleton = React.forwardRef<
 })
 SidebarMenuSkeleton.displayName = "SidebarMenuSkeleton"
 
-const SidebarMenuSub = React.forwardRef<
+const SidebarMenuSubContent = React.forwardRef<
   HTMLUListElement,
   React.ComponentProps<"ul">
 >(({ className, ...props }, ref) => (
@@ -697,7 +697,7 @@ const SidebarMenuSub = React.forwardRef<
     {...props}
   />
 ))
-SidebarMenuSub.displayName = "SidebarMenuSub"
+SidebarMenuSubContent.displayName = "SidebarMenuSubContent"
 
 const SidebarMenuSubItem = React.forwardRef<
   HTMLLIElement,
@@ -735,6 +735,14 @@ const SidebarMenuSubButton = React.forwardRef<
 })
 SidebarMenuSubButton.displayName = "SidebarMenuSubButton"
 
+
+const SidebarMenuSub = React.forwardRef<
+  HTMLDivElement,
+  React.ComponentProps<"div">
+>(({ ...props }, ref) => <div ref={ref} {...props} />)
+SidebarMenuSub.displayName = "SidebarMenuSub"
+
+
 export {
   Sidebar,
   SidebarContent,
@@ -754,6 +762,7 @@ export {
   SidebarMenuSkeleton,
   SidebarMenuSub,
   SidebarMenuSubButton,
+  SidebarMenuSubContent,
   SidebarMenuSubItem,
   SidebarProvider,
   SidebarRail,
@@ -761,3 +770,5 @@ export {
   SidebarTrigger,
   useSidebar,
 }
+
+    
