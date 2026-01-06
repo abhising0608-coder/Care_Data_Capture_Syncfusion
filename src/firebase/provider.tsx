@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { DependencyList, createContext, useContext, ReactNode, useMemo, useState, useEffect } from 'react';
@@ -108,6 +109,7 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
   const [role, setRole] = useState<Role>('RATING_ANALYST'); // Default role
 
   useEffect(() => {
+    setIsAuthLoading(true);
     // This is a mock auth listener. It sets the user based on the selected role.
     const mockUser = mockUsers[role];
     setUser(mockUser);
@@ -116,7 +118,6 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
   }, [role]); // Rerun effect if role changes
 
   const setUserRole = (newRole: Role) => {
-    setIsAuthLoading(true);
     setRole(newRole);
   };
   // --- End Auth Logic ---

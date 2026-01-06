@@ -117,10 +117,10 @@ const StatusIndicator = ({ status, role }: { status: NoteStatus, role: Role | un
 
 export default function DashboardClient() {
   const router = useRouter();
-  const { user, isLoading: isAuthLoading, role } = useAuth();
+  const { user, isLoading: isAuthLoading } = useAuth();
   
   const { data: notes, isLoading: isNotesLoading } = useSWR<RatingNote[]>(
-      user ? `/api/notes?role=${user.role}&userId=${user.uid}` : null, 
+      isAuthLoading || !user ? null : `/api/notes?role=${user.role}&userId=${user.uid}`, 
       fetcher
   );
 
