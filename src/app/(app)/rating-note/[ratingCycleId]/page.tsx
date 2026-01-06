@@ -40,13 +40,9 @@ export default function RatingNotePage() {
         const loadContent = async () => {
             setIsLoadingContent(true);
             try {
-                // If the note from the DB has content, use it. Otherwise, load from the template file.
-                if (note?.editorContent && note.editorContent.length > 50) {
-                     setDocumentContent(note.editorContent);
-                } else {
-                    const decompressedSfdt = await getDecompressedSfdt();
-                    setDocumentContent(decompressedSfdt);
-                }
+                // Always load the default template from the file.
+                const decompressedSfdt = await getDecompressedSfdt();
+                setDocumentContent(decompressedSfdt);
             } catch (error) {
                 console.error("Failed to load document content:", error);
                 toast({
@@ -59,10 +55,8 @@ export default function RatingNotePage() {
             }
         };
 
-        if (note) { // Start loading content once note metadata is available
-            loadContent();
-        }
-    }, [note, toast]);
+        loadContent();
+    }, [toast]);
 
 
     const handleSave = async (isSubmitting: boolean = false) => {
