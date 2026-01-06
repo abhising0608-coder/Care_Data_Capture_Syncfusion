@@ -128,7 +128,7 @@ export default function NewRatingNotePage() {
           Initiate New Rating Note
         </h1>
         <p className="text-muted-foreground">
-          Step 4: Confirm details to formally initiate the rating note.
+          Step 5: Confirm details to formally initiate the rating note.
         </p>
       </header>
       
@@ -141,7 +141,7 @@ export default function NewRatingNotePage() {
 
           <div className="flex justify-end mt-8">
              <Button type="submit">
-                Initiate and Proceed to Rating Note
+                Initiate and Proceed to Generate Rating Note
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
           </div>

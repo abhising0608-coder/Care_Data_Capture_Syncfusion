@@ -71,7 +71,7 @@ export default function OperationalInputFlowPage() {
             });
             
             completeStep('operational-input');
-            router.push(`/financial-input/${ratingCycleId}`);
+            router.push(`/due-diligence/${ratingCycleId}`);
         } catch (error) {
             console.error("Failed to save data:", error);
             toast({

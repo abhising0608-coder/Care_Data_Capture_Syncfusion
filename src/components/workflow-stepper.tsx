@@ -9,9 +9,10 @@ import { useWorkflow } from '@/context/workflow-context';
 export const workflowSteps = [
   { id: 'company-information', name: 'Company Information' },
   { id: 'operational-input', name: 'Operational Input' },
-  { id: 'financial-input', name: 'Financial Input' },
+  { id: 'due-diligence', name: 'Due Diligence' },
+  { id: 'manage-instrument', name: 'Manage Instrument' },
   { id: 'initiate-rating-note', name: 'Initiate Rating Note' },
-  { id: 'rating-note', name: 'Rating Note' },
+  { id: 'rating-note', name: 'Generate Rating Note' },
 ];
 
 export function WorkflowStepper() {
@@ -23,9 +24,9 @@ export function WorkflowStepper() {
   const getStepIdFromPath = () => {
     if (pathname.includes('/company-information')) return 'company-information';
     if (pathname.includes('/operational-input')) return 'operational-input';
-    if (pathname.includes('/financial-input')) return 'financial-input';
+    if (pathname.includes('/due-diligence')) return 'due-diligence';
+    if (pathname.includes('/manage-instrument')) return 'manage-instrument';
     if (pathname.includes('/notes/new')) return 'initiate-rating-note';
-    // Match both /rating-note/[id] and /rating-note/final-documents/[id]
     if (pathname.startsWith('/rating-note/')) return 'rating-note';
     return '';
   }
