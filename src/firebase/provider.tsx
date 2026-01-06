@@ -134,7 +134,7 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
     <FirebaseContext.Provider value={firebaseContextValue}>
       <AuthContext.Provider value={authContextValue}>
         <FirebaseErrorListener />
-        {!isAuthLoading ? children : null /* Or a global loader */}
+        {children}
       </AuthContext.Provider>
     </FirebaseContext.Provider>
   );
