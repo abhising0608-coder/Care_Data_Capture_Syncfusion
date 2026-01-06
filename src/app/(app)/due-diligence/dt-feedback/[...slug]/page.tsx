@@ -5,7 +5,7 @@ import useSWR, { useSWRConfig } from 'swr';
 import { useForm, FormProvider, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -15,8 +15,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Save, Mail, ArrowLeft, Download } from 'lucide-react';
-import type { DTFirm, DTContact, QuestionnaireItem } from '@/lib/definitions';
+import { DTEmailModal } from '@/components/due-diligence/dt-email-modal';
+import type { DTFirm, DTContact, QuestionnaireItem, CompanyDashboard } from '@/lib/definitions';
 import { useAuth } from '@/firebase';
+import { getCompaniesByRole } from '@/lib/mock-data';
 
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
@@ -47,6 +49,8 @@ export default function DTFeedbackCapturePage() {
     const { mutate } = useSWRConfig();
     const { user } = useAuth();
     const [companyId, firmId, contactId] = params.slug || [];
+
+    const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
 
     const { data, error, isLoading } = useSWR<{ firm: DTFirm, contact: DTContact }>(
         companyId && firmId && contactId ? `/api/due-diligence/dt-feedback?companyId=${companyId}&firmId=${firmId}&contactId=${contactId}` : null,
@@ -109,6 +113,7 @@ export default function DTFeedbackCapturePage() {
 
     const isReadOnly = data?.contact?.status === 'Completed' || (user && user.role !== 'RATING_ANALYST');
 
+    const currentCompany = getCompaniesByRole(user).find(c => c.id === companyId);
 
     if (isLoading) {
         return (
@@ -139,7 +144,7 @@ export default function DTFeedbackCapturePage() {
                             DT Feedback Capture: {firm.firmName}
                         </h1>
                         <p className="text-muted-foreground">
-                            For: {mockCompanies.find(c => c.id === companyId)?.companyName} / {contact.name}
+                            For: {currentCompany?.companyName} / {contact.name}
                         </p>
                     </div>
                 </div>
@@ -221,7 +226,7 @@ export default function DTFeedbackCapturePage() {
                         </Button>
                          {!isReadOnly && (
                             <>
-                                <Button type="button" variant="outline" onClick={() => toast({title: "Placeholder", description: "Email to DT functionality to be implemented."})}>
+                                <Button type="button" variant="outline" onClick={() => setIsEmailModalOpen(true)}>
                                     <Mail className="mr-2 h-4 w-4" />Email to DT
                                 </Button>
                                 <Button type="button" variant="outline" onClick={form.handleSubmit(data => handleSave(data, false))}>
@@ -236,6 +241,17 @@ export default function DTFeedbackCapturePage() {
 
                 </form>
             </FormProvider>
+
+            {/* Email Modal */}
+            {currentCompany && (
+                 <DTEmailModal
+                    isOpen={isEmailModalOpen}
+                    onClose={() => setIsEmailModalOpen(false)}
+                    firm={firm}
+                    contact={contact}
+                    company={currentCompany}
+                 />
+            )}
         </div>
     );
 }

@@ -12,9 +12,11 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
-import { Textarea } from '@/components/ui/textarea';
-import type { DTFirm, DTContact, DTFeedbackStatus } from '@/lib/definitions';
+import { DTEmailModal } from './dt-email-modal';
+import type { DTFirm, DTContact, DTFeedbackStatus, CompanyDashboard } from '@/lib/definitions';
 import { useToast } from '@/hooks/use-toast';
+import { getCompaniesByRole, mockCompanies } from '@/lib/mock-data';
+import { useAuth } from '@/firebase';
 
 interface DTFeedbackAccordionProps {
     firms: DTFirm[];
@@ -24,9 +26,13 @@ interface DTFeedbackAccordionProps {
 export function DTFeedbackAccordion({ firms, companyId }: DTFeedbackAccordionProps) {
     const { mutate } = useSWRConfig();
     const { toast } = useToast();
+    const { user } = useAuth();
 
     const [isUploadModalOpen, setUploadModalOpen] = useState(false);
+    const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
     const [activeContact, setActiveContact] = useState<DTContact | null>(null);
+    const [activeFirm, setActiveFirm] = useState<DTFirm | null>(null);
+
     const [selectedContacts, setSelectedContacts] = useState<Record<string, {contactId: string, discussionHappened: 'Yes' | 'No' | ''}>>({});
 
     const handleDiscussionChange = (firmId: string, contactId: string, value: 'Yes' | 'No' | '') => {
@@ -75,12 +81,11 @@ export function DTFeedbackAccordion({ firms, companyId }: DTFeedbackAccordionPro
         setUploadModalOpen(true);
     };
 
-    const handleSendEmail = () => {
-      toast({
-        title: 'Action Triggered',
-        description: 'Feedback-seeking email has been sent.'
-      });
-    };
+    const openEmailModal = (firm: DTFirm, contact: DTContact) => {
+        setActiveFirm(firm);
+        setActiveContact(contact);
+        setIsEmailModalOpen(true);
+    }
     
     const statusVariant = (status: DTFeedbackStatus) => {
         switch (status) {
@@ -99,6 +104,8 @@ export function DTFeedbackAccordion({ firms, companyId }: DTFeedbackAccordionPro
             default: return 'outline';
         }
     };
+    
+    const currentCompany = getCompaniesByRole(user).find(c => c.id === companyId);
 
     return (
         <>
@@ -161,7 +168,7 @@ export function DTFeedbackAccordion({ firms, companyId }: DTFeedbackAccordionPro
                                                                 <Eye className="h-4 w-4" />
                                                             </Link>
                                                         </Button>
-                                                        <Button variant="ghost" size="icon" onClick={handleSendEmail} disabled={contact.discussionHappened === 'Yes'}><Mail className="h-4 w-4" /></Button>
+                                                        <Button variant="ghost" size="icon" onClick={() => openEmailModal(firm, contact)}><Mail className="h-4 w-4" /></Button>
                                                         <Button variant="ghost" size="icon" onClick={() => openUploadModal(contact)}><Upload className="h-4 w-4" /></Button>
                                                     </div>
                                                 </TableCell>
@@ -196,6 +203,17 @@ export function DTFeedbackAccordion({ firms, companyId }: DTFeedbackAccordionPro
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+
+            {/* Email Modal */}
+            {activeFirm && activeContact && currentCompany && (
+                 <DTEmailModal
+                    isOpen={isEmailModalOpen}
+                    onClose={() => setIsEmailModalOpen(false)}
+                    firm={activeFirm}
+                    contact={activeContact}
+                    company={currentCompany}
+                 />
+            )}
         </>
     );
 }
