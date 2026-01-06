@@ -384,6 +384,23 @@ let operationalInputData: Record<string, any> = {
     }
 };
 
+export const mockUsers: Record<string, AppUser> = {
+    'rating.analyst@careedge': {
+        uid: 'rating.analyst@careedge',
+        email: 'analyst@careedge.com',
+        displayName: 'Taha G',
+        role: 'RATING_ANALYST',
+        photoURL: 'https://i.pravatar.cc/150?u=taha'
+    },
+     'group.head@careedge': {
+        uid: 'group.head@careedge',
+        email: 'group.head@careedge.com',
+        displayName: 'Group Head',
+        role: 'GROUP_HEAD',
+        photoURL: 'https://i.pravatar.cc/150?u=gh'
+    },
+};
+
 export const mockCompanies = [
     { id: 'COMP-101', companyName: 'Sun Pharmaceutical Industries Limited', ratingAnalystId: 'rating.analyst@careedge', groupHeadId: 'group.head@careedge' },
     { id: 'COMP-102', companyName: 'Dr. Reddy’s Laboratories Limited', ratingAnalystId: 'rating.analyst@careedge', groupHeadId: 'group.head@careedge' },
@@ -478,15 +495,20 @@ let companyInfoData: Record<string, CompanyInfo> = {
 
 export const getCompaniesByRole = (user: AppUser | null) => {
     if (!user) return [];
+    // Simplified logic for prototype
     switch (user.role) {
         case 'RATING_ANALYST':
             return mockCompanies.filter(c => c.ratingAnalystId === user.uid);
         case 'GROUP_HEAD':
-            return mockCompanies.filter(c => c.groupHeadId === user.uid);
+            // GH sees companies of their RAs
+            const raIdsForGh = mockCompanies
+                .filter(c => c.groupHeadId === user.uid)
+                .map(c => c.ratingAnalystId);
+            return mockCompanies.filter(c => raIdsForGh.includes(c.ratingAnalystId));
         case 'RATING_HEAD_SD':
-             return mockCompanies; // Assuming RH sees all
+             return mockCompanies; // RH sees all companies
         default:
-            return mockCompanies; // Other roles see all for now
+            return mockCompanies;
     }
 };
 
@@ -519,6 +541,7 @@ export const createDTRecord = (companyId: string, firmId: string, contactId: str
 
     contact.discussionHappened = discussionHappened;
     contact.status = 'Pending';
+    contact.minutesCapturedOn = new Date().toISOString();
     
     return contact;
 };
@@ -533,16 +556,19 @@ export const updateDTFeedback = (companyId: string, firmId: string, contactId: s
                 Object.assign(contact, updates);
 
                 // Derive status
-                if (updates.minutesCaptured === 'Yes') {
-                    contact.status = 'Completed';
-                } else if (updates.minutesCaptured === 'Partial' || updates.discussionHappened === 'Yes') {
+                if (updates.status === 'Completed') {
+                    contact.minutesCaptured = 'Yes';
+                } else if (updates.summary || (updates.questionnaire && updates.questionnaire.some(q => q.remarks))) {
                     contact.status = 'In Progress';
+                    contact.minutesCaptured = 'Partial';
                 } else if (updates.discussionHappened === 'No') {
-                    contact.status = 'In Progress';
+                     contact.status = 'In Progress';
+                     contact.minutesCaptured = 'No';
+                } else {
+                     contact.status = 'Pending';
+                     contact.minutesCaptured = 'No';
                 }
-                else {
-                    contact.status = 'Pending';
-                }
+
 
                 if (updates.minutesCaptured && updates.minutesCaptured !== 'No') {
                     contact.minutesCapturedOn = new Date().toISOString();
