@@ -13,7 +13,7 @@ import { RatingNoteEditor } from '@/components/rating-note/rating-note-editor';
 import type { RatingNote, RatingNoteDataSchema, Role } from '@/lib/definitions';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/firebase';
-import { getBoundRatingNoteSfdt } from '@/lib/rating-note-service';
+import { getDecompressedSfdt } from '@/lib/rating-note-service';
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
 
@@ -28,73 +28,55 @@ export default function RatingNotePage() {
     const { user, role } = useAuth();
     
     const editorRef = useRef<DocumentEditorContainer | null>(null);
-    const [boundSfdt, setBoundSfdt] = useState<string | null>(null);
-    const [isBinding, setIsBinding] = useState(true);
+    const [documentContent, setDocumentContent] = useState<string | null>(null);
+    const [isLoadingContent, setIsLoadingContent] = useState(true);
 
     const { data: note, isLoading: isNoteLoading, mutate } = useSWR<RatingNote>(
       noteId ? `/api/notes/${noteId}` : null,
       fetcher
     );
 
-    const loadAndBindData = useCallback(async () => {
-        if (!note || !note.ratingNoteData) return;
-        setIsBinding(true);
-        try {
-            const finalSfdt = await getBoundRatingNoteSfdt(note.ratingNoteData);
-            setBoundSfdt(finalSfdt);
-        } catch (error) {
-            console.error("Failed to load or bind SFDT:", error);
-            toast({
-                variant: 'destructive',
-                title: 'Error Loading Document',
-                description: 'Could not load the document template or bind data.',
-            });
-            const errorSfdt = JSON.stringify({ "sections": [{"blocks":[{"inlines":[{"text":"Error: Document failed to load."}]}]}] });
-            setBoundSfdt(errorSfdt);
-        } finally {
-            setIsBinding(false);
+    useEffect(() => {
+        const loadContent = async () => {
+            setIsLoadingContent(true);
+            try {
+                // If the note from the DB has content, use it. Otherwise, load from the template file.
+                if (note?.editorContent && note.editorContent.length > 50) {
+                     setDocumentContent(note.editorContent);
+                } else {
+                    const decompressedSfdt = await getDecompressedSfdt();
+                    setDocumentContent(decompressedSfdt);
+                }
+            } catch (error) {
+                console.error("Failed to load document content:", error);
+                toast({
+                    variant: 'destructive',
+                    title: 'Error Loading Document',
+                    description: 'Could not load the document content.',
+                });
+            } finally {
+                setIsLoadingContent(false);
+            }
+        };
+
+        if (note) { // Start loading content once note metadata is available
+            loadContent();
         }
     }, [note, toast]);
 
-    useEffect(() => {
-        if (note && note.ratingNoteData) {
-            loadAndBindData();
-        }
-    }, [note, loadAndBindData]);
 
     const handleSave = async (isSubmitting: boolean = false) => {
-        if (!editorRef.current || !note || !note.ratingNoteData || !user) return;
+        if (!editorRef.current || !note || !user) return;
         
         const sfdtString = await editorRef.current.documentEditor.save('Sfdt');
         
-        const updatedRatingNoteData: Partial<RatingNoteDataSchema> = {
-            ...note.ratingNoteData,
+        const payload: Partial<RatingNote> = {
             editorContent: sfdtString,
-            audit: {
-                ...note.ratingNoteData.audit,
-                version: (note.ratingNoteData.audit.version || 0) + 1,
-                lastSavedBy: user.displayName || 'Unknown User',
-                lastSavedRole: user.role,
-                lastSavedAt: new Date().toISOString(),
-                changeSummary: isSubmitting ? 'Submitted to Group Head' : 'Saved draft',
-            },
+            status: isSubmitting ? 'In Review (GH)' : note.status,
+            currentActor: isSubmitting ? 'GROUP_HEAD' : note.currentActor,
         };
 
-        if (isSubmitting) {
-            updatedRatingNoteData.workflowContext = {
-                ...updatedRatingNoteData.workflowContext!,
-                currentStage: 'GROUP_HEAD',
-                status: 'In Review (GH)',
-            };
-        }
-
         try {
-            const payload: Partial<RatingNote> = {
-                ratingNoteData: updatedRatingNoteData as RatingNoteDataSchema,
-                status: isSubmitting ? 'In Review (GH)' : note.status,
-                currentActor: isSubmitting ? 'GROUP_HEAD' : note.currentActor,
-            };
-
             await fetch(`/api/notes/${noteId}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -138,9 +120,9 @@ export default function RatingNotePage() {
         editorRef.current.documentEditor.save(fileName, format);
     };
     
-    const isLoading = isNoteLoading || isBinding;
+    const isLoading = isNoteLoading || isLoadingContent;
 
-    if (isLoading || !boundSfdt) {
+    if (isLoading || !documentContent) {
       return (
          <div className="flex h-full w-full flex-col p-4 sm:p-6 lg:p-8">
             <div className="flex items-center justify-center flex-col h-[calc(100vh-250px)] w-full bg-muted/50 rounded-lg">
@@ -195,10 +177,10 @@ export default function RatingNotePage() {
             <main className="flex-1 pt-6">
                 <Suspense fallback={<Skeleton className="h-[calc(100vh-250px)] w-full" />}>
                    <RatingNoteEditor 
-                        key={note.id + (note.ratingNoteData?.audit.version || 0)} // Re-mount editor on version change
+                        key={note.id}
                         ref={editorRef} 
                         isReadOnly={isReadOnly}
-                        content={boundSfdt}
+                        content={documentContent}
                    />
                 </Suspense>
             </main>
