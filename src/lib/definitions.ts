@@ -146,6 +146,12 @@ export type CompanyInfo = {
   };
 };
 
+export type QuestionnaireItem = {
+  srNo: number;
+  particulars: string;
+  remarks: string;
+};
+
 export interface DTContact {
     id: string;
     name: string;
@@ -156,6 +162,8 @@ export interface DTContact {
     minutesCapturedOn: string | null;
     status: DTFeedbackStatus | null;
     minutesContent?: string;
+    questionnaire?: QuestionnaireItem[];
+    summary?: string;
 }
 
 export interface DTFirm {

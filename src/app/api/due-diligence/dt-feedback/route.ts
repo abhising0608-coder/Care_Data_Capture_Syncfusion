@@ -1,41 +1,32 @@
 import { NextResponse } from 'next/server';
-import { getDTFeedbackByCompanyId, updateDTFeedback, createDTRecord } from '@/lib/mock-data';
+import { getDTFeedbackByCompanyId, updateDTFeedback, createDTRecord, getDTFeedbackByContactId } from '@/lib/mock-data';
 import type { DTContact } from '@/lib/definitions';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const companyId = searchParams.get('companyId');
+  const firmId = searchParams.get('firmId');
+  const contactId = searchParams.get('contactId');
 
-  if (!companyId) {
-    return NextResponse.json({ message: 'Company ID is required' }, { status: 400 });
+  if (companyId && firmId && contactId) {
+    const data = getDTFeedbackByContactId(companyId, firmId, contactId);
+    if (!data) {
+      return NextResponse.json({ message: 'Feedback record not found' }, { status: 404 });
+    }
+    return NextResponse.json(data);
   }
 
-  const dtFirms = getDTFeedbackByCompanyId(companyId);
+  if (companyId) {
+    const dtFirms = getDTFeedbackByCompanyId(companyId);
+    return NextResponse.json(dtFirms);
+  }
 
-  return NextResponse.json(dtFirms);
+  return NextResponse.json({ message: 'Company ID is required' }, { status: 400 });
 }
 
 export async function POST(request: Request) {
   const body = await request.json();
-
-  if (body.action === 'create') {
-      const { companyId, firmId, contactId, discussionHappened } = body;
-       if (!companyId || !firmId || !contactId || !discussionHappened) {
-            return NextResponse.json({ message: 'Missing required parameters for creation' }, { status: 400 });
-       }
-       const newRecord = createDTRecord(companyId, firmId, contactId, discussionHappened);
-       if (!newRecord) {
-           return NextResponse.json({ message: 'Failed to create record' }, { status: 500 });
-       }
-       return NextResponse.json(newRecord);
-  }
-
-  const { companyId, firmId, contactId, updates } = body as { 
-      companyId: string, 
-      firmId: string, 
-      contactId: string, 
-      updates: Partial<DTContact> 
-  };
+  const { companyId, firmId, contactId, updates } = body;
 
   if (!companyId || !firmId || !contactId || !updates) {
     return NextResponse.json({ message: 'Missing required parameters for update' }, { status: 400 });
@@ -49,5 +40,3 @@ export async function POST(request: Request) {
 
   return NextResponse.json(updatedContact);
 }
-
-    

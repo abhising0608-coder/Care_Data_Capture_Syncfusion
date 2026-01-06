@@ -1,6 +1,6 @@
 
 
-import type { CKCRequest, AppUser, Role, RequestStatus, CompanyInfo, RatingNote, NoteStatus, RatingNoteDataSchema, DTFirm, DTContact, DTFeedbackStatus } from './definitions';
+import type { CKCRequest, AppUser, Role, RequestStatus, CompanyInfo, RatingNote, NoteStatus, RatingNoteDataSchema, DTFirm, DTContact, DTFeedbackStatus, QuestionnaireItem } from './definitions';
 
 
 // --- FSD-based Master JSON Data Structure ---
@@ -412,15 +412,15 @@ let dtFeedbackData: Record<string, DTFirm[]> = {
             id: 'DTF-001',
             firmName: 'ABC Associates',
             contacts: [
-                { id: 'DTC-001', name: 'John Doe', email: 'john.doe@abcfirm.com', contact: '9876543210', discussionHappened: '', minutesCaptured: 'No', minutesCapturedOn: null, status: null, minutesContent: '' },
-                { id: 'DTC-002', name: 'Jane Smith', email: 'jane.smith@abcfirm.com', contact: '8765432109', discussionHappened: 'Yes', minutesCaptured: 'Partial', minutesCapturedOn: new Date().toISOString(), status: 'In Progress', minutesContent: 'Initial discussion held.' },
+                { id: 'DTC-001', name: 'John Doe', email: 'john.doe@abcfirm.com', contact: '9876543210', discussionHappened: '', minutesCaptured: 'No', minutesCapturedOn: null, status: null, questionnaire: [], summary: '' },
+                { id: 'DTC-002', name: 'Jane Smith', email: 'jane.smith@abcfirm.com', contact: '8765432109', discussionHappened: 'Yes', minutesCaptured: 'Partial', minutesCapturedOn: new Date().toISOString(), status: 'In Progress', minutesContent: 'Initial discussion held.', questionnaire: [], summary: 'Summary of discussion with Jane.' },
             ]
         },
          {
             id: 'DTF-002',
             firmName: 'PR Firm',
             contacts: [
-                { id: 'DTC-003', name: 'Peter Jones', email: 'peter.jones@prfirm.com', contact: '7654321098', discussionHappened: '', minutesCaptured: 'No', minutesCapturedOn: null, status: null, minutesContent: '' },
+                { id: 'DTC-003', name: 'Peter Jones', email: 'peter.jones@prfirm.com', contact: '7654321098', discussionHappened: '', minutesCaptured: 'No', minutesCapturedOn: null, status: null, questionnaire: [], summary: '' },
             ]
         }
     ],
@@ -429,7 +429,7 @@ let dtFeedbackData: Record<string, DTFirm[]> = {
             id: 'DTF-003',
             firmName: 'New India Associates',
             contacts: [
-                 { id: 'DTC-004', name: 'Sam Wilson', email: 'sam.wilson@newindia.com', contact: '6543210987', discussionHappened: '', minutesCaptured: 'No', minutesCapturedOn: null, status: null, minutesContent: '' },
+                 { id: 'DTC-004', name: 'Sam Wilson', email: 'sam.wilson@newindia.com', contact: '6543210987', discussionHappened: '', minutesCaptured: 'No', minutesCapturedOn: null, status: null, questionnaire: [], summary: '' },
             ]
         }
     ]
@@ -499,6 +499,17 @@ export const getDTFeedbackByCompanyId = (companyId: string): DTFirm[] => {
     }));
 }
 
+export const getDTFeedbackByContactId = (companyId: string, firmId: string, contactId: string): { firm: DTFirm, contact: DTContact } | null => {
+    const firm = dtFeedbackData[companyId]?.find(f => f.id === firmId);
+    if (firm) {
+        const contact = firm.contacts.find(c => c.id === contactId);
+        if (contact) {
+            return { firm: JSON.parse(JSON.stringify(firm)), contact: JSON.parse(JSON.stringify(contact)) };
+        }
+    }
+    return null;
+}
+
 export const createDTRecord = (companyId: string, firmId: string, contactId: string, discussionHappened: 'Yes' | 'No') => {
     const firm = dtFeedbackData[companyId]?.find(f => f.id === firmId);
     if (!firm) return null;
@@ -522,17 +533,19 @@ export const updateDTFeedback = (companyId: string, firmId: string, contactId: s
                 Object.assign(contact, updates);
 
                 // Derive status
-                if (contact.minutesCaptured === 'Yes') {
+                if (updates.minutesCaptured === 'Yes') {
                     contact.status = 'Completed';
-                } else if (contact.minutesCaptured === 'Partial' || contact.discussionHappened === 'Yes') {
+                } else if (updates.minutesCaptured === 'Partial' || updates.discussionHappened === 'Yes') {
                     contact.status = 'In Progress';
-                } else {
+                } else if (updates.discussionHappened === 'No') {
+                    contact.status = 'In Progress';
+                }
+                else {
                     contact.status = 'Pending';
                 }
-                 if(contact.minutesCaptured !== 'No') {
+
+                if (updates.minutesCaptured && updates.minutesCaptured !== 'No') {
                     contact.minutesCapturedOn = new Date().toISOString();
-                } else {
-                    contact.minutesCapturedOn = null;
                 }
 
                 return contact;
