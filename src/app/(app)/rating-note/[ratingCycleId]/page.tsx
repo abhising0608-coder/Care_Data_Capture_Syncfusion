@@ -14,6 +14,7 @@ import type { RatingNote, RatingNoteDataSchema, Role } from '@/lib/definitions';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/firebase';
 import { getDecompressedSfdt } from '@/lib/rating-note-service';
+import * as template from '@/lib/rating-note-template.json';
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
 
@@ -21,36 +22,52 @@ const fetcher = (url: string) => fetch(url).then(res => res.json());
 type NoteStatus = 'Draft' | 'Rework Requested' | 'In Review (GH)' | 'In Review (QC)' | 'QC Approved' | 'In Review (CC)' | 'CC Approved' | 'Pending RR & PR (RA)' | 'In Final Review (GH)' | 'Completed';
 
 export default function RatingNotePage() {
+    console.log("=== RatingNotePage component rendering ===");
+
     const params = useParams();
     const router = useRouter();
-    const noteId = params.ratingCycleId as string; 
+    const noteId = params.ratingCycleId as string;
+    console.log("Note ID from params:", noteId);
+
     const { toast } = useToast();
     const { user, role } = useAuth();
-    
+    console.log("User:", user, "Role:", role);
+
     const editorRef = useRef<DocumentEditorContainer | null>(null);
     const [documentContent, setDocumentContent] = useState<string | null>(null);
     const [isLoadingContent, setIsLoadingContent] = useState(true);
 
     const { data: note, isLoading: isNoteLoading, mutate } = useSWR<RatingNote>(
-      noteId ? `/api/notes/${noteId}` : null,
-      fetcher
+        noteId ? `/api/notes/${noteId}` : null,
+        fetcher
     );
 
+    console.log("Note data:", note, "isNoteLoading:", isNoteLoading);
+
     useEffect(() => {
+        console.log("=== useEffect for loading content triggered ===");
+        console.log("Toast function available:", !!toast);
+
         const loadContent = async () => {
+            console.log("Starting loadContent function...");
             setIsLoadingContent(true);
             try {
-                // Always load the default template from the file.
-                const decompressedSfdt = await getDecompressedSfdt();
+                console.log("Calling getDecompressedSfdt()...");
+
+                const base64String = (template as any);
+                const decompressedSfdt = JSON.stringify(base64String);
                 setDocumentContent(decompressedSfdt);
+                console.log("Document content state updated!");
             } catch (error) {
-                console.error("Failed to load document content:", error);
+                console.error("!!! ERROR in loadContent !!!", error);
+                console.error("Error details:", JSON.stringify(error, null, 2));
                 toast({
                     variant: 'destructive',
                     title: 'Error Loading Document',
                     description: 'Could not load the document content.',
                 });
             } finally {
+                console.log("Setting isLoadingContent to false");
                 setIsLoadingContent(false);
             }
         };
@@ -61,9 +78,9 @@ export default function RatingNotePage() {
 
     const handleSave = async (isSubmitting: boolean = false) => {
         if (!editorRef.current || !note || !user) return;
-        
+
         const sfdtString = await editorRef.current.documentEditor.save('Sfdt');
-        
+
         const payload: Partial<RatingNote> = {
             editorContent: sfdtString,
             status: isSubmitting ? 'In Review (GH)' : note.status,
@@ -76,12 +93,12 @@ export default function RatingNotePage() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload),
             });
-            
+
             toast({
                 title: 'Success!',
                 description: `Rating note has been ${isSubmitting ? 'submitted to Group Head' : 'saved'}.`,
             });
-            
+
             mutate();
 
             if (isSubmitting) {
@@ -96,9 +113,9 @@ export default function RatingNotePage() {
             });
         }
     };
-    
+
     const handleSubmitToGroupHead = () => {
-      handleSave(true);
+        handleSave(true);
     };
 
     const handleExport = (format: 'Docx' | 'Pdf') => {
@@ -113,19 +130,19 @@ export default function RatingNotePage() {
         const fileName = `${note?.companyName}_RatingNote`;
         editorRef.current.documentEditor.save(fileName, format);
     };
-    
+
     const isLoading = isNoteLoading || isLoadingContent;
 
     if (isLoading || !documentContent) {
-      return (
-         <div className="flex h-full w-full flex-col p-4 sm:p-6 lg:p-8">
-            <div className="flex items-center justify-center flex-col h-[calc(100vh-250px)] w-full bg-muted/50 rounded-lg">
-                <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
-                <p className="text-lg font-semibold text-foreground">Preparing Document...</p>
-                <p className="text-muted-foreground">Fetching template and binding data, please wait.</p>
+        return (
+            <div className="flex h-full w-full flex-col p-4 sm:p-6 lg:p-8">
+                <div className="flex items-center justify-center flex-col h-[calc(100vh-250px)] w-full bg-muted/50 rounded-lg">
+                    <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
+                    <p className="text-lg font-semibold text-foreground">Preparing Document...</p>
+                    <p className="text-muted-foreground">Fetching template and binding data, please wait.</p>
+                </div>
             </div>
-        </div>
-      )
+        )
     }
 
     const canEdit = (userRole: Role | undefined, noteStatus: NoteStatus) => {
@@ -135,14 +152,14 @@ export default function RatingNotePage() {
         }
         return false;
     };
-    
+
     const isReadOnly = !canEdit(user?.role, note.status as NoteStatus);
 
     return (
         <div className="flex h-full w-full flex-col">
             <header className="flex h-auto items-center justify-between gap-4 border-b bg-background p-4 sm:px-0 flex-wrap">
                 <div className="flex-1">
-                     <h1 className="text-xl font-semibold text-foreground">
+                    <h1 className="text-xl font-semibold text-foreground">
                         Rating Note: {note?.companyName}
                     </h1>
                     <p className="text-muted-foreground text-sm">
@@ -170,12 +187,12 @@ export default function RatingNotePage() {
             </header>
             <main className="flex-1 pt-6">
                 <Suspense fallback={<Skeleton className="h-[calc(100vh-250px)] w-full" />}>
-                   <RatingNoteEditor 
+                    <RatingNoteEditor
                         key={note.id}
-                        ref={editorRef} 
+                        ref={editorRef}
                         isReadOnly={isReadOnly}
                         content={documentContent}
-                   />
+                    />
                 </Suspense>
             </main>
         </div>

@@ -2,10 +2,10 @@
 'use client';
 import React, { forwardRef, useImperativeHandle, useRef, useEffect } from 'react';
 import {
-  DocumentEditorContainerComponent,
-  Toolbar,
-  SfdtExport,
-  WordExport,
+    DocumentEditorContainerComponent,
+    Toolbar,
+    SfdtExport,
+    WordExport,
 } from '@syncfusion/ej2-react-documenteditor';
 
 // Inject the required modules for toolbar, SFDT, and DOCX export functionality.
@@ -25,7 +25,7 @@ export const RatingNoteEditor = forwardRef<DocumentEditorContainerComponent | nu
 
         useEffect(() => {
             const editorInstance = editorRef.current;
-            
+            console.log("Content is valid SFDT: ", content);
             // This timeout ensures that the React component has fully mounted and the DOM
             // is stable before we initialize the imperative Syncfusion widget. This prevents
             // race conditions that can lead to improper cleanup on unmount.
@@ -38,6 +38,7 @@ export const RatingNoteEditor = forwardRef<DocumentEditorContainerComponent | nu
                     if (content) {
                         try {
                             JSON.parse(content);
+                            console.log("Content is valid SFDT: ", content);
                             editorInstance.documentEditor.open(content);
                         } catch (e) {
                             console.error("Invalid SFDT content provided:", e);
@@ -45,14 +46,14 @@ export const RatingNoteEditor = forwardRef<DocumentEditorContainerComponent | nu
                             editorInstance.documentEditor.open(JSON.stringify({ "sfdt": "{\"sections\":[{\"blocks\":[{\"inlines\":[{\"text\":\"Error: Could not load document.\"}]}]}]}" }));
                         }
                     } else {
-                         // Load a default placeholder if no content is provided
+                        // Load a default placeholder if no content is provided
                         editorInstance.documentEditor.open(JSON.stringify({ "sfdt": "{\"sections\":[{\"blocks\":[{\"inlines\":[{\"text\":\"Start drafting the rating note here...\"}]}]}]}" }));
                     }
 
                     // Enable track changes after a short delay to ensure the document is fully loaded
                     setTimeout(() => {
                         if (editorInstance && editorInstance.documentEditor) {
-                             editorInstance.documentEditor.trackChanges = true;
+                            editorInstance.documentEditor.trackChanges = true;
                         }
                     }, 500);
                 }
@@ -69,6 +70,7 @@ export const RatingNoteEditor = forwardRef<DocumentEditorContainerComponent | nu
             };
         }, [content, isReadOnly]); // Rerun effect if content or read-only status changes.
 
+
         return (
             <div className="h-full w-full">
                 <style>
@@ -78,6 +80,7 @@ export const RatingNoteEditor = forwardRef<DocumentEditorContainerComponent | nu
                     ref={editorRef}
                     height="calc(100vh - 180px)"
                     enableToolbar={true}
+                    serviceUrl='https://document.syncfusion.com/web-services/docx-editor/api/documenteditor/'
                 />
             </div>
         );
