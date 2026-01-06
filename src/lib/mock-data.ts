@@ -1,6 +1,6 @@
 
 
-import type { CKCRequest, AppUser, Role, RequestStatus, CompanyInfo, RatingNote, NoteStatus, RatingNoteDataSchema, DTFirm, DTContact, DTFeedbackStatus, QuestionnaireItem } from './definitions';
+import type { CKCRequest, AppUser, Role, RequestStatus, CompanyInfo, RatingNote, NoteStatus, RatingNoteDataSchema, DTFirm, DTContact, FeedbackStatus, QuestionnaireItem, IPAFirm, IPAContact } from './definitions';
 
 
 // --- FSD-based Master JSON Data Structure ---
@@ -430,7 +430,7 @@ let dtFeedbackData: Record<string, DTFirm[]> = {
             firmName: 'ABC Associates',
             contacts: [
                 { id: 'DTC-001', name: 'John Doe', email: 'john.doe@abcfirm.com', contact: '9876543210', discussionHappened: '', minutesCaptured: 'No', minutesCapturedOn: null, status: null, questionnaire: [], summary: '' },
-                { id: 'DTC-002', name: 'Jane Smith', email: 'jane.smith@abcfirm.com', contact: '8765432109', discussionHappened: 'Yes', minutesCaptured: 'Partial', minutesCapturedOn: new Date().toISOString(), status: 'In Progress', minutesContent: 'Initial discussion held.', questionnaire: [], summary: 'Summary of discussion with Jane.' },
+                { id: 'DTC-002', name: 'Jane Smith', email: 'jane.smith@abcfirm.com', contact: '8765432109', discussionHappened: 'Yes', minutesCaptured: 'Partial', minutesCapturedOn: new Date().toISOString(), status: 'In Progress', questionnaire: [], summary: 'Summary of discussion with Jane.' },
             ]
         },
          {
@@ -447,6 +447,27 @@ let dtFeedbackData: Record<string, DTFirm[]> = {
             firmName: 'New India Associates',
             contacts: [
                  { id: 'DTC-004', name: 'Sam Wilson', email: 'sam.wilson@newindia.com', contact: '6543210987', discussionHappened: '', minutesCaptured: 'No', minutesCapturedOn: null, status: null, questionnaire: [], summary: '' },
+            ]
+        }
+    ]
+};
+
+let ipaFeedbackData: Record<string, IPAFirm[]> = {
+    'COMP-101': [
+        {
+            id: 'IPAF-001',
+            firmName: 'SDK & PR Associates',
+            contacts: [
+                { id: 'IPAC-001', name: 'Anish Kumar', email: 'anish.k@sdkpr.com', contact: '9876543211', discussionHappened: '', minutesCaptured: 'No', minutesCapturedOn: null, status: null },
+            ]
+        },
+    ],
+     'COMP-102': [
+        {
+            id: 'IPAF-002',
+            firmName: 'Nelson and Co.',
+            contacts: [
+                 { id: 'IPAC-002', name: 'Priya Sharma', email: 'priya.s@nelson.com', contact: '6543210988', discussionHappened: '', minutesCaptured: 'No', minutesCapturedOn: null, status: null },
             ]
         }
     ]
@@ -481,7 +502,10 @@ let companyInfoData: Record<string, CompanyInfo> = {
             { id: 'DT-002', firmName: 'ABC Associates', contactPerson: 'Jane Smith', emailId: 'jane.smith@abcfirm.com', contactNo: '8765432109' },
             { id: 'DT-003', firmName: 'PR Firm', contactPerson: 'Peter Jones', emailId: 'peter.jones@prfirm.com', contactNo: '7654321098' },
         ],
-        ipaDetails: [],
+        ipaDetails: [
+             { id: 'IPA-001', firmName: 'SDK & PR Associates', contactPerson: 'Anish Kumar', emailId: 'anish.k@sdkpr.com', contactNo: '9876543211' },
+             { id: 'IPA-002', firmName: 'Nelson and Co.', contactPerson: 'Priya Sharma', emailId: 'priya.s@nelson.com', contactNo: '6543210988' },
+        ],
         thirdPartyDetails: [],
         syncStatus: {
             source: 'CRM',
@@ -521,6 +545,14 @@ export const getDTFeedbackByCompanyId = (companyId: string): DTFirm[] => {
     }));
 }
 
+export const getIPAFeedbackByCompanyId = (companyId: string): IPAFirm[] => {
+    const firms = ipaFeedbackData[companyId] || [];
+    return firms.map(firm => ({
+        ...firm,
+        contacts: firm.contacts.map(c => ({...c, status: c.status || null}))
+    }));
+}
+
 export const getDTFeedbackByContactId = (companyId: string, firmId: string, contactId: string): { firm: DTFirm, contact: DTContact } | null => {
     const firm = dtFeedbackData[companyId]?.find(f => f.id === firmId);
     if (firm) {
@@ -536,14 +568,38 @@ export const createDTRecord = (companyId: string, firmId: string, contactId: str
     const firm = dtFeedbackData[companyId]?.find(f => f.id === firmId);
     if (!firm) return null;
     
-    const contact = firm.contacts.find(c => c.id === contactId);
-    if (!contact) return null;
+    const contactIndex = firm.contacts.findIndex(c => c.id === contactId);
+    if (contactIndex === -1) return null;
 
-    contact.discussionHappened = discussionHappened;
-    contact.status = 'Pending';
-    contact.minutesCapturedOn = new Date().toISOString();
+    const updatedContact = {
+        ...firm.contacts[contactIndex],
+        discussionHappened: discussionHappened,
+        status: 'Pending' as FeedbackStatus,
+        minutesCapturedOn: new Date().toISOString()
+    };
     
-    return contact;
+    firm.contacts[contactIndex] = updatedContact;
+    
+    return updatedContact;
+};
+
+export const createIPARecord = (companyId: string, firmId: string, contactId: string, discussionHappened: 'Yes' | 'No') => {
+    const firm = ipaFeedbackData[companyId]?.find(f => f.id === firmId);
+    if (!firm) return null;
+    
+    const contactIndex = firm.contacts.findIndex(c => c.id === contactId);
+    if (contactIndex === -1) return null;
+
+    const updatedContact = {
+        ...firm.contacts[contactIndex],
+        discussionHappened: discussionHappened,
+        status: 'Pending' as FeedbackStatus,
+        minutesCapturedOn: new Date().toISOString()
+    };
+    
+    firm.contacts[contactIndex] = updatedContact;
+    
+    return updatedContact;
 };
 
 export const updateDTFeedback = (companyId: string, firmId: string, contactId: string, updates: Partial<DTContact>) => {

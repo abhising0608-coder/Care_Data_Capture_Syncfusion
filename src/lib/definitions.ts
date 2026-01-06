@@ -19,7 +19,7 @@ export type NoteStatus =
 
 export type CompanyPriority = 'High' | 'Medium' | 'Low';
 
-export type DTFeedbackStatus = 'Pending' | 'In Progress' | 'Completed';
+export type FeedbackStatus = 'Pending' | 'In Progress' | 'Completed';
 
 
 export type StatusHistory = {
@@ -160,8 +160,7 @@ export interface DTContact {
     discussionHappened: 'Yes' | 'No' | '';
     minutesCaptured: 'Yes' | 'No' | 'Partial';
     minutesCapturedOn: string | null;
-    status: DTFeedbackStatus | null;
-    minutesContent?: string;
+    status: FeedbackStatus | null;
     questionnaire?: QuestionnaireItem[];
     summary?: string;
 }
@@ -170,6 +169,23 @@ export interface DTFirm {
     id: string;
     firmName: string;
     contacts: DTContact[];
+}
+
+export interface IPAContact {
+    id: string;
+    name: string;
+    email: string;
+    contact: string;
+    discussionHappened: 'Yes' | 'No' | '';
+    minutesCaptured: 'Yes' | 'No' | 'Partial';
+    minutesCapturedOn: string | null;
+    status: FeedbackStatus | null;
+}
+
+export interface IPAFirm {
+    id: string;
+    firmName: string;
+    contacts: IPAContact[];
 }
 
 

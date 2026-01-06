@@ -38,6 +38,7 @@ const menuItems = [
     icon: Briefcase,
     subItems: [
         { href: '/due-diligence/dt-feedback', label: 'DT Feedback' },
+        { href: '/due-diligence/ipa-feedback', label: 'IPA Feedback' },
     ]
   },
    {
