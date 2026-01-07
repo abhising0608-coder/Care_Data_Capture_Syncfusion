@@ -6,7 +6,8 @@
 
 
 
-import type { CKCRequest, AppUser, Role, RequestStatus, CompanyInfo, RatingNote, NoteStatus, RatingNoteDataSchema, DTFirm, DTContact, FeedbackStatus, QuestionnaireItem, IPAFirm, IPAContact, ThirdParty, AuditCommitteeMeeting, SiteVisit, AuditorFirm, AuditorContact, BankerFirm, BankerContact, RatingInstrument, RatingInstrumentCycle, LatestBankDetail, AnnexureVHistory, PressReleaseHistory } from './definitions';
+
+import type { CKCRequest, AppUser, Role, RequestStatus, CompanyInfo, RatingNote, NoteStatus, RatingNoteDataSchema, DTFirm, DTContact, FeedbackStatus, QuestionnaireItem, IPAFirm, IPAContact, ThirdParty, AuditCommitteeMeeting, SiteVisit, AuditorFirm, AuditorContact, BankerFirm, BankerContact, RatingInstrument, RatingInstrumentCycle, LatestBankDetail, AnnexureVHistory, PressReleaseHistory, DMSDocumentHistory } from './definitions';
 
 
 // --- FSD-based Master JSON Data Structure ---
@@ -248,6 +249,18 @@ let ratingInstruments: Record<string, RatingInstrument[]> = {
     }))
   ]
 };
+
+export const mockDMSDocumentHistoryData: DMSDocumentHistory[] = [
+    { documentName: 'Banker Interaction', dmsStatus: 'Pending', dmsProcessType: 'Revalidation', dmsUploadedOn: '2010-09-24 11:02 AM', dmsUploadedBy: '-', reason: '-', mandateId: '2014-2015/20/21796' },
+    { documentName: 'CIBIL Quarter 1', dmsStatus: 'Pending', dmsProcessType: 'Revalidation', dmsUploadedOn: '2011-05-09 10:48 AM', dmsUploadedBy: '-', reason: '-', mandateId: '2014-2015/20/21796' },
+    { documentName: 'CIBIL Quarter 2', dmsStatus: 'Pending', dmsProcessType: 'Revalidation', dmsUploadedOn: '2011-05-09 10:48 AM', dmsUploadedBy: '-', reason: '-', mandateId: '2014-2015/20/21796' },
+    { documentName: 'Information Memorandum', dmsStatus: 'Uploaded', dmsProcessType: 'Revalidation', dmsUploadedOn: '2010-09-24 10:48 AM', dmsUploadedBy: 'Maulesh Desai', reason: '-', mandateId: '2014-2015/20/21796' },
+    { documentName: 'Management Meeting', dmsStatus: 'Pending', dmsProcessType: 'Review', dmsUploadedOn: '2010-09-24 10:48 AM', dmsUploadedBy: '-', reason: '-', mandateId: '2014-2015/20/21796' },
+    { documentName: 'NDS', dmsStatus: 'Uploaded', dmsProcessType: 'Review', dmsUploadedOn: '2010-09-24 10:48 AM', dmsUploadedBy: 'Maulesh Desai', reason: '-', mandateId: '2014-2015/20/21796' },
+    { documentName: 'Rating Letter', dmsStatus: 'Uploaded', dmsProcessType: 'Review', dmsUploadedOn: '2010-09-24 10:48 AM', dmsUploadedBy: 'Maulesh Desai', reason: '-', mandateId: '2014-2015/20/21796' },
+    { documentName: 'Rating letter and email of Rating...', dmsStatus: 'Uploaded', dmsProcessType: 'Review', dmsUploadedOn: '2010-09-24 10:48 AM', dmsUploadedBy: 'Maulesh Desai', reason: '-', mandateId: '2014-2015/20/21796' },
+];
+
 
 export const mockLatestBankDetails: LatestBankDetail[] = [
   { id: '109630', bankLender: 'Bank of Baroda', instrument: 'Term Loan', ratedAmount: 150, foreignCurrAmount: 0, currency: 'INR', debtRepaymentTerms: 'Repayable in 8 unequal...', remark: 'Outstanding as on June 30, 2024' },
@@ -748,6 +761,10 @@ export const getIPAFeedbackByCompanyId = (companyId: string): IPAFirm[] => {
     }));
 }
 
+export const getDMSDocumentHistoryByCompanyId = (companyId: string): DMSDocumentHistory[] => {
+    return mockDMSDocumentHistoryData || [];
+};
+
 export const getPressReleaseHistoryByCompanyId = (companyId: string): PressReleaseHistory[] => {
     return mockPressReleaseHistoryData || [];
 };
@@ -1064,7 +1081,6 @@ export const updateNoteStatus = (id: string, newStatus: NoteStatus, actorId: str
              updates.currentActor = 'RATING_ANALYST';
              break;
         case 'QC Approved':
-        case 'CC Approved':
         case 'Rework Requested (GH)': // QC or CC sends back to GH
             updates.currentActor = 'GROUP_HEAD';
             break;
@@ -1270,4 +1286,10 @@ export const getCompanyInfo = (ratingCycleId: string): CompanyInfo | null => {
 export const saveCompanyInfo = (ratingCycleId: string, data: CompanyInfo): CompanyInfo => {
     companyInfoData[ratingCycleId] = data;
     return JSON.parse(JSON.stringify(data));
+}
+
+// --- DMS Document History Functions ---
+
+export const getDMSDocumentHistory = (companyId: string): DMSDocumentHistory[] => {
+  return mockDMSDocumentHistoryData;
 }

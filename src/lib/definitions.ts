@@ -6,6 +6,7 @@
 
 
 
+
 export type Role = 'CKC_ANALYST' | 'CKC_CHECKER' | 'CKC_ADMIN' | 'RATING_ANALYST' | 'GROUP_HEAD' | 'RATING_HEAD_SD' | 'SYSTEM' | 'QC' | 'RATING_COMMITTEE';
 export type RequestStatus = 'PENDING' | 'ACCEPTED' | 'IN_PROGRESS' | 'SUBMITTED_FOR_CHECK' | 'SENT_BACK' | 'APPROVED' | 'CLOSED';
 
@@ -68,6 +69,17 @@ export type PressReleaseHistory = {
   priorRevisionDate: string;
   priorRating: string;
 };
+
+export type DMSDocumentHistory = {
+  documentName: string;
+  dmsStatus: 'Pending' | 'Uploaded' | 'Reviewed';
+  dmsProcessType: 'Revalidation' | 'Review';
+  dmsUploadedOn: string;
+  dmsUploadedBy: string;
+  reason: string;
+  mandateId: string;
+};
+
 
 
 export type RatingInstrumentCycle = {
