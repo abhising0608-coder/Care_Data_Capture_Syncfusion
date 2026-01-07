@@ -214,6 +214,28 @@ export interface ManagementDiscussion {
   status: DiscussionStatus;
 }
 
+export interface AuditCommitteePersonnel {
+  id: string;
+  name: string;
+}
+
+export interface AuditCommitteeMinute {
+  id: string;
+  issue: string;
+  response: string;
+}
+
+export interface AuditCommitteeMeeting {
+  id: string;
+  companyId: string;
+  interactionDate?: Date | null;
+  location?: string;
+  careTeam: string[];
+  auditCommitteePersonnel: AuditCommitteePersonnel[];
+  discussionMinutes: AuditCommitteeMinute[];
+  status: DiscussionStatus;
+}
+
 export interface ThirdPartyContact {
   id: string;
   name: string;

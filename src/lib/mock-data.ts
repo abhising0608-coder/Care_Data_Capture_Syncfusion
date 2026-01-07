@@ -1,7 +1,7 @@
 
 
 
-import type { CKCRequest, AppUser, Role, RequestStatus, CompanyInfo, RatingNote, NoteStatus, RatingNoteDataSchema, DTFirm, DTContact, FeedbackStatus, QuestionnaireItem, IPAFirm, IPAContact, ThirdParty } from './definitions';
+import type { CKCRequest, AppUser, Role, RequestStatus, CompanyInfo, RatingNote, NoteStatus, RatingNoteDataSchema, DTFirm, DTContact, FeedbackStatus, QuestionnaireItem, IPAFirm, IPAContact, ThirdParty, AuditCommitteeMeeting } from './definitions';
 
 
 // --- FSD-based Master JSON Data Structure ---
@@ -384,6 +384,8 @@ let operationalInputData: Record<string, any> = {
         },
     }
 };
+
+export let auditCommitteeMeetings: Record<string, AuditCommitteeMeeting> = {};
 
 export const mockUsers: Record<string, AppUser> = {
     'rating.analyst@careedge': {
