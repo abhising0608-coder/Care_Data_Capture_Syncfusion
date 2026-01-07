@@ -497,12 +497,14 @@ export function JsonSchemaForm({ schema, onSubmit, onCancel, requestId, dataKey,
                 )
               })}
             </Accordion>
-            <div className="flex justify-end gap-4">
-              <Button type="submit">
-                <Save className="h-4 w-4" />
-                {submitButtonText || (isLastStep ? 'Finish' : 'Save & Mark as Complete')}
-              </Button>
-            </div>
+            {submitButtonText && (
+               <div className="flex justify-end gap-4">
+                  <Button type="submit">
+                    <Save className="h-4 w-4 mr-2" />
+                    {submitButtonText}
+                  </Button>
+              </div>
+            )}
           </form>
         </Form>
       </CardContent>

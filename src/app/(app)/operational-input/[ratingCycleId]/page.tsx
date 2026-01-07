@@ -10,6 +10,8 @@ import { useWorkflow } from '@/context/workflow-context';
 import { JsonSchemaForm } from '@/components/operational-input/json-schema-form';
 import { pharmaSchema } from '@/lib/schemas/sectorial-schemas/pharma-schema';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
+import { Save } from 'lucide-react';
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
 
@@ -30,7 +32,7 @@ export default function OperationalInputFlowPage() {
     const router = useRouter();
     const { user, isLoading: isAuthLoading } = useAuth();
     const { toast } = useToast();
-    const { completeStep } = useWorkflow();
+    const { completeStep, activeCompanyId } = useWorkflow();
 
     const ratingCycleId = params.ratingCycleId as string;
     const schema = pharmaSchema; // Only using Pharma schema as per requirements
@@ -71,6 +73,12 @@ export default function OperationalInputFlowPage() {
                 description: `Operational data has been saved successfully.`,
             });
             
+             if (activeCompanyId) {
+                router.push(`/due-diligence/${activeCompanyId}`);
+            } else {
+                router.push('/dashboard');
+            }
+            
         } catch (error) {
             console.error("Failed to save data:", error);
             toast({
@@ -101,7 +109,7 @@ export default function OperationalInputFlowPage() {
                             requestId={ratingCycleId!}
                             dataKey={dataKey}
                             isLastStep={false}
-                            submitButtonText="Save & Mark as Complete"
+                            submitButtonText="" // Button is now rendered outside
                         />
                     )}
                 </Suspense>
