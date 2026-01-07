@@ -16,7 +16,21 @@ export async function getDecompressedSfdt(): Promise<string> {
         for (let i = 0; i < len; i++) {
             bytes[i] = binaryString.charCodeAt(i);
         }
-        return pako.inflate(bytes, { to: 'string' });
+        
+        try {
+            // First, try to decompress assuming it's gzipped.
+            return pako.inflate(bytes, { to: 'string' });
+        } catch (e: any) {
+            // If it fails with an "incorrect header check", it's likely not compressed.
+            // In that case, we treat the decoded string as the raw SFDT JSON.
+            if (e.message === 'incorrect header check') {
+                console.warn('SFDT content is not compressed. Treating as plain JSON string.');
+                return new TextDecoder().decode(bytes);
+            }
+            // If it's another error, re-throw it.
+            throw e;
+        }
+
     } catch (error) {
         console.error("Failed to decode or decompress SFDT content:", error);
         return JSON.stringify({ "sfdt": "{\"sections\":[{\"blocks\":[{\"inlines\":[{\"text\":\"Error: Could not load or parse the document template.\"}]}]}]}" });
@@ -102,3 +116,4 @@ export async function getBoundRatingNoteSfdt(ratingNoteData: RatingNoteDataSchem
 
     return JSON.stringify(sfdtObject);
 }
+
