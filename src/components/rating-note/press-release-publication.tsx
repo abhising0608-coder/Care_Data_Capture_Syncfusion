@@ -19,6 +19,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import type { RatingNote, RatingInstrument } from '@/lib/definitions';
 import { Skeleton } from '../ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
@@ -60,6 +70,7 @@ export function PressReleasePublication({ note }: PressReleasePublicationProps) 
     );
     const { toast } = useToast();
     const router = useRouter();
+    const [isAlertOpen, setIsAlertOpen] = useState(false);
 
     const form = useForm<PublicationFormValues>({
         resolver: zodResolver(publicationSchema),
@@ -86,7 +97,7 @@ export function PressReleasePublication({ note }: PressReleasePublicationProps) 
 
     const mandateIds = instrumentsByMandate ? Object.keys(instrumentsByMandate) : [];
     
-    const onSubmit = (data: PublicationFormValues) => {
+    const onPublicationSubmit = (data: PublicationFormValues) => {
         toast({
             title: 'Sent for Publication',
             description: 'The press release has been sent to the publication team.',
@@ -95,135 +106,167 @@ export function PressReleasePublication({ note }: PressReleasePublicationProps) 
     };
     
     const handleSave = () => {
-         toast({
-            title: 'Draft Saved',
-            description: 'Your changes have been saved.',
+         const status = form.getValues('clientConfirmationStatus');
+         if (status === 'Representation') {
+             setIsAlertOpen(true);
+         } else {
+             toast({
+                title: 'Draft Saved',
+                description: 'Your changes have been saved.',
+            });
+         }
+    };
+    
+    const handleConfirmRepresentation = () => {
+        setIsAlertOpen(false);
+        toast({
+            title: 'Case Moved to Representation',
+            description: 'A new representation cycle has been initiated in Pre-committee.',
         });
+        // Here you would navigate or update the state as needed
+        router.push('/dashboard');
     }
 
   return (
-    <FormProvider {...form}>
-      <form onSubmit={handleSubmit(onSubmit)}>
-        <Card className="mt-4">
-            <CardHeader>
-                <CardTitle>Shriram Transport Finance Company Ltd (STFCL)</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 border rounded-lg">
-                    <InfoField label="Date of Committee" value={format(new Date(note.ratingNoteData?.workflowContext.committeeDate || Date.now()), 'dd-MMM-yyyy')} />
-                     <InfoField label="Draft PR Sent Date" value={format(new Date(), 'dd-MMM-yyyy')} />
-                     <FormField
-                        control={control}
-                        name="clientConfirmationStatus"
-                        render={({ field }) => (
-                            <FormItem className="grid grid-cols-2 items-center">
-                                <FormLabel>Client Confirmation Status</FormLabel>
-                                <Select onValueChange={field.onChange} value={field.value}>
-                                    <FormControl>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Select Status" />
-                                        </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                        <SelectItem value="Accepted">Accepted</SelectItem>
-                                        <SelectItem value="Representation">Representation</SelectItem>
-                                        <SelectItem value="Review">Review</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                                <FormMessage className="col-start-2" />
-                            </FormItem>
-                        )}
-                    />
-                    <FormField
-                        control={control}
-                        name="clientConfirmationDate"
-                        render={({ field }) => (
-                            <FormItem className="grid grid-cols-2 items-center">
-                                <FormLabel>Client Confirmation Date</FormLabel>
-                                 <Popover>
-                                    <PopoverTrigger asChild>
+    <>
+        <FormProvider {...form}>
+        <form onSubmit={handleSubmit(onPublicationSubmit)}>
+            <Card className="mt-4">
+                <CardHeader>
+                    <CardTitle>Shriram Transport Finance Company Ltd (STFCL)</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 border rounded-lg">
+                        <InfoField label="Date of Committee" value={format(new Date(note.ratingNoteData?.workflowContext.committeeDate || Date.now()), 'dd-MMM-yyyy')} />
+                        <InfoField label="Draft PR Sent Date" value={format(new Date(), 'dd-MMM-yyyy')} />
+                        <FormField
+                            control={control}
+                            name="clientConfirmationStatus"
+                            render={({ field }) => (
+                                <FormItem className="grid grid-cols-2 items-center">
+                                    <FormLabel>Client Confirmation Status</FormLabel>
+                                    <Select onValueChange={field.onChange} value={field.value}>
                                         <FormControl>
-                                            <Button
-                                                variant={"outline"}
-                                                className={cn("pl-3 text-left font-normal", !field.value && "text-muted-foreground")}
-                                                disabled={clientConfirmationStatus !== 'Accepted'}
-                                            >
-                                                {field.value ? format(field.value, "PPP") : <span>DD-MM-YYYY</span>}
-                                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                            </Button>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Select Status" />
+                                            </SelectTrigger>
                                         </FormControl>
-                                    </PopoverTrigger>
-                                    <PopoverContent className="w-auto p-0" align="start">
-                                        <Calendar
-                                            mode="single"
-                                            selected={field.value || undefined}
-                                            onSelect={field.onChange}
-                                            disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
-                                            initialFocus
-                                        />
-                                    </PopoverContent>
-                                </Popover>
-                                <FormMessage className="col-start-2" />
-                            </FormItem>
-                        )}
-                    />
-                </div>
-                
-                 <div>
-                    <h3 className="font-semibold text-lg mb-2">Mandate Details</h3>
-                     {isLoading ? (
-                         <Skeleton className="h-48 w-full" />
-                    ) : (
-                        <Accordion type="multiple" defaultValue={mandateIds} className="w-full">
-                           {instrumentsByMandate && Object.entries(instrumentsByMandate).map(([mandateId, mandateInstruments]) => (
-                                <AccordionItem value={mandateId} key={mandateId}>
-                                    <AccordionTrigger className="font-semibold bg-muted/50 px-4 rounded-t-lg">{mandateId}</AccordionTrigger>
-                                    <AccordionContent className="border border-t-0 p-0 rounded-b-lg">
-                                        <div className="overflow-x-auto">
-                                            <Table>
-                                                <TableHeader>
-                                                    <TableRow>
-                                                        <TableHead>Instrument ID</TableHead>
-                                                        <TableHead>Category</TableHead>
-                                                        <TableHead>Sub Category</TableHead>
-                                                        <TableHead>Instrument Name</TableHead>
-                                                        <TableHead className="text-right">Total INS Amt. Size</TableHead>
-                                                        <TableHead>PCL Acceptance Date</TableHead>
-                                                        <TableHead>Rating Assigned</TableHead>
-                                                    </TableRow>
-                                                </TableHeader>
-                                                <TableBody>
-                                                    {mandateInstruments.map((instrument) => (
-                                                        <TableRow key={instrument.id}>
-                                                            <TableCell>{instrument.instrumentId}</TableCell>
-                                                            <TableCell>{instrument.category}</TableCell>
-                                                            <TableCell>{instrument.subCategory}</TableCell>
-                                                            <TableCell>{instrument.instrument}</TableCell>
-                                                            <TableCell className="text-right">{instrument.instrumentSize.toLocaleString('en-IN')}</TableCell>
-                                                            <TableCell>{instrument.initialRatingDate ? format(new Date(instrument.initialRatingDate), 'dd-MMM-yyyy') : 'N/A'}</TableCell>
-                                                            <TableCell>{instrument.cycleHistory[0]?.rating || 'N/A'}</TableCell>
+                                        <SelectContent>
+                                            <SelectItem value="Accepted">Accepted</SelectItem>
+                                            <SelectItem value="Representation">Representation</SelectItem>
+                                            <SelectItem value="Review">Review</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                    <FormMessage className="col-start-2" />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={control}
+                            name="clientConfirmationDate"
+                            render={({ field }) => (
+                                <FormItem className="grid grid-cols-2 items-center">
+                                    <FormLabel>Client Confirmation Date</FormLabel>
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                            <FormControl>
+                                                <Button
+                                                    variant={"outline"}
+                                                    className={cn("pl-3 text-left font-normal", !field.value && "text-muted-foreground")}
+                                                    disabled={clientConfirmationStatus !== 'Accepted'}
+                                                >
+                                                    {field.value ? format(field.value, "PPP") : <span>DD-MM-YYYY</span>}
+                                                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                                </Button>
+                                            </FormControl>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-auto p-0" align="start">
+                                            <Calendar
+                                                mode="single"
+                                                selected={field.value || undefined}
+                                                onSelect={field.onChange}
+                                                disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
+                                                initialFocus
+                                            />
+                                        </PopoverContent>
+                                    </Popover>
+                                    <FormMessage className="col-start-2" />
+                                </FormItem>
+                            )}
+                        />
+                    </div>
+                    
+                    <div>
+                        <h3 className="font-semibold text-lg mb-2">Mandate Details</h3>
+                        {isLoading ? (
+                            <Skeleton className="h-48 w-full" />
+                        ) : (
+                            <Accordion type="multiple" defaultValue={mandateIds} className="w-full">
+                            {instrumentsByMandate && Object.entries(instrumentsByMandate).map(([mandateId, mandateInstruments]) => (
+                                    <AccordionItem value={mandateId} key={mandateId}>
+                                        <AccordionTrigger className="font-semibold bg-muted/50 px-4 rounded-t-lg">{mandateId}</AccordionTrigger>
+                                        <AccordionContent className="border border-t-0 p-0 rounded-b-lg">
+                                            <div className="overflow-x-auto">
+                                                <Table>
+                                                    <TableHeader>
+                                                        <TableRow>
+                                                            <TableHead>Instrument ID</TableHead>
+                                                            <TableHead>Category</TableHead>
+                                                            <TableHead>Sub Category</TableHead>
+                                                            <TableHead>Instrument Name</TableHead>
+                                                            <TableHead className="text-right">Total INS Amt. Size</TableHead>
+                                                            <TableHead>PCL Acceptance Date</TableHead>
+                                                            <TableHead>Rating Assigned</TableHead>
                                                         </TableRow>
-                                                    ))}
-                                                </TableBody>
-                                            </Table>
-                                        </div>
-                                    </AccordionContent>
-                                </AccordionItem>
-                           ))}
-                        </Accordion>
-                    )}
-                </div>
+                                                    </TableHeader>
+                                                    <TableBody>
+                                                        {mandateInstruments.map((instrument) => (
+                                                            <TableRow key={instrument.id}>
+                                                                <TableCell>{instrument.instrumentId}</TableCell>
+                                                                <TableCell>{instrument.category}</TableCell>
+                                                                <TableCell>{instrument.subCategory}</TableCell>
+                                                                <TableCell>{instrument.instrument}</TableCell>
+                                                                <TableCell className="text-right">{instrument.instrumentSize.toLocaleString('en-IN')}</TableCell>
+                                                                <TableCell>{instrument.initialRatingDate ? format(new Date(instrument.initialRatingDate), 'dd-MMM-yyyy') : 'N/A'}</TableCell>
+                                                                <TableCell>{instrument.cycleHistory[0]?.rating || 'N/A'}</TableCell>
+                                                            </TableRow>
+                                                        ))}
+                                                    </TableBody>
+                                                </Table>
+                                            </div>
+                                        </AccordionContent>
+                                    </AccordionItem>
+                            ))}
+                            </Accordion>
+                        )}
+                    </div>
 
-                <div className="flex justify-end gap-4 mt-8">
-                     <Button type="button" variant="outline" onClick={() => router.back()}>Cancel</Button>
-                     <Button type="button" variant="outline" onClick={handleSave}>Save</Button>
-                    <Button type="submit" disabled={!isSendEnabled}>
-                        <Send className="mr-2 h-4 w-4" /> Send for Publication
-                    </Button>
-                </div>
-            </CardContent>
-        </Card>
-      </form>
-    </FormProvider>
+                    <div className="flex justify-end gap-4 mt-8">
+                        <Button type="button" variant="outline" onClick={() => router.back()}>Cancel</Button>
+                        <Button type="button" variant="outline" onClick={handleSave}>Save</Button>
+                        <Button type="submit" disabled={!isSendEnabled}>
+                            <Send className="mr-2 h-4 w-4" /> Send for Publication
+                        </Button>
+                    </div>
+                </CardContent>
+            </Card>
+        </form>
+        </FormProvider>
+
+        <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        This will move the case to Pre-committee as a new representation cycle. Are you sure you want to proceed?
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                    <AlertDialogCancel>No</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleConfirmRepresentation}>Yes</AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
+    </>
   );
 }
