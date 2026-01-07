@@ -274,9 +274,7 @@ export function PressReleasePublication({ note }: PressReleasePublicationProps) 
                     <p>{modalContent.description}</p>
                 </div>
                 <DialogFooter>
-                    <DialogClose asChild>
-                        <Button variant="outline">No</Button>
-                    </DialogClose>
+                    <Button variant="outline" onClick={() => setIsConfirmModalOpen(false)}>No</Button>
                     <Button onClick={modalContent.onConfirm}>Yes</Button>
                 </DialogFooter>
             </DialogContent>
