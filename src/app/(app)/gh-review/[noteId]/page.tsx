@@ -34,9 +34,8 @@ export default function GroupHeadReviewPage() {
         if (!editorRef.current || !note || !user) return;
 
         try {
-            const documentContent = await editorRef.current.documentEditor.saveAsBlob('Sfdt');
+            const documentContentBlob = await editorRef.current.documentEditor.saveAsBlob('Sfdt');
             const reader = new FileReader();
-            reader.readAsText(documentContent);
             
             reader.onloadend = async () => {
                 const sfdtString = reader.result as string;
@@ -63,6 +62,8 @@ export default function GroupHeadReviewPage() {
                 mutate();
                 router.push('/dashboard');
             };
+            
+            reader.readAsText(documentContentBlob);
 
         } catch (error) {
             console.error('Failed to handle action:', error);

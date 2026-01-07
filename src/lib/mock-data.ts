@@ -665,6 +665,30 @@ export const getNoteById = (id: string): RatingNote | undefined => {
   return note ? JSON.parse(JSON.stringify(note)) : undefined;
 };
 
+export const createNote = (body: Partial<RatingNote>): RatingNote => {
+    const company = mockCompanies.find(c => c.id === body.companyId);
+    if (!company) throw new Error("Company not found");
+
+    const newNote: RatingNote = {
+        id: `NOTE-${ratingNotes.length + 10}`,
+        companyName: company.companyName,
+        companyId: company.id,
+        ratingCycle: 'Initial', // Defaulting
+        priority: 'Medium', // Defaulting
+        dueDate: '15 Jul 26', // Defaulting
+        status: 'Draft',
+        currentActor: 'RATING_ANALYST',
+        initiatedBy: body.createdBy!,
+        statusHistory: [{ status: 'Draft', actorId: body.createdBy!, timestamp: new Date().toISOString() }],
+        ...body,
+        ratingNoteData: getMasterRatingNoteData(`NOTE-${ratingNotes.length + 10}`, company.companyName),
+    };
+
+    ratingNotes.push(newNote);
+    return JSON.parse(JSON.stringify(newNote));
+}
+
+
 export const updateNote = (id: string, updates: Partial<RatingNote>): RatingNote | null => {
     const noteIndex = ratingNotes.findIndex(r => r.id === id);
     if (noteIndex === -1) return null;
@@ -680,6 +704,11 @@ export const updateNote = (id: string, updates: Partial<RatingNote>): RatingNote
             : originalNote.ratingNoteData
     };
 
+    if (updates.editorContent) {
+        updatedNote.editorContent = updates.editorContent;
+    }
+
+
     ratingNotes[noteIndex] = updatedNote;
     return JSON.parse(JSON.stringify(updatedNote));
 }
@@ -687,52 +716,50 @@ export const updateNote = (id: string, updates: Partial<RatingNote>): RatingNote
 export const updateNoteStatus = (id: string, newStatus: NoteStatus, actorId: string, editorContent?: string) => {
     const note = getNoteById(id);
     if (!note) return null;
-
-    note.status = newStatus;
-    note.statusHistory.push({
-        status: newStatus,
-        timestamp: new Date().toISOString(),
-        actorId,
-    });
     
-    if (editorContent && note.ratingNoteData) {
-        note.ratingNoteData.editorContent = editorContent;
+    let updates: Partial<RatingNote> = {
+        status: newStatus,
+        statusHistory: [...note.statusHistory, { status: newStatus, timestamp: new Date().toISOString(), actorId }],
+    };
+
+    if (editorContent) {
+        updates.editorContent = editorContent;
     }
     
     // Update currentActor based on the new status
     switch (newStatus) {
         case 'In Review (GH)':
-            note.currentActor = 'GROUP_HEAD';
+            updates.currentActor = 'GROUP_HEAD';
             break;
         case 'In Review (QC)':
-            note.currentActor = 'QC';
+            updates.currentActor = 'QC';
             break;
         case 'In Review (CC)':
-            note.currentActor = 'RATING_COMMITTEE';
+            updates.currentActor = 'RATING_COMMITTEE';
             break;
         case 'Rework Requested': // GH sends back to RA
-             note.currentActor = 'RATING_ANALYST';
+             updates.currentActor = 'RATING_ANALYST';
              break;
         case 'QC Approved':
         case 'CC Approved':
         case 'Rework Requested (GH)': // QC or CC sends back to GH
-            note.currentActor = 'GROUP_HEAD';
+            updates.currentActor = 'GROUP_HEAD';
             break;
         case 'Pending RR & PR (RA)':
-            note.currentActor = 'RATING_ANALYST';
+            updates.currentActor = 'RATING_ANALYST';
             break;
          case 'In Final Review (GH)':
-            note.currentActor = 'GROUP_HEAD';
+            updates.currentActor = 'GROUP_HEAD';
             break;
         case 'Draft':
-             note.currentActor = 'RATING_ANALYST';
+             updates.currentActor = 'RATING_ANALYST';
              break;
         case 'Completed':
-            note.currentActor = 'SYSTEM';
+            updates.currentActor = 'SYSTEM';
             break;
     }
     
-    return updateNote(id, note);
+    return updateNote(id, updates);
 };
 
 
