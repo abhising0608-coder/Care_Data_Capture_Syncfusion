@@ -64,34 +64,43 @@ export default function RatingNotePage() {
     const handleSave = async (isSubmitting: boolean = false) => {
         if (!editorRef.current || !note || !user) return;
 
-        const sfdtString = await editorRef.current.documentEditor.save('Sfdt');
         const action = isSubmitting ? 'submit-to-gh' : 'save-draft';
         
         try {
-            const res = await fetch(`/api/notes/${noteId}/review`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                    action,
-                    editorContent: sfdtString,
-                    actorId: user.uid,
-                 }),
-            });
-            
-            if (!res.ok) {
-                throw new Error(`Failed to ${isSubmitting ? 'submit' : 'save'}`);
-            }
+            const documentContentBlob = await editorRef.current.documentEditor.saveAsBlob('Sfdt');
+            const reader = new FileReader();
 
-            toast({
-                title: 'Success!',
-                description: `Rating note has been ${isSubmitting ? 'submitted to Group Head' : 'saved as a draft'}.`,
-            });
+            reader.onloadend = async () => {
+                const sfdtString = reader.result as string;
 
-            mutate();
+                const res = await fetch(`/api/notes/${noteId}/review`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        action,
+                        editorContent: sfdtString,
+                        actorId: user.uid,
+                     }),
+                });
+                
+                if (!res.ok) {
+                    throw new Error(`Failed to ${isSubmitting ? 'submit' : 'save'}`);
+                }
 
-            if (isSubmitting) {
-                router.push('/dashboard');
-            }
+                toast({
+                    title: 'Success!',
+                    description: `Rating note has been ${isSubmitting ? 'submitted to Group Head' : 'saved as a draft'}.`,
+                });
+
+                mutate();
+
+                if (isSubmitting) {
+                    router.push('/dashboard');
+                }
+            };
+
+            reader.readAsText(documentContentBlob);
+
         } catch (error) {
             console.error("Failed to save/submit:", error);
             toast({
