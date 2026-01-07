@@ -1,5 +1,6 @@
 'use client';
 import { useParams } from 'next/navigation';
+import useSWR from 'swr';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AuditorFeedbackView } from '@/components/due-diligence/auditor-feedback-view';
 import { BankerFeedbackView } from '@/components/due-diligence/banker-feedback-view';
@@ -9,6 +10,11 @@ import ManagementDiscussionPage from '../management-discussion/page';
 import ThirdPartyCheckPage from '../third-party-check/page';
 import AuditCommitteeMeetingPage from '../audit-committee-meeting/page';
 import SiteVisitPage from '../site-visit/page';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
+import type { CompanyDashboard } from '@/lib/definitions';
+import { getCompaniesByRole } from '@/lib/mock-data';
+import { useAuth } from '@/firebase';
 
 
 const tabsConfig = [
@@ -22,9 +28,21 @@ const tabsConfig = [
     { value: 'site-visit', label: 'Site / Plant Visit', Component: SiteVisitPage },
 ];
 
+const fetcher = (url: string) => fetch(url).then(res => res.json());
+
 export default function DueDiligencePage() {
     const params = useParams();
     const ratingCycleId = params.ratingCycleId as string;
+    const { user } = useAuth();
+    
+    // In a real app, we'd fetch the specific company by ratingCycleId.
+    // For this mock, we'll find it in the list of all companies.
+    const { data: allCompanies, isLoading } = useSWR<CompanyDashboard[]>(
+      user ? `/api/companies?role=${user.role}` : null, 
+      fetcher
+    );
+
+    const company = allCompanies?.find(c => c.id === ratingCycleId);
 
     return (
         <div className="space-y-6">
@@ -32,6 +50,23 @@ export default function DueDiligencePage() {
                 <h1 className="text-2xl font-bold tracking-tight text-foreground">Due Diligence</h1>
                 <p className="text-muted-foreground">Complete all required due diligence activities for the rating cycle.</p>
             </header>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle>Company Context</CardTitle>
+                    <CardDescription>All due diligence activities will be performed for the company selected in the workflow.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    {isLoading ? (
+                        <Skeleton className="h-8 w-1/2" />
+                    ) : (
+                        <div className="text-lg font-semibold text-primary">
+                            {company?.companyName || `Company ID: ${ratingCycleId}`}
+                        </div>
+                    )}
+                </CardContent>
+            </Card>
+
              <Tabs defaultValue="auditor" className="w-full">
                 <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 lg:grid-cols-8">
                     {tabsConfig.map(tab => (
