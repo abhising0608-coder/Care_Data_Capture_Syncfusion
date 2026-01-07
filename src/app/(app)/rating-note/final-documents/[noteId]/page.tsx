@@ -15,6 +15,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/firebase';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PressReleaseInitiation } from '@/components/rating-note/press-release-initiation';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
 
@@ -98,36 +99,54 @@ export default function FinalDocumentsPage() {
         )
     }
     
-    if (view === 'initiation') {
-        return <PressReleaseInitiation note={note} onPrepare={handlePrepare} />
-    }
-
     return (
         <div className="space-y-6">
-            <header className="flex h-auto items-center justify-between gap-4 flex-wrap">
-                <div className="flex-1">
-                     <h1 className="text-2xl font-semibold text-foreground">
-                        Prepare Press Release: {note.companyName}
-                    </h1>
-                    <p className="text-muted-foreground">
-                        Draft the Press Release (PR). The original Rating Note is available for reference in read-only mode.
-                    </p>
-                </div>
-                 <div className="flex items-center gap-2">
-                    <Button onClick={handleFinalSubmit}>
-                        <Send className="mr-2 h-4 w-4" /> Submit PR
-                    </Button>
-                </div>
+             <header>
+                 <h1 className="text-2xl font-semibold text-foreground">
+                    {note.companyName}
+                </h1>
             </header>
 
-            <Card>
-                <CardHeader>
-                    <CardTitle>Press Release (PR)</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <RatingNoteEditor key="pr" ref={prEditorRef} isReadOnly={false} content={prContent} />
-                </CardContent>
-            </Card>
+            <Tabs defaultValue="preparation">
+                <TabsList>
+                    <TabsTrigger value="preparation">Preparation of Press Release</TabsTrigger>
+                    <TabsTrigger value="publication">Press Release Publication</TabsTrigger>
+                    <TabsTrigger value="history">PR History</TabsTrigger>
+                </TabsList>
+                <TabsContent value="preparation">
+                    {view === 'initiation' ? (
+                        <PressReleaseInitiation note={note} onPrepare={handlePrepare} />
+                    ) : (
+                        <div className="space-y-6 mt-4">
+                            <div className="flex justify-end">
+                                <Button onClick={handleFinalSubmit}>
+                                    <Send className="mr-2 h-4 w-4" /> Submit PR
+                                </Button>
+                            </div>
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Press Release (PR)</CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <RatingNoteEditor key="pr" ref={prEditorRef} isReadOnly={false} content={prContent} />
+                                </CardContent>
+                            </Card>
+                        </div>
+                    )}
+                </TabsContent>
+                 <TabsContent value="publication">
+                    <Card className="mt-4">
+                        <CardHeader><CardTitle>Press Release Publication</CardTitle></CardHeader>
+                        <CardContent><p>Placeholder for Press Release Publication content.</p></CardContent>
+                    </Card>
+                </TabsContent>
+                 <TabsContent value="history">
+                     <Card className="mt-4">
+                        <CardHeader><CardTitle>PR History</CardTitle></CardHeader>
+                        <CardContent><p>Placeholder for PR History content.</p></CardContent>
+                    </Card>
+                </TabsContent>
+            </Tabs>
         </div>
     );
 }
