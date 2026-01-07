@@ -30,17 +30,6 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  // This is required to polyfill some node.js APIs that are not available in the browser
-  webpack: (config, { isServer }) => {
-    if (!isServer) {
-      config.resolve.fallback = {
-        ...config.resolve.fallback,
-        stream: require.resolve('stream-browserify'),
-        zlib: require.resolve('browserify-zlib'),
-      };
-    }
-    return config;
-  }
 };
 
 export default nextConfig;
