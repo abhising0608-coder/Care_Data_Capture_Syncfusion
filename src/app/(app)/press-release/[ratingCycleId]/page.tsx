@@ -19,6 +19,7 @@ import { PressReleasePreparation } from '@/components/rating-note/press-release-
 import { PressReleaseFinalForm } from '@/components/rating-note/press-release-final-form';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PressReleasePreview } from '@/components/rating-note/press-release-preview';
+import { PressReleasePublication } from '@/components/rating-note/press-release-publication';
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
 
@@ -128,10 +129,7 @@ export default function PressReleasePage() {
                     {renderContent()}
                 </TabsContent>
                  <TabsContent value="publication">
-                    <Card className="mt-4">
-                        <CardHeader><CardTitle>Press Release Publication</CardTitle></CardHeader>
-                        <CardContent><p>Placeholder for Press Release Publication content.</p></CardContent>
-                    </Card>
+                    <PressReleasePublication note={note} />
                 </TabsContent>
                  <TabsContent value="history">
                      <Card className="mt-4">
