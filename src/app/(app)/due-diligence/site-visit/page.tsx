@@ -17,10 +17,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ShieldAlert, Save } from 'lucide-react';
+import { ShieldAlert, Save, Mail } from 'lucide-react';
 import { PlantVisitDetailsTab } from '@/components/due-diligence/site-visit/plant-visit-details';
 import { OtherDetailsTab } from '@/components/due-diligence/site-visit/other-details';
 import { WaiverRequestModal } from '@/components/due-diligence/site-visit/waiver-request-modal';
+import { SiteVisitEmailModal } from '@/components/due-diligence/site-visit/site-visit-email-modal';
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
@@ -49,8 +50,10 @@ export default function SiteVisitPage() {
     const [companyToFetch, setCompanyToFetch] = useState<string>('');
     const [activeTab, setActiveTab] = useState('plant_visit');
     const [isWaiverModalOpen, setIsWaiverModalOpen] = useState(false);
+    const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
 
     const companies = getCompaniesByRole(user);
+    const selectedCompany = companies.find(c => c.id === companyToFetch);
 
     const { data: siteVisitData, isLoading: isDataLoading } = useSWR<SiteVisit>(
         companyToFetch ? `/api/due-diligence/site-visit?companyId=${companyToFetch}` : null,
@@ -89,6 +92,7 @@ export default function SiteVisitPage() {
     };
 
     const isLoading = isAuthLoading || (companyToFetch && isDataLoading);
+    const formData = form.watch();
 
     // Placeholder logic for mandatory visit
     const isMandatory = companyToFetch === 'COMP-101'; // Sun Pharma is >= BBB-
@@ -149,6 +153,9 @@ export default function SiteVisitPage() {
 
                          <div className="flex justify-end gap-4 mt-8">
                              <Button type="button" variant="outline" onClick={handleCancel}>Cancel</Button>
+                             <Button type="button" variant="outline" onClick={() => setIsEmailModalOpen(true)}>
+                                <Mail className="mr-2 h-4 w-4" /> Email to Client
+                             </Button>
                             {activeTab === 'plant_visit' ? (
                                 <Button type="button" onClick={form.handleSubmit(handleSaveAndContinue)}>
                                     <Save className="mr-2 h-4 w-4" /> Save & Continue
@@ -166,6 +173,15 @@ export default function SiteVisitPage() {
                     onClose={() => setIsWaiverModalOpen(false)}
                     onSubmit={handleWaiverSubmit}
                  />
+
+                 {selectedCompany && (
+                     <SiteVisitEmailModal
+                        isOpen={isEmailModalOpen}
+                        onClose={() => setIsEmailModalOpen(false)}
+                        visitData={formData}
+                        company={selectedCompany}
+                     />
+                 )}
             </div>
         </FormProvider>
     );
