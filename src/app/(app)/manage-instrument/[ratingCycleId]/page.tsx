@@ -13,6 +13,7 @@ import type { RatingNote } from '@/lib/definitions';
 import { Skeleton } from "@/components/ui/skeleton";
 import { LatestBankDetailsTab } from "@/components/manage-instrument/latest-bank-details-tab";
 import { AnnexureVHistoryTab } from "@/components/manage-instrument/annexure-v-history-tab";
+import { DMSDocumentHistoryTab } from "@/components/manage-instrument/dms-document-history-tab";
 
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
@@ -75,7 +76,8 @@ export default function ManageInstrumentPage() {
           <TabsTrigger value="instrument-details">Instrument Details</TabsTrigger>
           <TabsTrigger value="latest-bank-details">Latest Bank Details</TabsTrigger>
           <TabsTrigger value="annexure-v-history">Annexure V History</TabsTrigger>
-          <TabsTrigger value="press-release-history">Press Release History</TabsTrigger>
+          <TabsTrigger value="press-release-history">PR Details History</TabsTrigger>
+          <TabsTrigger value="dms-document-history">DMS Document History</TabsTrigger>
         </TabsList>
         <TabsContent value="instrument-details">
           <InstrumentDetailsTab />
@@ -88,6 +90,9 @@ export default function ManageInstrumentPage() {
         </TabsContent>
         <TabsContent value="press-release-history">
           <PressReleaseHistoryTab />
+        </TabsContent>
+        <TabsContent value="dms-document-history">
+          <DMSDocumentHistoryTab />
         </TabsContent>
       </Tabs>
 

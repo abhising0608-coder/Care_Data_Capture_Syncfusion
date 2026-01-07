@@ -5,6 +5,7 @@
 
 
 
+
 export type Role = 'CKC_ANALYST' | 'CKC_CHECKER' | 'CKC_ADMIN' | 'RATING_ANALYST' | 'GROUP_HEAD' | 'RATING_HEAD_SD' | 'SYSTEM' | 'QC' | 'RATING_COMMITTEE';
 export type RequestStatus = 'PENDING' | 'ACCEPTED' | 'IN_PROGRESS' | 'SUBMITTED_FOR_CHECK' | 'SENT_BACK' | 'APPROVED' | 'CLOSED';
 
@@ -54,6 +55,20 @@ export interface CompanyDashboard {
     raId: string;
     ghId?: string;
 }
+
+export type PressReleaseHistory = {
+  id: string; // Running Instrument ID
+  instrument: string;
+  instrumentStatus: 'Active' | 'Closed' | 'Withdrawn';
+  instrumentListed: 'Listed' | 'Unlisted';
+  meetingDate: string;
+  ratedAmount: number;
+  revisionDate: string;
+  revisedRating: string;
+  priorRevisionDate: string;
+  priorRating: string;
+};
+
 
 export type RatingInstrumentCycle = {
   rcmId: string;
