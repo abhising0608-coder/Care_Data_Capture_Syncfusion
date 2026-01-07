@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Suspense, useRef, useState, useEffect } from 'react';
@@ -15,12 +16,10 @@ import { useAuth } from '@/firebase';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PressReleaseInitiation } from '@/components/rating-note/press-release-initiation';
 import { PressReleasePreparation } from '@/components/rating-note/press-release-preparation';
+import { PressReleaseFinalForm } from '@/components/rating-note/press-release-final-form';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
-
-// Default empty content for new documents
-const newDocContent = JSON.stringify({ "sfdt": "{\"sections\":[{\"blocks\":[{\"inlines\":[{\"text\":\"Start drafting here...\"}]}]}]}" });
 
 export default function PressReleasePage() {
     const params = useParams();
@@ -29,21 +28,13 @@ export default function PressReleasePage() {
     const { toast } = useToast();
     const { user } = useAuth();
     
-    const prEditorRef = useRef<DocumentEditorContainer | null>(null);
-
     const [view, setView] = useState<'initiation' | 'preparation' | 'editor'>('initiation');
-    const [prContent, setPrContent] = useState<string | undefined>(undefined);
+    const [prContent, setPrContent] = useState<any>(null);
+    const [preparationData, setPreparationData] = useState<any>(null);
 
     const { data: note, isLoading, mutate } = useSWR<RatingNote>(
       ratingCycleId ? `/api/notes/${ratingCycleId}` : null,
-      fetcher,
-      {
-          onSuccess: (data) => {
-              if (data.prContent) {
-                  setPrContent(data.prContent);
-              }
-          }
-      }
+      fetcher
     );
     
     const handlePrepare = () => {
@@ -51,35 +42,27 @@ export default function PressReleasePage() {
         toast({ title: 'Configure Press Release', description: 'Please select the appropriate options to continue.' });
     };
 
-    const handlePreparationSubmit = (preparationData: any) => {
-        console.log("PR Preparation Data:", preparationData); // Log the data for now
-        setPrContent(note?.prContent || newDocContent);
+    const handlePreparationSubmit = (prepData: any) => {
+        console.log("PR Preparation Data:", prepData); 
+        setPreparationData(prepData);
         setView('editor');
         toast({ title: 'Success', description: 'Press Release editor is now ready.' });
     };
     
-    const handleFinalSubmit = async () => {
-        if (!prEditorRef.current || !note || !user) {
+    const handleFinalSubmit = async (formData: any) => {
+        if (!note || !user) {
             toast({ variant: 'destructive', title: 'Error', description: 'Ensure all documents are generated and ready.' });
             return;
         }
 
         try {
-            const prContentBlob = await prEditorRef.current.documentEditor.saveAsBlob('Sfdt');
-            
-            const finalPrContent = await new Promise<string>(resolve => {
-                const reader = new FileReader();
-                reader.onloadend = () => resolve(reader.result as string);
-                reader.readAsText(prContentBlob);
-            });
-
             const res = await fetch(`/api/notes/${ratingCycleId}/review`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
                     action: 'submit-pr',
                     actorId: user.uid,
-                    prContent: finalPrContent,
+                    prContent: JSON.stringify(formData), // Save form data as JSON string
                  }),
             });
 
@@ -112,23 +95,7 @@ export default function PressReleasePage() {
             case 'preparation':
                 return <PressReleasePreparation note={note} onSubmit={handlePreparationSubmit} onCancel={() => setView('initiation')} />;
             case 'editor':
-                 return (
-                        <div className="space-y-6 mt-4">
-                            <div className="flex justify-end">
-                                <Button onClick={handleFinalSubmit}>
-                                    <Send className="mr-2 h-4 w-4" /> Submit PR
-                                </Button>
-                            </div>
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle>Press Release (PR)</CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <RatingNoteEditor key="pr" ref={prEditorRef} isReadOnly={false} content={prContent} />
-                                </CardContent>
-                            </Card>
-                        </div>
-                    );
+                 return <PressReleaseFinalForm note={note} onSubmit={handleFinalSubmit} onCancel={() => setView('preparation')} />;
             default:
                  return <PressReleaseInitiation note={note} onPrepare={handlePrepare} />;
         }

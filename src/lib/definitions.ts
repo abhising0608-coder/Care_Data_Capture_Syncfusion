@@ -10,7 +10,9 @@
 
 
 
-export type Role = 'CKC_ANALYST' | 'CKC_CHECKER' | 'CKC_ADMIN' | 'RATING_ANALYST' | 'GROUP_HEAD' | 'RATING_HEAD_SD' | 'SYSTEM' | 'QC' | 'RATING_COMMITTEE';
+
+export type Role = 'CKC_ANALYST' | 'CKC_CHECKER' | 'CKC_ADMIN' | 'RATING_ANALYST' | 'GROUP_HEAD' | 'RATING_HEAD_SD' | 'SYSTEM' | 'QC';
+
 export type RequestStatus = 'PENDING' | 'ACCEPTED' | 'IN_PROGRESS' | 'SUBMITTED_FOR_CHECK' | 'SENT_BACK' | 'APPROVED' | 'CLOSED';
 
 // More granular statuses for the entire rating note workflow
@@ -21,7 +23,7 @@ export type NoteStatus =
   | 'In Review (QC)'
   | 'Approved by QC'
   | 'PR Generation Pending' // GH sends to RA for PR
-  | 'PR Generated' // RA completes PR
+  | 'PR Generated'
   | 'Completed';
 
 export type CompanyPriority = 'High' | 'Medium' | 'Low';
@@ -484,7 +486,7 @@ export interface RatingNote {
   ghId?: string; // Group Head ID
   qcId?: string; // QC ID
   editorContent?: string; // The SFDT content of the Syncfusion editor
-  prContent?: string; // Press Release content
+  prContent?: string; // Press Release content as JSON string
   statusHistory: {
       status: NoteStatus;
       timestamp: string;

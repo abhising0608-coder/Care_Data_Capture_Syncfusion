@@ -64,10 +64,10 @@ export function PressReleasePreparation({ note, onSubmit, onCancel }: PressRelea
   const form = useForm<PrepFormValues>({
     resolver: zodResolver(prepSchema),
     defaultValues: {
-      isProvisionalToFinal: '',
-      hasCpti: '',
-      hasEsgRisks: '',
-      hasReitDetails: '',
+      isProvisionalToFinal: 'No',
+      hasCpti: 'No',
+      hasEsgRisks: 'No',
+      hasReitDetails: 'No',
     },
   });
 
@@ -204,4 +204,3 @@ export function PressReleasePreparation({ note, onSubmit, onCancel }: PressRelea
     </>
   );
 }
-

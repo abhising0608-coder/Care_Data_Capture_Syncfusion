@@ -102,6 +102,8 @@ const StatusIndicator = ({ status, role }: { status: NoteStatus, role: Role | un
             return <div className={baseClasses}><Dot className="h-3 w-3 fill-blue-500 text-blue-500" /><span>PR Generation Pending</span></div>;
         case 'PR Generated':
              return <div className={baseClasses}><Dot className="h-3 w-3 fill-purple-500 text-purple-500" /><span>PR Generated</span></div>;
+        case 'Completed':
+             return <div className={baseClasses}><Dot className="h-3 w-3 fill-green-500 text-green-500" /><span>Completed</span></div>;
         default:
             return <span>{status}</span>;
     }
@@ -130,6 +132,13 @@ export default function DashboardClient() {
         router.push(`/press-release/${note.id}`);
         return;
     }
+    
+    if (note.status === 'PR Generated' || note.status === 'Completed') {
+        // Final state, maybe view-only
+         router.push(`/press-release/${note.id}`);
+        return;
+    }
+
 
     switch(user.role) {
         case 'RATING_ANALYST':
@@ -153,6 +162,9 @@ export default function DashboardClient() {
     
     if (note.status === 'PR Generation Pending' && role === 'RATING_ANALYST') {
         return 'Generate PR';
+    }
+     if (note.status === 'PR Generated' || note.status === 'Completed') {
+        return 'View PR';
     }
 
     switch (role) {

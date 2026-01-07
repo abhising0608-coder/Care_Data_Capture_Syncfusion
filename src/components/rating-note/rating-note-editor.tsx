@@ -25,7 +25,7 @@ export const RatingNoteEditor = forwardRef<DocumentEditorContainerComponent | nu
 
         useEffect(() => {
             const editorInstance = editorRef.current;
-            console.log("Content is valid SFDT: ", content);
+            
             // This timeout ensures that the React component has fully mounted and the DOM
             // is stable before we initialize the imperative Syncfusion widget. This prevents
             // race conditions that can lead to improper cleanup on unmount.
