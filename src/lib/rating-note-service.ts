@@ -23,7 +23,7 @@ export async function getDecompressedSfdt(): Promise<string> {
         } catch (e: any) {
             // If it fails with an "incorrect header check", it's likely not compressed.
             // In that case, we treat the decoded string as the raw SFDT JSON.
-            if (e.message === 'incorrect header check') {
+            if (e.message.includes('incorrect header check')) {
                 console.warn('SFDT content is not compressed. Treating as plain JSON string.');
                 return new TextDecoder().decode(bytes);
             }
