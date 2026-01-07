@@ -42,7 +42,7 @@ const generateEmailBody = (note: RatingNote, analyst: AppUser): string => {
     body += `Kindly confirm your acceptance of the rating by replying to this email.\n\n`;
     body += `Best regards,\n`;
     body += `${analyst.displayName}\n`;
-    body += `CARE Ratings Ltd.`;
+    body += `CareEdge Ratings Ltd.`;
     return body;
 };
 
@@ -50,6 +50,7 @@ const generateEmailBody = (note: RatingNote, analyst: AppUser): string => {
 export function SendPrToClientModal({ isOpen, onClose, note, analyst }: SendPrToClientModalProps) {
     const { toast } = useToast();
     const [isAlertOpen, setIsAlertOpen] = useState(false);
+    const { user: groupHead } = useAuth(); // Assuming GH is logged in for CC list
 
     const form = useForm<EmailFormValues>({
         resolver: zodResolver(emailSchema),
@@ -63,16 +64,18 @@ export function SendPrToClientModal({ isOpen, onClose, note, analyst }: SendPrTo
             // Placeholder: Logic to get UPSI and Primary contacts would go here
             const toEmail = 'primary.contact@company.com';
             const bccEmail = 'upsi.contact@company.com'; // BCC for UPSI
+            const ccEmails = [analyst.email, groupHead?.email].filter(Boolean).join(', ');
+
 
             reset({
                 to: toEmail,
-                cc: '',
+                cc: ccEmails,
                 bcc: bccEmail,
                 subject: `Press Release: Credit rating of ${note.companyName}`,
                 body: emailBody,
             });
         }
-    }, [isOpen, note, analyst, reset]);
+    }, [isOpen, note, analyst, reset, groupHead]);
 
 
     const handleClose = () => {
@@ -101,7 +104,7 @@ export function SendPrToClientModal({ isOpen, onClose, note, analyst }: SendPrTo
     return (
       <>
         <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
-            <DialogContent className="sm:max-w-3xl">
+            <DialogContent className="sm:max-w-4xl">
                 <DialogHeader>
                     <DialogTitle>Send Press Release to Client</DialogTitle>
                      <DialogDescription>
@@ -109,42 +112,41 @@ export function SendPrToClientModal({ isOpen, onClose, note, analyst }: SendPrTo
                     </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={handleSubmit(onSubmit)}>
-                    <div className="grid gap-4 py-4">
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="from" className="text-right">From</Label>
+                    <div className="space-y-4 py-4 border-t border-b">
+                         <div className="grid grid-cols-[100px_1fr] items-center gap-4 px-4">
+                            <Label htmlFor="from" className="text-right text-muted-foreground">From</Label>
                             <Input id="from" value={analyst.email || 'analyst@careedge.com'} readOnly className="col-span-3 bg-muted" />
                         </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="to" className="text-right">To*</Label>
+                         <div className="grid grid-cols-[100px_1fr] items-center gap-4 px-4">
+                            <Label htmlFor="to" className="text-right text-muted-foreground">To*</Label>
                             <Controller name="to" control={control} render={({ field }) => <Input {...field} id="to" className="col-span-3" />} />
                         </div>
-                         <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="cc" className="text-right">CC</Label>
+                         <div className="grid grid-cols-[100px_1fr] items-center gap-4 px-4">
+                            <Label htmlFor="cc" className="text-right text-muted-foreground">CC</Label>
                             <Controller name="cc" control={control} render={({ field }) => <Input {...field} id="cc" className="col-span-3" />} />
                         </div>
-                         <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="bcc" className="text-right">BCC</Label>
+                        <div className="grid grid-cols-[100px_1fr] items-center gap-4 px-4">
+                            <Label htmlFor="bcc" className="text-right text-muted-foreground">BCC</Label>
                             <Controller name="bcc" control={control} render={({ field }) => <Input {...field} id="bcc" className="col-span-3" />} />
                         </div>
-                         <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="subject" className="text-right">Subject*</Label>
+                         <div className="grid grid-cols-[100px_1fr] items-center gap-4 px-4">
+                            <Label htmlFor="subject" className="text-right text-muted-foreground">Subject*</Label>
                              <Controller name="subject" control={control} render={({ field }) => <Input {...field} id="subject" className="col-span-3" />} />
                         </div>
-                        <div className="grid grid-cols-4 items-start gap-4">
-                             <Label htmlFor="body" className="text-right pt-2">Body*</Label>
-                             <Controller name="body" control={control} render={({ field }) => <Textarea {...field} id="body" className="col-span-3 min-h-[300px]" />} />
-                        </div>
-                         <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="attachments" className="text-right">Attachments</Label>
-                            <div className="col-span-3">
-                                <span className="text-sm font-medium text-muted-foreground p-2 border rounded-md bg-muted">
-                                    {`PR_${note.companyName.replace(/ /g, '_')}.pdf`}
-                                </span>
+                        <div className="grid grid-cols-[100px_1fr] items-center gap-4 px-4">
+                            <Label className="text-right text-muted-foreground">Attachments</Label>
+                             <div className="flex items-center gap-2 p-2 border rounded-md bg-muted text-sm">
+                                <Paperclip className="h-4 w-4" />
+                                <span>{`PR_${note.companyName.replace(/ /g, '_')}.pdf`}</span>
                             </div>
                         </div>
+
+                        <div className="px-4">
+                             <Controller name="body" control={control} render={({ field }) => <Textarea {...field} id="body" className="col-span-3 min-h-[300px]" />} />
+                        </div>
                     </div>
-                    <DialogFooter>
-                        <Button type="button" variant="outline" onClick={handleClose}>Cancel</Button>
+                    <DialogFooter className="pt-6">
+                        <Button type="button" variant="outline" onClick={handleClose}>Close</Button>
                         <Button type="submit"><Send className="mr-2 h-4 w-4" /> Send</Button>
                     </DialogFooter>
                 </form>
@@ -174,3 +176,4 @@ export function SendPrToClientModal({ isOpen, onClose, note, analyst }: SendPrTo
       </>
     );
 }
+
