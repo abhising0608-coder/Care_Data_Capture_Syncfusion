@@ -1,15 +1,18 @@
 
 'use client';
 
-import type { RatingNote, RatingInstrument } from '@/lib/definitions';
+import type { RatingNote, RatingInstrument, AppUser } from '@/lib/definitions';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Newspaper } from 'lucide-react';
+import { Newspaper, Send } from 'lucide-react';
 import { format } from 'date-fns';
 import useSWR from 'swr';
 import { Skeleton } from '../ui/skeleton';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../ui/accordion';
+import { useAuth } from '@/firebase';
+import { useState } from 'react';
+import { SendPrToClientModal } from './send-pr-to-client-modal';
 
 interface PressReleaseInitiationProps {
     note: RatingNote;
@@ -30,6 +33,8 @@ export function PressReleaseInitiation({ note, onPrepare }: PressReleaseInitiati
         note.companyId ? `/api/instruments/${note.companyId}` : null, 
         fetcher
     );
+    const { user } = useAuth();
+    const [isClientEmailModalOpen, setIsClientEmailModalOpen] = useState(false);
 
     const instrumentsByMandate = instruments?.reduce((acc, inst) => {
         const key = inst.mandateId || 'Unknown Mandate';
@@ -42,6 +47,9 @@ export function PressReleaseInitiation({ note, onPrepare }: PressReleaseInitiati
 
     const mandateIds = instrumentsByMandate ? Object.keys(instrumentsByMandate) : [];
     
+    // The button is enabled only when the status indicates GH/QC approval.
+    const isSendToClientEnabled = note.status === 'PR Generation Pending';
+
     return (
          <div className="space-y-6 mt-4">
             <Card>
@@ -68,7 +76,7 @@ export function PressReleaseInitiation({ note, onPrepare }: PressReleaseInitiati
                         <Accordion type="multiple" defaultValue={mandateIds} className="w-full">
                            {instrumentsByMandate && Object.entries(instrumentsByMandate).map(([mandateId, mandateInstruments]) => (
                                 <AccordionItem value={mandateId} key={mandateId}>
-                                    <AccordionTrigger className="font-semibold">{mandateId}</AccordionTrigger>
+                                    <AccordionTrigger className="font-semibold">{`Mandate: ${mandateId}`}</AccordionTrigger>
                                     <AccordionContent>
                                         <Table>
                                             <TableHeader>
@@ -104,11 +112,23 @@ export function PressReleaseInitiation({ note, onPrepare }: PressReleaseInitiati
                 </CardContent>
             </Card>
 
-             <div className="flex justify-end">
+             <div className="flex justify-end gap-4">
+                <Button variant="outline" onClick={() => setIsClientEmailModalOpen(true)} disabled={!isSendToClientEnabled}>
+                    <Send className="mr-2 h-4 w-4" /> Send to Client
+                </Button>
                 <Button onClick={onPrepare}>
-                    <Newspaper className="mr-2 h-4 w-4" /> Prepare Press Release
+                    <Newspaper className="mr-2 h-4 w-4" /> Go to Press Release Configuration
                 </Button>
             </div>
+            
+            {user && (
+                 <SendPrToClientModal
+                    isOpen={isClientEmailModalOpen}
+                    onClose={() => setIsClientEmailModalOpen(false)}
+                    note={note}
+                    analyst={user}
+                />
+            )}
 
         </div>
     )
