@@ -6,12 +6,12 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { v4 as uuidv4 } from 'uuid';
 import { format } from "date-fns";
-import { Calendar as CalendarIcon, Save, Send, Mail, Check, Trash2, Pencil, RefreshCw, ArrowLeft } from "lucide-react";
+import { Calendar as CalendarIcon, Save, Send, Mail, Check, Trash2, Pencil, RefreshCw, ArrowLeft, X } from "lucide-react";
 import { useRouter } from 'next/navigation';
 
 import { useAuth } from '@/firebase';
 import { getCompaniesByRole, mockUsers } from '@/lib/mock-data';
-import type { ManagementDiscussion, ManagementPersonnel, DiscussionMinute } from '@/lib/definitions';
+import type { ManagementDiscussion, ManagementPersonnel, DiscussionMinute, CompanyDashboard } from '@/lib/definitions';
 import { useToast } from '@/hooks/use-toast';
 
 import { Button } from '@/components/ui/button';
@@ -24,6 +24,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { cn } from "@/lib/utils";
+import { ManagementDiscussionEmailModal } from '@/components/due-diligence/management-discussion-email-modal';
 
 const formSchema = z.object({
     companyId: z.string().min(1, 'Company is required'),
@@ -48,6 +49,8 @@ export default function ManagementDiscussionPage() {
     const { user } = useAuth();
     const router = useRouter();
     const { toast } = useToast();
+
+    const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
 
     const companies = getCompaniesByRole(user);
     const careTeamMembers = Object.values(mockUsers).map(u => u.displayName || u.email);
@@ -93,6 +96,15 @@ export default function ManagementDiscussionPage() {
         console.log("Marking as complete:", data);
         toast({ title: 'Complete', description: 'Discussion minutes have been finalized and uploaded to DMS (simulated).' });
         // Here you would generate PDF and upload to DMS
+    };
+
+    const handleEmailToClient = () => {
+        const companyId = form.getValues('companyId');
+        if (!companyId) {
+            toast({ variant: 'destructive', title: 'Error', description: 'Please select a company first.' });
+            return;
+        }
+        setIsEmailModalOpen(true);
     };
 
     const renderEditableTable = (
@@ -148,6 +160,9 @@ export default function ManagementDiscussionPage() {
         </Card>
     );
 
+    const formData = form.watch();
+    const selectedCompanyId = form.watch('companyId');
+    const selectedCompany = companies.find(c => c.id === selectedCompanyId);
 
     return (
         <div className="space-y-6">
@@ -225,12 +240,21 @@ export default function ManagementDiscussionPage() {
                         <Button type="button" variant="outline" onClick={() => router.push('/dashboard')}><ArrowLeft className="mr-2 h-4 w-4" />Back</Button>
                         <Button type="button" variant="outline" onClick={form.handleSubmit(handleSave)}><Save className="mr-2 h-4 w-4" />Save Draft</Button>
                         <Button type="button" variant="outline" onClick={() => toast({ title: 'Placeholder', description: 'Send to GH functionality to be implemented.'})}><Send className="mr-2 h-4 w-4" />Send to GH</Button>
-                        <Button type="button" variant="outline" onClick={() => toast({ title: 'Placeholder', description: 'Email to client functionality to be implemented.'})}><Mail className="mr-2 h-4 w-4" />Email to Client</Button>
+                        <Button type="button" variant="outline" onClick={handleEmailToClient}><Mail className="mr-2 h-4 w-4" />Email to Client</Button>
                         <Button type="button" onClick={form.handleSubmit(handleMarkComplete)}>Mark as Complete</Button>
                     </div>
 
                 </form>
             </FormProvider>
+
+            {selectedCompany && (
+                <ManagementDiscussionEmailModal
+                    isOpen={isEmailModalOpen}
+                    onClose={() => setIsEmailModalOpen(false)}
+                    discussionData={formData}
+                    company={selectedCompany}
+                />
+            )}
         </div>
     );
 }
