@@ -45,7 +45,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { useParams } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import type { RatingInstrument } from '@/lib/definitions';
 import { InstrumentCycleHistoryTable } from './instrument-cycle-history-table';
 import { InstrumentEditModal } from './instrument-edit-modal';
@@ -63,6 +63,7 @@ export function InstrumentDetailsTable() {
     const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
     const [rowSelection, setRowSelection] = React.useState({});
     const { toast } = useToast();
+    const router = useRouter();
     const params = useParams();
     const companyId = params.ratingCycleId as string;
 
@@ -194,7 +195,7 @@ export function InstrumentDetailsTable() {
                                 <PlusCircle className="mr-2 h-4 w-4" />
                                 Add Instrument
                             </Button>
-                             <Button variant="outline" size="sm" onClick={() => toast({ title: "Placeholder", description: "INC status check to be implemented."})}>
+                             <Button variant="outline" size="sm" onClick={() => router.push('/manage-instrument/update-inc-status')}>
                                Update INC Status
                             </Button>
                         </div>
