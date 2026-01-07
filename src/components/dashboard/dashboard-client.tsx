@@ -127,7 +127,7 @@ export default function DashboardClient() {
     if (!user) return;
 
     if (note.status === 'PR Generation Pending') {
-        router.push(`/rating-note/final-documents/${note.id}`);
+        router.push(`/press-release/${note.id}`);
         return;
     }
 

@@ -13,6 +13,7 @@ export const workflowSteps = [
   { id: 'manage-instrument', name: 'Manage Instrument' },
   { id: 'initiate-rating-note', name: 'Initiate Rating Note' },
   { id: 'rating-note', name: 'Generate Rating Note' },
+  { id: 'press-release', name: 'Press Release' },
 ];
 
 export function WorkflowStepper() {
@@ -28,6 +29,7 @@ export function WorkflowStepper() {
     if (pathname.includes('/manage-instrument')) return 'manage-instrument';
     if (pathname.includes('/notes/new')) return 'initiate-rating-note';
     if (pathname.startsWith('/rating-note/')) return 'rating-note';
+    if (pathname.startsWith('/press-release/')) return 'press-release';
     return '';
   }
 
@@ -40,6 +42,9 @@ export function WorkflowStepper() {
       }
        if (stepId === 'rating-note') {
         return `/rating-note/${ratingCycleId}`;
+      }
+       if (stepId === 'press-release') {
+        return `/press-release/${ratingCycleId}`;
       }
       return `/${stepId}/${ratingCycleId}`;
   }

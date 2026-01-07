@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Suspense, useRef, useState, useEffect } from 'react';
@@ -23,10 +22,10 @@ const fetcher = (url: string) => fetch(url).then(res => res.json());
 // Default empty content for new documents
 const newDocContent = JSON.stringify({ "sfdt": "{\"sections\":[{\"blocks\":[{\"inlines\":[{\"text\":\"Start drafting here...\"}]}]}]}" });
 
-export default function FinalDocumentsPage() {
+export default function PressReleasePage() {
     const params = useParams();
     const router = useRouter();
-    const noteId = params.noteId as string;
+    const ratingCycleId = params.ratingCycleId as string;
     const { toast } = useToast();
     const { user } = useAuth();
     
@@ -36,7 +35,7 @@ export default function FinalDocumentsPage() {
     const [prContent, setPrContent] = useState<string | undefined>(undefined);
 
     const { data: note, isLoading, mutate } = useSWR<RatingNote>(
-      noteId ? `/api/notes/${noteId}` : null,
+      ratingCycleId ? `/api/notes/${ratingCycleId}` : null,
       fetcher,
       {
           onSuccess: (data) => {
@@ -74,7 +73,7 @@ export default function FinalDocumentsPage() {
                 reader.readAsText(prContentBlob);
             });
 
-            const res = await fetch(`/api/notes/${noteId}/review`, {
+            const res = await fetch(`/api/notes/${ratingCycleId}/review`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
@@ -139,7 +138,7 @@ export default function FinalDocumentsPage() {
         <div className="space-y-6">
              <header>
                  <h1 className="text-2xl font-semibold text-foreground">
-                    {note.companyName}
+                    Press Release: {note.companyName}
                 </h1>
             </header>
 
