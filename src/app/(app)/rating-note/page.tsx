@@ -10,11 +10,23 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { CKCRequest } from '@/lib/definitions';
 import { ArrowRight } from 'lucide-react';
+import { useWorkflow } from '@/context/workflow-context';
+import { useRouter } from 'next/navigation';
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export default function RatingNoteListPage() {
   const { data: approvedRequests, isLoading } = useSWR<CKCRequest[]>('/api/requests?status=APPROVED', fetcher);
+  const { startWorkflow } = useWorkflow();
+  const router = useRouter();
+
+
+  const handleGenerate = (req: CKCRequest) => {
+    // In a real app, we might create the note first, then navigate.
+    // For now, we assume the note is findable by the same ID for simplicity.
+    startWorkflow(req.id);
+    router.push(`/company-information/${req.id}`);
+  }
 
   return (
     <div className="space-y-6">
@@ -58,10 +70,8 @@ export default function RatingNoteListPage() {
                       <TableCell>{req.cycle}</TableCell>
                       <TableCell><Badge variant="secondary">{req.status}</Badge></TableCell>
                       <TableCell>
-                        <Button asChild variant="outline" size="sm">
-                          <Link href={`/rating-note/${req.id}`}>
-                            Generate Note <ArrowRight className="ml-2 h-4 w-4" />
-                          </Link>
+                        <Button onClick={() => handleGenerate(req)} variant="outline" size="sm">
+                            Initiate Workflow <ArrowRight className="ml-2 h-4 w-4" />
                         </Button>
                       </TableCell>
                     </TableRow>
