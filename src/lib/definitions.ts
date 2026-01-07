@@ -191,6 +191,45 @@ export interface IPAFirm {
     contacts: IPAContact[];
 }
 
+export interface BankerContact {
+    id: string;
+    name: string;
+    email: string;
+    contact: string;
+    discussionHappened: 'Yes' | 'No' | '';
+    minutesCaptured: 'Yes' | 'No' | 'Partial';
+    minutesCapturedOn: string | null;
+    status: FeedbackStatus | null;
+    questionnaire?: QuestionnaireItem[];
+    summary?: string;
+}
+
+export interface BankerFirm {
+    id: string;
+    firmName: string;
+    contacts: BankerContact[];
+}
+
+export interface AuditorContact {
+    id: string;
+    name: string;
+    email: string;
+    contact: string;
+    discussionHappened: 'Yes' | 'No' | '';
+    minutesCaptured: 'Yes' | 'No' | 'Partial';
+    minutesCapturedOn: string | null;
+    status: FeedbackStatus | null;
+    questionnaire?: QuestionnaireItem[];
+    summary?: string;
+}
+
+export interface AuditorFirm {
+    id: string;
+    firmName: string;
+    contacts: AuditorContact[];
+}
+
+
 export interface ManagementPersonnel {
   id: string;
   name: string;

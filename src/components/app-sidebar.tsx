@@ -19,6 +19,10 @@ import {
   TestTube2,
   Briefcase,
   Users,
+  Building,
+  Landmark,
+  ShieldCheck,
+  UserCheck,
 } from 'lucide-react';
 import { useAuth } from '@/firebase';
 
@@ -38,11 +42,13 @@ const menuItems = [
     label: 'Due Diligence',
     icon: Briefcase,
     subItems: [
-        { href: '/due-diligence/dt-feedback', label: 'DT Feedback' },
-        { href: '/due-diligence/ipa-feedback', label: 'IPA Feedback' },
-        { href: '/due-diligence/management-discussion', label: 'Management Discussion' },
-        { href: '/due-diligence/third-party-check', label: 'Third Party Check' },
-        { href: '/due-diligence/audit-committee-meeting', label: 'Audit Committee Meeting' },
+        { href: '/due-diligence/auditor-feedback', label: 'Auditor Feedback', icon: ShieldCheck },
+        { href: '/due-diligence/banker-feedback', label: 'Banker Feedback', icon: Landmark },
+        { href: '/due-diligence/dt-feedback', label: 'DT Feedback', icon: FileText },
+        { href: '/due-diligence/ipa-feedback', label: 'IPA Feedback', icon: FileText },
+        { href: '/due-diligence/management-discussion', label: 'Management Discussion', icon: Users },
+        { href: '/due-diligence/third-party-check', label: 'Third Party Check', icon: UserCheck },
+        { href: '/due-diligence/audit-committee-meeting', label: 'Audit Committee Meeting', icon: Building },
     ]
   },
    {
@@ -84,7 +90,10 @@ export function AppSidebar() {
                         <SidebarMenuSubContent>
                             {item.subItems.map(subItem => (
                                 <SidebarMenuSubButton key={subItem.href} asChild isActive={pathname === subItem.href}>
-                                     <a href={subItem.href}>{subItem.label}</a>
+                                     <a href={subItem.href} className="flex items-center gap-2">
+                                        {subItem.icon && <subItem.icon className="h-4 w-4" />}
+                                        <span>{subItem.label}</span>
+                                     </a>
                                 </SidebarMenuSubButton>
                             ))}
                         </SidebarMenuSubContent>
