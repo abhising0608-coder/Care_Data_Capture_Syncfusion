@@ -12,6 +12,7 @@ import { pharmaSchema } from '@/lib/schemas/sectorial-schemas/pharma-schema';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Save } from 'lucide-react';
+import { useForm } from 'react-hook-form';
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
 
@@ -33,6 +34,7 @@ export default function OperationalInputFlowPage() {
     const { user, isLoading: isAuthLoading } = useAuth();
     const { toast } = useToast();
     const { completeStep, activeCompanyId } = useWorkflow();
+    const formRef = useForm();
 
     const ratingCycleId = params.ratingCycleId as string;
     const schema = pharmaSchema; // Only using Pharma schema as per requirements
@@ -91,9 +93,15 @@ export default function OperationalInputFlowPage() {
     
     return (
         <div className="space-y-6">
-             <header>
-                <h1 className="text-2xl font-bold tracking-tight text-foreground">Operational Data Input</h1>
-                <p className="text-muted-foreground">Step 2: Enter sector-specific operational data. Only Pharma is required.</p>
+             <header className="flex items-center justify-between">
+                <div>
+                    <h1 className="text-2xl font-bold tracking-tight text-foreground">Operational Data Input</h1>
+                    <p className="text-muted-foreground">Step 2: Enter sector-specific operational data. Only Pharma is required.</p>
+                </div>
+                 <Button onClick={formRef.handleSubmit(handleSubmit)}>
+                    <Save className="mr-2 h-4 w-4" />
+                    Save & Mark as Complete
+                </Button>
             </header>
             <main>
                 <Suspense fallback={<FormLoadingSkeleton />}>
@@ -101,7 +109,7 @@ export default function OperationalInputFlowPage() {
                         <FormLoadingSkeleton />
                     ) : (
                         <JsonSchemaForm
-                            key={ratingCycleId}
+                            formInstance={formRef}
                             schema={schema}
                             schemaType="form"
                             onSubmit={handleSubmit}

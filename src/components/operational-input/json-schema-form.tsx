@@ -1,6 +1,6 @@
 'use client';
 
-import { useForm, useFieldArray, Controller, useWatch } from 'react-hook-form';
+import { useForm, useFieldArray, Controller, useWatch, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import useSWR from 'swr';
@@ -87,19 +87,22 @@ interface JsonSchemaFormProps {
   dataKey: string;
   isLastStep?: boolean;
   submitButtonText?: string;
+  formInstance?: any; // Pass react-hook-form instance
 }
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
 
-export function JsonSchemaForm({ schema, onSubmit, onCancel, requestId, dataKey, isLastStep = false, submitButtonText }: JsonSchemaFormProps) {
+export function JsonSchemaForm({ schema, onSubmit, onCancel, requestId, dataKey, isLastStep = false, submitButtonText, formInstance }: JsonSchemaFormProps) {
   const zodSchema = useMemo(() => generateZodSchema(schema), [schema]);
   
   const { data: existingData, isLoading } = useSWR(`/api/operational-input/${requestId}`, fetcher);
 
-  const form = useForm({
+  const localForm = useForm({
     resolver: zodResolver(zodSchema),
     defaultValues: {},
   });
+
+  const form = formInstance || localForm;
 
   useEffect(() => {
     if (existingData && existingData[dataKey]) {
@@ -455,17 +458,17 @@ export function JsonSchemaForm({ schema, onSubmit, onCancel, requestId, dataKey,
                 <CardDescription>{schema.description}</CardDescription>
             </div>
             <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm" onClick={() => toggleAll('expand')}>
+                <Button type="button" variant="outline" size="sm" onClick={() => toggleAll('expand')}>
                     <ChevronsDown className="h-4 w-4 mr-2" /> Expand All
                 </Button>
-                <Button variant="outline" size="sm" onClick={() => toggleAll('collapse')}>
+                <Button type="button" variant="outline" size="sm" onClick={() => toggleAll('collapse')}>
                     <ChevronsUp className="h-4 w-4 mr-2" /> Collapse All
                 </Button>
             </div>
         </div>
       </CardHeader>
       <CardContent>
-        <Form {...form}>
+        <FormProvider {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
             <Accordion type="multiple" value={openAccordions} onValueChange={setOpenAccordions} className="w-full">
               {sectionKeys.map(sectionKey => {
@@ -506,7 +509,7 @@ export function JsonSchemaForm({ schema, onSubmit, onCancel, requestId, dataKey,
               </div>
             )}
           </form>
-        </Form>
+        </FormProvider>
       </CardContent>
     </Card>
   );
