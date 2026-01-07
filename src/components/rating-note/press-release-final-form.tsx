@@ -4,7 +4,7 @@ import { useForm, FormProvider, useFormContext } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useState } from 'react';
-import { Info, Save } from 'lucide-react';
+import { Info, Save, ChevronDown, Send } from 'lucide-react';
 import useSWR from 'swr';
 import { format } from 'date-fns';
 
@@ -17,13 +17,14 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import type { RatingNote, RatingInstrument } from '@/lib/definitions';
+import type { RatingNote, RatingInstrument, NoteStatus } from '@/lib/definitions';
 import { Skeleton } from '../ui/skeleton';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../ui/dropdown-menu';
+
 
 interface PressReleaseFinalFormProps {
   note: RatingNote;
-  onSubmit: (data: any) => void;
-  onCancel: () => void;
+  onAction: (action: string, payload?: any) => void;
 }
 
 const prSchema = z.object({
@@ -34,8 +35,46 @@ const prSchema = z.object({
 });
 
 type PRFormValues = z.infer<typeof prSchema>;
+type Action = 'send-to-gh' | 'send-to-rh' | 'send-to-qc' | 'send-to-auditor' | 'send-to-editor' | 'send-to-client' | 'save-pr-draft';
+
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
+
+const getNextActions = (status: NoteStatus): Action[] => {
+    switch (status) {
+        case 'PR Generation Pending':
+        case 'Draft':
+        case 'Rework Requested (GH)':
+        case 'Rework Requested (RH)':
+        case 'Rework Requested (QC)':
+        case 'Rework Requested (Auditor)':
+        case 'Rework Requested (Editor)':
+             return ['send-to-gh'];
+        case 'GH Approved':
+            return ['send-to-rh'];
+        case 'RH Approved':
+            return ['send-to-qc'];
+        case 'QC Approved':
+            return ['send-to-auditor', 'send-to-client'];
+        case 'Auditor Approved':
+             return ['send-to-editor', 'send-to-client'];
+        case 'Editor Approved':
+            return ['send-to-client'];
+        default:
+            return [];
+    }
+};
+
+const actionDisplayNames: Record<Action, string> = {
+    'save-pr-draft': 'Save Draft',
+    'send-to-gh': 'Send to GH',
+    'send-to-rh': 'Send to RH',
+    'send-to-qc': 'Send to QC',
+    'send-to-auditor': 'Send to Auditor',
+    'send-to-editor': 'Send to Editor',
+    'send-to-client': 'Send to Client',
+};
+
 
 const InfoField = ({ label, value }: { label: string; value: React.ReactNode }) => (
     <div className="grid grid-cols-2 items-center gap-4">
@@ -44,7 +83,7 @@ const InfoField = ({ label, value }: { label: string; value: React.ReactNode }) 
     </div>
 );
 
-export function PressReleaseFinalForm({ note, onSubmit, onCancel }: PressReleaseFinalFormProps) {
+export function PressReleaseFinalForm({ note, onAction }: PressReleaseFinalFormProps) {
   const [isAlertOpen, setIsAlertOpen] = useState(false);
   const { data: instruments, isLoading } = useSWR<RatingInstrument[]>(
     note.companyId ? `/api/instruments/${note.companyId}` : null,
@@ -54,10 +93,10 @@ export function PressReleaseFinalForm({ note, onSubmit, onCancel }: PressRelease
   const form = useForm<PRFormValues>({
     resolver: zodResolver(prSchema),
     defaultValues: {
-        annexureNote: '*Issuer did not cooperate; based on best available information.',
-        unsupportedRatingNote: 'Unsupported rating does not factor in the explicit credit enhancement.',
-        absenceDocsNote: 'Rating in the absence of the pending steps/documents',
-        rationaleDrivers: '',
+        annexureNote: note.prContent ? JSON.parse(note.prContent).annexureNote : '*Issuer did not cooperate; based on best available information.',
+        unsupportedRatingNote: note.prContent ? JSON.parse(note.prContent).unsupportedRatingNote : 'Unsupported rating does not factor in the explicit credit enhancement.',
+        absenceDocsNote: note.prContent ? JSON.parse(note.prContent).absenceDocsNote : 'Rating in the absence of the pending steps/documents',
+        rationaleDrivers: note.prContent ? JSON.parse(note.prContent).rationaleDrivers : '',
     },
   });
 
@@ -65,9 +104,16 @@ export function PressReleaseFinalForm({ note, onSubmit, onCancel }: PressRelease
     if (form.formState.isDirty) {
       setIsAlertOpen(true);
     } else {
-      onCancel();
+      // onCancel();
     }
   };
+
+  const handleFormSubmit = (action: Action) => {
+    const formData = form.getValues();
+    onAction(action, { prContent: JSON.stringify(formData) });
+  };
+  
+  const nextActions = getNextActions(note.status);
 
   const MainTable = () => {
       if (isLoading) return <Skeleton className="w-full h-32" />
@@ -134,7 +180,7 @@ export function PressReleaseFinalForm({ note, onSubmit, onCancel }: PressRelease
            </div>
 
             <FormProvider {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                <form className="space-y-6">
                     <FormField
                         control={form.control}
                         name="annexureNote"
@@ -193,11 +239,24 @@ export function PressReleaseFinalForm({ note, onSubmit, onCancel }: PressRelease
                             )}
                         />
                     </div>
-                     <div className="flex justify-end">
-                        <Button type="submit">
-                            <Save className="mr-2 h-4 w-4" />
-                            Save & Preview
+                     <div className="flex justify-end gap-2">
+                        <Button type="button" variant="outline" onClick={() => handleFormSubmit('save-pr-draft')}>
+                            <Save className="mr-2 h-4 w-4" /> Save Draft
                         </Button>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button>
+                                    <Send className="mr-2 h-4 w-4" /> Send To <ChevronDown className="ml-2 h-4 w-4" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                {nextActions.map(action => (
+                                    <DropdownMenuItem key={action} onClick={() => handleFormSubmit(action)}>
+                                        {actionDisplayNames[action]}
+                                    </DropdownMenuItem>
+                                ))}
+                            </DropdownMenuContent>
+                        </DropdownMenu>
                     </div>
                 </form>
             </FormProvider>
@@ -210,12 +269,12 @@ export function PressReleaseFinalForm({ note, onSubmit, onCancel }: PressRelease
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure you want to cancel?</AlertDialogTitle>
             <AlertDialogDescription>
-              Any unsaved changes will be lost. You will be returned to the PR preparation page.
+              Any unsaved changes will be lost.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>No, stay</AlertDialogCancel>
-            <AlertDialogAction onClick={onCancel}>Yes, cancel</AlertDialogAction>
+            <AlertDialogAction onClick={() => {}}>Yes, cancel</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

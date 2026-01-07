@@ -10,7 +10,7 @@ import type { DocumentEditorContainer } from '@syncfusion/ej2-documenteditor';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { RatingNoteEditor } from '@/components/rating-note/rating-note-editor';
-import type { RatingNote } from '@/lib/definitions';
+import type { RatingNote, Role } from '@/lib/definitions';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/firebase';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -21,8 +21,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PressReleasePreview } from '@/components/rating-note/press-release-preview';
 import { PressReleasePublication } from '@/components/rating-note/press-release-publication';
 import { PressReleaseHistory } from '@/components/rating-note/press-release-history';
+import { PressReleaseReview } from '@/components/rating-note/press-release-review';
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
+
+// Helper function to check if the user is a reviewer
+const isReviewer = (role: Role) => ['GROUP_HEAD', 'RATING_HEAD_SD', 'QC', 'AUDITOR', 'EDITOR'].includes(role);
+
 
 export default function PressReleasePage() {
     const params = useParams();
@@ -31,63 +36,45 @@ export default function PressReleasePage() {
     const { toast } = useToast();
     const { user } = useAuth();
     
-    const [view, setView] = useState<'initiation' | 'preparation' | 'editor' | 'preview'>('initiation');
-    const [preparationData, setPreparationData] = useState<any>(null);
-    const [finalFormData, setFinalFormData] = useState<any>(null);
-
+    // The main data fetching for the rating note
     const { data: note, isLoading, mutate } = useSWR<RatingNote>(
       ratingCycleId ? `/api/notes/${ratingCycleId}` : null,
       fetcher
     );
-    
-    const handlePrepare = () => {
-        setView('preparation');
-        toast({ title: 'Configure Press Release', description: 'Please select the appropriate options to continue.' });
-    };
 
-    const handlePreparationSubmit = (prepData: any) => {
-        setPreparationData(prepData);
-        setView('editor');
-        toast({ title: 'Success', description: 'Press Release editor is now ready.' });
-    };
-
-    const handleEditorSubmit = (formData: any) => {
-        setFinalFormData(formData);
-        setView('preview');
-        toast({ title: 'Preview Ready', description: 'The Press Release preview has been generated.' });
-    };
-    
-    const handleFinalSubmit = async () => {
-        if (!note || !user || !finalFormData) {
-            toast({ variant: 'destructive', title: 'Error', description: 'Ensure all documents are generated and ready.' });
-            return;
-        }
+    // This handles all state transitions by calling the backend
+    const handleAction = async (action: string, payload?: Record<string, any>) => {
+        if (!note || !user) return;
 
         try {
             const res = await fetch(`/api/notes/${ratingCycleId}/review`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
-                    action: 'submit-pr',
+                    action, 
                     actorId: user.uid,
-                    prContent: JSON.stringify(finalFormData),
-                 }),
+                    ...payload
+                }),
             });
 
-            if (!res.ok) throw new Error('Failed to submit final documents');
+            if (!res.ok) throw new Error(`Failed to perform action: ${action}`);
 
-            toast({ title: 'Success', description: 'Press Release has been generated and saved.' });
-            mutate();
-            router.push('/dashboard');
+            toast({ title: 'Success', description: 'Press Release has been updated.' });
+            mutate(); // Re-fetch the data to get the new status
+            
+            // If the action moves the note away from the current user, redirect
+            if (['submit-to-gh', 'submit-to-rh', 'submit-to-qc'].includes(action)) {
+                router.push('/dashboard');
+            }
 
         } catch (error) {
-            console.error('Final submission failed:', error);
-            toast({ variant: 'destructive', title: 'Error', description: 'Failed to submit final documents.' });
+            console.error(`Action failed: ${action}`, error);
+            toast({ variant: 'destructive', title: 'Error', description: 'An unexpected error occurred.' });
         }
     };
+    
 
-
-    if (isLoading || !note) {
+    if (isLoading || !note || !user) {
         return (
              <div className="flex h-full w-full flex-col p-4 sm:p-6 lg:p-8 space-y-4">
                 <Skeleton className="h-14 w-full" />
@@ -97,19 +84,29 @@ export default function PressReleasePage() {
         )
     }
     
+    // Determine what to render based on the user's role and the note's status
     const renderContent = () => {
-        switch (view) {
-            case 'initiation':
-                return <PressReleaseInitiation note={note} onPrepare={handlePrepare} />;
-            case 'preparation':
-                return <PressReleasePreparation note={note} onSubmit={handlePreparationSubmit} onCancel={() => setView('initiation')} />;
-            case 'editor':
-                 return <PressReleaseFinalForm note={note} onSubmit={handleEditorSubmit} onCancel={() => setView('preparation')} />;
-            case 'preview':
-                return <PressReleasePreview note={note} onEdit={() => setView('editor')} onClose={() => setView('initiation')} onSubmit={handleFinalSubmit} />;
-            default:
-                 return <PressReleaseInitiation note={note} onPrepare={handlePrepare} />;
+        const isCurrentUserReviewer = isReviewer(user.role);
+        const isNoteUnderReviewByCurrentUser = isCurrentUserReviewer && note.status.includes('In Review') && note.currentActor === user.role;
+
+        if (isNoteUnderReviewByCurrentUser) {
+            // Reviewers see a read-only view with Approve/Rework buttons
+            return <PressReleaseReview note={note} onAction={handleAction} />;
         }
+        
+        // The RA (owner) sees the editor form
+        if (user.role === 'RATING_ANALYST') {
+            return (
+                <PressReleaseFinalForm 
+                    key={note.id + note.status} 
+                    note={note} 
+                    onAction={handleAction} 
+                />
+            );
+        }
+
+        // Fallback for other roles or states (e.g., read-only view for uninvolved parties)
+        return <PressReleaseReview note={note} onAction={handleAction} isReadOnly={true} />;
     };
 
     return (

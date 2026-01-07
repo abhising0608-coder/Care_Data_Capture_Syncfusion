@@ -13,7 +13,8 @@
 
 
 
-export type Role = 'CKC_ANALYST' | 'CKC_CHECKER' | 'CKC_ADMIN' | 'RATING_ANALYST' | 'GROUP_HEAD' | 'RATING_HEAD_SD' | 'SYSTEM' | 'QC' | 'RATING_COMMITTEE';
+
+export type Role = 'CKC_ANALYST' | 'CKC_CHECKER' | 'CKC_ADMIN' | 'RATING_ANALYST' | 'GROUP_HEAD' | 'RATING_HEAD_SD' | 'SYSTEM' | 'QC' | 'RATING_COMMITTEE' | 'AUDITOR' | 'EDITOR';
 
 export type RequestStatus = 'PENDING' | 'ACCEPTED' | 'IN_PROGRESS' | 'SUBMITTED_FOR_CHECK' | 'SENT_BACK' | 'APPROVED' | 'CLOSED';
 
@@ -21,12 +22,22 @@ export type RequestStatus = 'PENDING' | 'ACCEPTED' | 'IN_PROGRESS' | 'SUBMITTED_
 export type NoteStatus = 
   | 'Draft'
   | 'In Review (GH)'
-  | 'Rework Requested (GH)' // From QC to GH
+  | 'Rework Requested (GH)'
+  | 'GH Approved'
+  | 'In Review (RH)'
+  | 'Rework Requested (RH)'
+  | 'RH Approved'
   | 'In Review (QC)'
-  | 'Approved by QC'
-  | 'CC Approved'
-  | 'PR Generation Pending' // GH sends to RA for PR
-  | 'PR Generated'
+  | 'Rework Requested (QC)'
+  | 'QC Approved'
+  | 'In Review (Auditor)'
+  | 'Rework Requested (Auditor)'
+  | 'Auditor Approved'
+  | 'In Review (Editor)'
+  | 'Rework Requested (Editor)'
+  | 'Editor Approved'
+  | 'PR Generation Pending' // Legacy status from initial note flow
+  | 'Sent to Client'
   | 'Completed';
 
 export type CompanyPriority = 'High' | 'Medium' | 'Low';
@@ -36,7 +47,7 @@ export type FeedbackStatus = 'Pending' | 'In Progress' | 'Completed';
 export type DiscussionStatus = 'Draft' | 'Shared with GH' | 'Completed';
 
 export type StatusHistory = {
-  status: RequestStatus;
+  status: NoteStatus | RequestStatus;
   timestamp: string | Date;
   actorId: string;
   actorRole: Role;
