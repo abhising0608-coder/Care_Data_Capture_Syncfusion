@@ -21,6 +21,7 @@ export type CompanyPriority = 'High' | 'Medium' | 'Low';
 
 export type FeedbackStatus = 'Pending' | 'In Progress' | 'Completed';
 
+export type DiscussionStatus = 'Draft' | 'Shared with GH' | 'Completed';
 
 export type StatusHistory = {
   status: RequestStatus;
@@ -188,6 +189,29 @@ export interface IPAFirm {
     id: string;
     firmName: string;
     contacts: IPAContact[];
+}
+
+export interface ManagementPersonnel {
+  id: string;
+  name: string;
+  designation: string;
+}
+
+export interface DiscussionMinute {
+  id: string;
+  issue: string;
+  response: string;
+}
+
+export interface ManagementDiscussion {
+  id: string;
+  companyId: string;
+  interactionDate?: Date | null;
+  location?: string;
+  careTeam: string[];
+  managementPersonnel: ManagementPersonnel[];
+  discussionMinutes: DiscussionMinute[];
+  status: DiscussionStatus;
 }
 
 

@@ -18,6 +18,7 @@ import {
   FileText,
   TestTube2,
   Briefcase,
+  Users,
 } from 'lucide-react';
 import { useAuth } from '@/firebase';
 
@@ -39,6 +40,7 @@ const menuItems = [
     subItems: [
         { href: '/due-diligence/dt-feedback', label: 'DT Feedback' },
         { href: '/due-diligence/ipa-feedback', label: 'IPA Feedback' },
+        { href: '/due-diligence/management-discussion', label: 'Management Discussion' },
     ]
   },
    {
