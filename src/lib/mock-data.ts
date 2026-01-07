@@ -1,4 +1,5 @@
 
+
 import type { CKCRequest, AppUser, Role, RequestStatus, CompanyInfo, RatingNote, NoteStatus, RatingNoteDataSchema, DTFirm, DTContact, FeedbackStatus, QuestionnaireItem, IPAFirm, IPAContact, ThirdParty, AuditCommitteeMeeting, SiteVisit, AuditorFirm, AuditorContact, BankerFirm, BankerContact, RatingInstrument, RatingInstrumentCycle, LatestBankDetail, AnnexureVHistory, PressReleaseHistory, DMSDocumentHistory, BankerLenderDetail } from './definitions';
 
 
@@ -531,6 +532,12 @@ export const mockUsers: Record<string, AppUser> = {
         photoURL: 'https://i.pravatar.cc/150?u=gh'
     },
 };
+
+export const mockQcUsers = [
+    { id: 'qc-user-1', name: 'QC User 1' },
+    { id: 'qc-user-2', name: 'QC User 2' },
+    { id: 'qc-user-3', name: 'QC User 3' },
+];
 
 export const mockCompanies = [
     { id: 'COMP-101', companyName: 'Sun Pharmaceutical Industries Limited', ratingAnalystId: 'rating.analyst@careedge', groupHeadId: 'group.head@careedge' },
