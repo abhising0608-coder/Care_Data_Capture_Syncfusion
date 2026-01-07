@@ -3,6 +3,7 @@
 
 
 
+
 export type Role = 'CKC_ANALYST' | 'CKC_CHECKER' | 'CKC_ADMIN' | 'RATING_ANALYST' | 'GROUP_HEAD' | 'RATING_HEAD_SD' | 'SYSTEM' | 'QC' | 'RATING_COMMITTEE';
 export type RequestStatus = 'PENDING' | 'ACCEPTED' | 'IN_PROGRESS' | 'SUBMITTED_FOR_CHECK' | 'SENT_BACK' | 'APPROVED' | 'CLOSED';
 
@@ -60,10 +61,21 @@ export type RatingInstrumentCycle = {
   cycleStartDate: string;
   meetingType: 'Internal' | 'External';
   meetingDate: string;
-a  rating: string;
+  rating: string;
   ratingAction: string;
   instrumentSize: number;
   outstandingAmount: number;
+};
+
+export type LatestBankDetail = {
+  id: string; // Running Instrument ID
+  bankLender: string;
+  instrument: string;
+  ratedAmount: number;
+  foreignCurrAmount: number;
+  currency: string;
+  debtRepaymentTerms: string;
+  remark: string;
 };
 
 export type RatingInstrument = {
@@ -81,10 +93,16 @@ export type RatingInstrument = {
   instrument: string;
   complexityLevel: 'Simple' | 'Complex' | 'Highly Complex';
   instrumentSize: number; // in Lacs
+  couponRate?: string;
+  issuanceDate?: string;
+  maturityDate?: string;
+  placedDate?: string;
+  instrumentDetail?: string;
+  remarks?: string;
   initialRatingDate?: string;
   accountManager?: string;
   cycleHistory: RatingInstrumentCycle[];
-}
+};
 
 export type CKCRequest = {
   id: string; // Corresponds to document ID

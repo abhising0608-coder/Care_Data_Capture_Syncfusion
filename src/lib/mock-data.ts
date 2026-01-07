@@ -6,7 +6,8 @@
 
 
 
-import type { CKCRequest, AppUser, Role, RequestStatus, CompanyInfo, RatingNote, NoteStatus, RatingNoteDataSchema, DTFirm, DTContact, FeedbackStatus, QuestionnaireItem, IPAFirm, IPAContact, ThirdParty, AuditCommitteeMeeting, SiteVisit, AuditorFirm, AuditorContact, BankerFirm, BankerContact, RatingInstrument, RatingInstrumentCycle } from './definitions';
+
+import type { CKCRequest, AppUser, Role, RequestStatus, CompanyInfo, RatingNote, NoteStatus, RatingNoteDataSchema, DTFirm, DTContact, FeedbackStatus, QuestionnaireItem, IPAFirm, IPAContact, ThirdParty, AuditCommitteeMeeting, SiteVisit, AuditorFirm, AuditorContact, BankerFirm, BankerContact, RatingInstrument, RatingInstrumentCycle, LatestBankDetail } from './definitions';
 
 
 // --- FSD-based Master JSON Data Structure ---
@@ -248,6 +249,18 @@ let ratingInstruments: Record<string, RatingInstrument[]> = {
     }))
   ]
 };
+
+export const mockLatestBankDetails: LatestBankDetail[] = [
+  { id: '109630', bankLender: 'Bank of Baroda', instrument: 'Term Loan', ratedAmount: 150, foreignCurrAmount: 0, currency: 'INR', debtRepaymentTerms: 'Repayable in 8 unequal...', remark: 'Outstanding as on June 30, 2024' },
+  { id: '12363', bankLender: 'Indusind Bank...', instrument: 'Term Loan', ratedAmount: 95, foreignCurrAmount: 0, currency: 'INR', debtRepaymentTerms: 'Repayable in 16 unequal...', remark: 'Outstanding as on June 30, 2024' },
+  { id: '12363', bankLender: 'HDFC Bank Ltd', instrument: 'Term Loan', ratedAmount: 65.6, foreignCurrAmount: 0, currency: 'INR', debtRepaymentTerms: 'Repayable in 14 unequal...', remark: 'Outstanding as on June 30, 2024' },
+  { id: '12363', bankLender: 'HDFC Bank Ltd', instrument: 'Term Loan', ratedAmount: 150, foreignCurrAmount: 0, currency: 'INR', debtRepaymentTerms: 'Repayable in 8 unequal...', remark: 'Outstanding as on June 30, 2024' },
+  { id: '12363', bankLender: 'HDFC Bank Ltd', instrument: 'Term Loan', ratedAmount: 150, foreignCurrAmount: 0, currency: 'INR', debtRepaymentTerms: 'Repayable in 8 unequal...', remark: '-' },
+  { id: '12363', bankLender: 'HDFC Bank Ltd', instrument: 'Non Fund Based Limits', ratedAmount: 150, foreignCurrAmount: 0, currency: 'INR', debtRepaymentTerms: 'Repayable in 8 unequal...', remark: '-' },
+  { id: '12363', bankLender: 'HDFC Bank Ltd', instrument: 'Term Loan', ratedAmount: 150, foreignCurrAmount: 0, currency: 'INR', debtRepaymentTerms: 'Repayable in 8 unequal...', remark: '-' },
+  { id: '12363', bankLender: 'HDFC Bank Ltd', instrument: 'Term Loan', ratedAmount: 150, foreignCurrAmount: 0, currency: 'INR', debtRepaymentTerms: 'Repayable in 8 unequal...', remark: '-' },
+];
+
 
 let requests: CKCRequest[] = [
   {
@@ -941,6 +954,10 @@ export const getNoteById = (id: string): RatingNote | undefined => {
 export const getInstrumentsByCompanyId = (companyId: string): RatingInstrument[] => {
   return ratingInstruments[companyId] || [];
 }
+
+export const getLatestBankDetailsByCompanyId = (companyId: string): LatestBankDetail[] => {
+  return mockLatestBankDetails || [];
+};
 
 export const createNote = (body: Partial<RatingNote>): RatingNote => {
     const company = mockCompanies.find(c => c.id === body.companyId);
