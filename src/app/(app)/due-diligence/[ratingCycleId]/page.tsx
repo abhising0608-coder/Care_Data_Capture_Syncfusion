@@ -12,8 +12,7 @@ import AuditCommitteeMeetingPage from '../audit-committee-meeting/page';
 import SiteVisitPage from '../site-visit/page';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import type { CompanyDashboard } from '@/lib/definitions';
-import { getCompaniesByRole } from '@/lib/mock-data';
+import type { RatingNote } from '@/lib/definitions';
 import { useAuth } from '@/firebase';
 
 
@@ -33,16 +32,13 @@ const fetcher = (url: string) => fetch(url).then(res => res.json());
 export default function DueDiligencePage() {
     const params = useParams();
     const ratingCycleId = params.ratingCycleId as string;
-    const { user } = useAuth();
     
-    // In a real app, we'd fetch the specific company by ratingCycleId.
-    // For this mock, we'll find it in the list of all companies.
-    const { data: allCompanies, isLoading } = useSWR<CompanyDashboard[]>(
-      user ? `/api/companies?role=${user.role}` : null, 
+    // Fetch the specific rating note to get the company name
+    const { data: note, isLoading } = useSWR<RatingNote>(
+      ratingCycleId ? `/api/notes/${ratingCycleId}` : null, 
       fetcher
     );
 
-    const company = allCompanies?.find(c => c.id === ratingCycleId);
 
     return (
         <div className="space-y-6">
@@ -61,7 +57,7 @@ export default function DueDiligencePage() {
                         <Skeleton className="h-8 w-1/2" />
                     ) : (
                         <div className="text-lg font-semibold text-primary">
-                            {company?.companyName || `Company ID: ${ratingCycleId}`}
+                            {note?.companyName || `Company ID: ${ratingCycleId}`}
                         </div>
                     )}
                 </CardContent>
@@ -77,7 +73,7 @@ export default function DueDiligencePage() {
                  {tabsConfig.map(tab => (
                     <TabsContent key={tab.value} value={tab.value}>
                         <div className="mt-4">
-                           <tab.Component companyId={ratingCycleId} isEmbedded={true} />
+                           <tab.Component companyId={note?.companyId || ratingCycleId} isEmbedded={true} />
                         </div>
                     </TabsContent>
                 ))}
