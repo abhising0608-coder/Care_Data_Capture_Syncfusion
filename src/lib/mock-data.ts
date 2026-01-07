@@ -5,7 +5,8 @@
 
 
 
-import type { CKCRequest, AppUser, Role, RequestStatus, CompanyInfo, RatingNote, NoteStatus, RatingNoteDataSchema, DTFirm, DTContact, FeedbackStatus, QuestionnaireItem, IPAFirm, IPAContact, ThirdParty, AuditCommitteeMeeting, SiteVisit, AuditorFirm, AuditorContact, BankerFirm, BankerContact, RatingInstrument } from './definitions';
+
+import type { CKCRequest, AppUser, Role, RequestStatus, CompanyInfo, RatingNote, NoteStatus, RatingNoteDataSchema, DTFirm, DTContact, FeedbackStatus, QuestionnaireItem, IPAFirm, IPAContact, ThirdParty, AuditCommitteeMeeting, SiteVisit, AuditorFirm, AuditorContact, BankerFirm, BankerContact, RatingInstrument, RatingInstrumentCycle } from './definitions';
 
 
 // --- FSD-based Master JSON Data Structure ---
@@ -185,7 +186,33 @@ let ratingInstruments: Record<string, RatingInstrument[]> = {
       complexityLevel: 'Simple',
       instrumentSize: 50000,
       initialRatingDate: '2021-01-15',
-      accountManager: 'Priya Singh'
+      accountManager: 'Priya Singh',
+      cycleHistory: [
+        {
+          rcmId: '109630',
+          instrumentDetailId: '604326',
+          cycleStatus: 'C',
+          cycleStartDate: '2023-08-16',
+          meetingType: 'Internal',
+          meetingDate: '2023-07-18',
+          rating: 'CARE A1+',
+          ratingAction: 'Assigned',
+          instrumentSize: 30000.00,
+          outstandingAmount: 30000.00,
+        },
+        {
+          rcmId: '109630',
+          instrumentDetailId: '604326',
+          cycleStatus: 'C',
+          cycleStartDate: '2022-08-16',
+          meetingType: 'Internal',
+          meetingDate: '2022-07-18',
+          rating: 'CARE A1+',
+          ratingAction: 'Reaffirmed',
+          instrumentSize: 25000.00,
+          outstandingAmount: 25000.00,
+        }
+      ]
     },
     ...Array.from({ length: 7 }, (_, i) => ({
       id: `12363${i}`,
@@ -203,7 +230,21 @@ let ratingInstruments: Record<string, RatingInstrument[]> = {
       complexityLevel: 'Simple' as 'Simple' | 'Complex' | 'Highly Complex',
       instrumentSize: 20000,
       initialRatingDate: '2008-05-20',
-      accountManager: 'Priya Singh'
+      accountManager: 'Priya Singh',
+      cycleHistory: [
+         {
+          rcmId: `12363${i}`,
+          instrumentDetailId: `501${i}`,
+          cycleStatus: 'A' as 'C' | 'A',
+          cycleStartDate: '2023-09-01',
+          meetingType: 'External' as 'Internal' | 'External',
+          meetingDate: '2023-09-15',
+          rating: 'CARE A1+',
+          ratingAction: 'Reaffirmed',
+          instrumentSize: 20000.00,
+          outstandingAmount: 18000.00,
+        },
+      ]
     }))
   ]
 };
@@ -594,8 +635,7 @@ let companyInfoData: Record<string, CompanyInfo> = {
             group: 'Sun Pharma Group',
             groupForCombinedApproach: ''
         },
-        contactDetails: [],
-        auditorDetails: [
+        contactDetails: [], auditorDetails: [
              { id: 'AUD-001', firmName: 'A.U. Mojad & Associates', contactPerson: 'A.U. Mojad', emailId: 'au.mojad@example.com', contactNo: '9123456780' },
              { id: 'AUD-002', firmName: 'Ashish R Pai & Associates', contactPerson: 'Ashish R Pai', emailId: 'ashish.pai@example.com', contactNo: '9123456781' },
         ],

@@ -12,7 +12,9 @@ export async function GET(
     return NextResponse.json({ message: 'Company ID is required' }, { status: 400 });
   }
 
-  const instruments: RatingInstrument[] = getInstrumentsByCompanyId(companyId);
+  // In a real app, you would use the companyId to filter. 
+  // For the prototype, we'll use a hardcoded ID that has data.
+  const instruments: RatingInstrument[] = getInstrumentsByCompanyId('COMP-101');
 
   return NextResponse.json(instruments);
 }

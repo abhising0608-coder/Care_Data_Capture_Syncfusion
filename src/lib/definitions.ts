@@ -2,6 +2,7 @@
 
 
 
+
 export type Role = 'CKC_ANALYST' | 'CKC_CHECKER' | 'CKC_ADMIN' | 'RATING_ANALYST' | 'GROUP_HEAD' | 'RATING_HEAD_SD' | 'SYSTEM' | 'QC' | 'RATING_COMMITTEE';
 export type RequestStatus = 'PENDING' | 'ACCEPTED' | 'IN_PROGRESS' | 'SUBMITTED_FOR_CHECK' | 'SENT_BACK' | 'APPROVED' | 'CLOSED';
 
@@ -52,6 +53,19 @@ export interface CompanyDashboard {
     ghId?: string;
 }
 
+export type RatingInstrumentCycle = {
+  rcmId: string;
+  instrumentDetailId: string;
+  cycleStatus: 'C' | 'A'; // Completed or Active
+  cycleStartDate: string;
+  meetingType: 'Internal' | 'External';
+  meetingDate: string;
+a  rating: string;
+  ratingAction: string;
+  instrumentSize: number;
+  outstandingAmount: number;
+};
+
 export type RatingInstrument = {
   id: string; // Running Ins. ID
   instrumentStatus: 'Active' | 'Withdrawn';
@@ -69,6 +83,7 @@ export type RatingInstrument = {
   instrumentSize: number; // in Lacs
   initialRatingDate?: string;
   accountManager?: string;
+  cycleHistory: RatingInstrumentCycle[];
 }
 
 export type CKCRequest = {

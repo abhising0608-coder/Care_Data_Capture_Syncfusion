@@ -47,31 +47,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui
 import { useToast } from '@/hooks/use-toast';
 import { useParams } from 'next/navigation';
 import type { RatingInstrument } from '@/lib/definitions';
+import { InstrumentCycleHistoryTable } from './instrument-cycle-history-table';
+
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 const renderDetailPanel = ({ row }: { row: Row<RatingInstrument> }) => {
-    const instrument = row.original;
-    const detailPairs = [
-        { label: 'Instrument ID', value: instrument.instrumentId },
-        { label: 'Category', value: instrument.category },
-        { label: 'Sub Category', value: instrument.subCategory },
-        { label: 'Instrument', value: instrument.instrument },
-        { label: 'Complexity Level', value: instrument.complexityLevel },
-        { label: 'Instrument Size (Lacs)', value: instrument.instrumentSize.toLocaleString() },
-        { label: 'Initial Rating Date', value: instrument.initialRatingDate ? new Date(instrument.initialRatingDate).toLocaleDateString() : 'N/A' },
-        { label: 'Account Manager', value: instrument.accountManager },
-    ];
-    return (
-        <div className="p-4 bg-muted/50 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {detailPairs.map(pair => (
-                <div key={pair.label}>
-                    <p className="text-xs font-semibold text-muted-foreground">{pair.label}</p>
-                    <p className="text-sm">{pair.value}</p>
-                </div>
-            ))}
-        </div>
-    );
+    return <InstrumentCycleHistoryTable cycleHistory={row.original.cycleHistory} />
 }
 
 export function InstrumentDetailsTable() {
