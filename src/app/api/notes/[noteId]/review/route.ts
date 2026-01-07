@@ -1,7 +1,7 @@
 
 import { NextResponse } from 'next/server';
-import { updateNoteStatus } from '@/lib/mock-data';
-import type { NoteStatus } from '@/lib/definitions';
+import { updateNoteStatus, updateNote } from '@/lib/mock-data';
+import type { NoteStatus, RatingNote } from '@/lib/definitions';
 
 export async function POST(
   request: Request,
@@ -13,10 +13,21 @@ export async function POST(
   if (!action || !actorId) {
     return NextResponse.json({ message: 'Action and Actor ID are required' }, { status: 400 });
   }
+  
+  if (action === 'save-draft') {
+      const updatedNote = updateNote(noteId, { editorContent });
+      if (!updatedNote) {
+        return NextResponse.json({ message: 'Failed to save draft' }, { status: 404 });
+      }
+      return NextResponse.json(updatedNote);
+  }
 
   let newStatus: NoteStatus;
 
   switch (action) {
+    case 'submit-to-gh':
+        newStatus = 'In Review (GH)';
+        break;
     case 'rework':
       newStatus = 'Rework Requested';
       break;

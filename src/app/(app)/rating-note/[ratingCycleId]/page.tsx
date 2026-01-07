@@ -13,90 +13,78 @@ import { RatingNoteEditor } from '@/components/rating-note/rating-note-editor';
 import type { RatingNote, RatingNoteDataSchema, Role } from '@/lib/definitions';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/firebase';
-import { getDecompressedSfdt } from '@/lib/rating-note-service';
-import * as template from '@/lib/rating-note-template.json';
+import { getBoundRatingNoteSfdt } from '@/lib/rating-note-service';
+
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
 
-// Define NoteStatus and UserRole types locally if they are not globally available
 type NoteStatus = 'Draft' | 'Rework Requested' | 'In Review (GH)' | 'In Review (QC)' | 'QC Approved' | 'In Review (CC)' | 'CC Approved' | 'Pending RR & PR (RA)' | 'In Final Review (GH)' | 'Completed';
 
 export default function RatingNotePage() {
-    console.log("=== RatingNotePage component rendering ===");
-
     const params = useParams();
     const router = useRouter();
     const noteId = params.ratingCycleId as string;
-    console.log("Note ID from params:", noteId);
-
     const { toast } = useToast();
     const { user, role } = useAuth();
-    console.log("User:", user, "Role:", role);
-
     const editorRef = useRef<DocumentEditorContainer | null>(null);
-    const [documentContent, setDocumentContent] = useState<string | null>(null);
     const [isLoadingContent, setIsLoadingContent] = useState(true);
 
     const { data: note, isLoading: isNoteLoading, mutate } = useSWR<RatingNote>(
         noteId ? `/api/notes/${noteId}` : null,
         fetcher
     );
-
-    console.log("Note data:", note, "isNoteLoading:", isNoteLoading);
+    
+    const [documentContent, setDocumentContent] = useState<string | null>(null);
 
     useEffect(() => {
-        console.log("=== useEffect for loading content triggered ===");
-        console.log("Toast function available:", !!toast);
-
         const loadContent = async () => {
-            console.log("Starting loadContent function...");
-            setIsLoadingContent(true);
-            try {
-                console.log("Calling getDecompressedSfdt()...");
-
-                const base64String = (template as any);
-                const decompressedSfdt = JSON.stringify(base64String);
-                setDocumentContent(decompressedSfdt);
-                console.log("Document content state updated!");
-            } catch (error) {
-                console.error("!!! ERROR in loadContent !!!", error);
-                console.error("Error details:", JSON.stringify(error, null, 2));
-                toast({
-                    variant: 'destructive',
-                    title: 'Error Loading Document',
-                    description: 'Could not load the document content.',
-                });
-            } finally {
-                console.log("Setting isLoadingContent to false");
-                setIsLoadingContent(false);
+            if (note && note.ratingNoteData) {
+                setIsLoadingContent(true);
+                try {
+                    const boundSfdt = await getBoundRatingNoteSfdt(note.ratingNoteData);
+                    setDocumentContent(boundSfdt);
+                } catch (error) {
+                    console.error("Error binding SFDT:", error);
+                    toast({
+                        variant: 'destructive',
+                        title: 'Error Loading Document',
+                        description: 'Could not generate the document content from data.',
+                    });
+                } finally {
+                    setIsLoadingContent(false);
+                }
             }
         };
 
-        loadContent();
-    }, [toast]);
-
-
+        if (note) {
+            loadContent();
+        }
+    }, [note, toast]);
+    
     const handleSave = async (isSubmitting: boolean = false) => {
         if (!editorRef.current || !note || !user) return;
 
         const sfdtString = await editorRef.current.documentEditor.save('Sfdt');
-
-        const payload: Partial<RatingNote> = {
-            editorContent: sfdtString,
-            status: isSubmitting ? 'In Review (GH)' : note.status,
-            currentActor: isSubmitting ? 'GROUP_HEAD' : note.currentActor,
-        };
-
+        const action = isSubmitting ? 'submit-to-gh' : 'save-draft';
+        
         try {
-            await fetch(`/api/notes/${noteId}`, {
+            const res = await fetch(`/api/notes/${noteId}/review`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload),
+                body: JSON.stringify({ 
+                    action,
+                    editorContent: sfdtString,
+                    actorId: user.uid,
+                 }),
             });
+            
+            if (!res.ok) {
+                throw new Error(`Failed to ${isSubmitting ? 'submit' : 'save'}`);
+            }
 
             toast({
                 title: 'Success!',
-                description: `Rating note has been ${isSubmitting ? 'submitted to Group Head' : 'saved'}.`,
+                description: `Rating note has been ${isSubmitting ? 'submitted to Group Head' : 'saved as a draft'}.`,
             });
 
             mutate();
@@ -109,11 +97,11 @@ export default function RatingNotePage() {
             toast({
                 variant: 'destructive',
                 title: 'Error',
-                description: 'Failed to save the rating note.',
+                description: 'Failed to save or submit the rating note.',
             });
         }
     };
-
+    
     const handleSubmitToGroupHead = () => {
         handleSave(true);
     };
@@ -188,7 +176,7 @@ export default function RatingNotePage() {
             <main className="flex-1 pt-6">
                 <Suspense fallback={<Skeleton className="h-[calc(100vh-250px)] w-full" />}>
                     <RatingNoteEditor
-                        key={note.id}
+                        key={note.id + (note.ratingNoteData?.audit.version || 1)}
                         ref={editorRef}
                         isReadOnly={isReadOnly}
                         content={documentContent}

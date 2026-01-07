@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useParams, useRouter } from 'next/navigation';
@@ -16,6 +17,7 @@ import { useFirestore } from '@/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { useWorkflow } from '@/context/workflow-context';
 import { ArrowRight } from 'lucide-react';
+import type { RatingNote } from '@/lib/definitions';
 
 const validationSchema = z.object({
   step1: z.object({
@@ -45,7 +47,6 @@ export default function NewRatingNotePage() {
   const ratingCycleId = params.ratingCycleId as string;
   const { user } = useAuth();
   const { toast } = useToast();
-  const firestore = useFirestore();
   const { completeStep } = useWorkflow();
 
   const methods = useForm({
@@ -69,7 +70,7 @@ export default function NewRatingNotePage() {
   });
 
   const onSubmit = async (data: any) => {
-    if (!user || !firestore) {
+    if (!user) {
       toast({
         variant: 'destructive',
         title: 'Error',
@@ -78,45 +79,45 @@ export default function NewRatingNotePage() {
       return;
     }
     
-    const companyId = ratingCycleId;
-    const noteName = `${companyId} Surveillance Note`;
+    const companyId = methods.getValues('step1.companyId');
 
     const notePayload = {
-      noteName,
+      noteName: `${companyId} Rating Note`,
       companyId: companyId,
-      templateId: methods.getValues('step1.templateId'),
+      templateId: data.step1.templateId,
       analysts: [user.uid],
-      status: 'In Progress',
-      financialApproach: methods.getValues('step3.financialApproach'),
-      financialYearFrom: methods.getValues('step3.financialYearFrom'),
-      financialYearTo: methods.getValues('step3.financialYearTo'),
-      currencyDenomination: methods.getValues('step3.currencyDenomination'),
-      scale: methods.getValues('step3.scale'),
-      applicableCriteria: methods.getValues('step3.applicableCriteria'),
-      ratingCommitteeType: methods.getValues('step4.ratingCommitteeType'),
-      analystRemarks: methods.getValues('step4.analystRemarks'),
-      createdAt: serverTimestamp(),
-      lastModified: serverTimestamp(),
+      status: 'Draft',
+      // ... include other fields from the form
       createdBy: user.uid,
-      rcmDate: null,
-      sections: {},
+      // ... other necessary fields
     };
 
     try {
-      const notesCollection = collection(firestore, 'ratingNotes');
-      const docRef = await addDoc(notesCollection, notePayload);
+      const res = await fetch(`/api/notes`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(notePayload),
+      });
+
+      if (!res.ok) {
+        throw new Error('Failed to create note');
+      }
+      
+      const newNote = await res.json();
+      
       toast({
         title: 'Success!',
         description: `Rating note for ${companyId} has been initiated.`,
       });
       completeStep('initiate-rating-note');
-      router.push(`/rating-note/${docRef.id}`);
+      router.push(`/rating-note/${newNote.id}`);
+
     } catch (error) {
-       console.error("Firestore error:", error);
+       console.error("API error:", error);
       toast({
         variant: 'destructive',
-        title: 'Firestore Error',
-        description: 'Failed to create the rating note.',
+        title: 'API Error',
+        description: 'Failed to create the rating note via API.',
       });
     }
   };

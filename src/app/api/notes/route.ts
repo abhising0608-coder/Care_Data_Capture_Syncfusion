@@ -1,6 +1,7 @@
+
 import { NextResponse } from 'next/server';
-import { getNotesByRole, updateNoteStatus } from '@/lib/mock-data';
-import type { Role, NoteStatus } from '@/lib/definitions';
+import { getNotesByRole, createNote } from '@/lib/mock-data';
+import type { Role } from '@/lib/definitions';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -17,17 +18,13 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-    const { noteId, newStatus, actorId, editorContent } = await request.json();
+    const body = await request.json();
+    
+    const newNote = createNote(body);
 
-    if (!noteId || !newStatus || !actorId) {
-        return NextResponse.json({ message: 'Missing required fields' }, { status: 400 });
+    if (!newNote) {
+        return NextResponse.json({ message: 'Failed to create new note' }, { status: 500 });
     }
 
-    const updatedNote = updateNoteStatus(noteId, newStatus as NoteStatus, actorId, editorContent);
-
-    if (!updatedNote) {
-        return NextResponse.json({ message: 'Failed to update note status' }, { status: 500 });
-    }
-
-    return NextResponse.json(updatedNote);
+    return NextResponse.json(newNote, { status: 201 });
 }
