@@ -214,6 +214,45 @@ export interface ManagementDiscussion {
   status: DiscussionStatus;
 }
 
+export interface ThirdPartyContact {
+  id: string;
+  name: string;
+  designation: string;
+  email: string;
+  isPrimary?: boolean;
+}
+
+export interface ThirdParty {
+  id: string;
+  name: string;
+  relationship: string;
+  contacts: ThirdPartyContact[];
+}
+
+export interface ThirdPartyPersonnel {
+  id: string;
+  name: string;
+  designation: string;
+}
+
+export interface ThirdPartyMinute {
+  id: string;
+  query: string;
+  response: string;
+}
+
+export interface ThirdPartyCheck {
+    id: string;
+    companyId: string;
+    organizationId: string;
+    interactionDate?: Date | null;
+    location?: string;
+    careTeam: string[];
+    thirdPartyPersonnel: ThirdPartyPersonnel[];
+    discussionMinutes: ThirdPartyMinute[];
+    status: DiscussionStatus;
+}
+
 
 export interface RatingNote {
   id: string;

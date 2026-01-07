@@ -1,7 +1,7 @@
 
 
 
-import type { CKCRequest, AppUser, Role, RequestStatus, CompanyInfo, RatingNote, NoteStatus, RatingNoteDataSchema, DTFirm, DTContact, FeedbackStatus, QuestionnaireItem, IPAFirm, IPAContact } from './definitions';
+import type { CKCRequest, AppUser, Role, RequestStatus, CompanyInfo, RatingNote, NoteStatus, RatingNoteDataSchema, DTFirm, DTContact, FeedbackStatus, QuestionnaireItem, IPAFirm, IPAContact, ThirdParty } from './definitions';
 
 
 // --- FSD-based Master JSON Data Structure ---
@@ -409,6 +409,26 @@ export const mockCompanies = [
     { id: 'COMP-104', companyName: 'Lupin Limited', ratingAnalystId: 'another.analyst', groupHeadId: 'another.gh' },
     { id: 'COMP-105', companyName: 'Aurobindo Pharma Limited', ratingAnalystId: 'rating.analyst@careedge', groupHeadId: 'group.head@careedge' },
     { id: 'COMP-106', companyName: 'Glenmark Pharmaceuticals Limited', ratingAnalystId: 'another.analyst', groupHeadId: 'group.head@careedge' },
+];
+
+export const mockThirdParties: ThirdParty[] = [
+    {
+        id: 'TP-001',
+        name: 'Global Logistics Inc.',
+        relationship: 'Logistics Partner',
+        contacts: [
+            { id: 'TPC-001', name: 'Sarah Chen', designation: 'Operations Head', email: 'sarah.c@globallogistics.com', isPrimary: true },
+            { id: 'TPC-002', name: 'Mike Ross', designation: 'Account Manager', email: 'mike.r@globallogistics.com' },
+        ]
+    },
+    {
+        id: 'TP-002',
+        name: 'Innovate Solutions Ltd.',
+        relationship: 'Technology Vendor',
+        contacts: [
+            { id: 'TPC-003', name: 'David Lee', designation: 'CTO', email: 'david.l@innovatesolutions.com', isPrimary: true },
+        ]
+    }
 ];
 
 export const mockTemplates = [
