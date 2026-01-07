@@ -255,9 +255,3 @@ export default function DTFeedbackCapturePage() {
         </div>
     );
 }
-
-// Helper data, as we don't have a full company API yet
-const mockCompanies = [
-    { id: 'COMP-101', companyName: 'Sun Pharmaceutical Industries Limited' },
-    { id: 'COMP-102', companyName: 'Dr. Reddy’s Laboratories Limited' },
-];

@@ -9,7 +9,7 @@ import { usePathname } from 'next/navigation';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const showStepper = /^\/(company-information|operational-input|financial-input|notes\/new|rating-note)\/.+/.test(pathname);
+  const showStepper = /^\/(company-information|operational-input|financial-input|due-diligence|notes\/new|rating-note)\/.+/.test(pathname);
 
   return (
       <WorkflowProvider>
