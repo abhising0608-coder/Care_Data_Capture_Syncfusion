@@ -8,7 +8,7 @@ export async function POST(
   { params }: { params: { noteId: string } }
 ) {
   const { noteId } = params;
-  const { action, actorId, editorContent } = await request.json();
+  const { action, actorId, editorContent, prContent } = await request.json();
 
   if (!action || !actorId) {
     return NextResponse.json({ message: 'Action and Actor ID are required' }, { status: 400 });
@@ -23,31 +23,28 @@ export async function POST(
   }
 
   let newStatus: NoteStatus;
+  let updates: Partial<RatingNote> = { editorContent };
+
 
   switch (action) {
     case 'submit-to-gh':
         newStatus = 'In Review (GH)';
         break;
-    case 'rework':
-      newStatus = 'Rework Requested';
-      break;
     case 'submit-to-qc':
       newStatus = 'In Review (QC)';
       break;
-    case 'submit-to-cc':
-      newStatus = 'In Review (CC)';
+    case 'send-to-ra-for-pr':
+      newStatus = 'PR Generation Pending';
       break;
-    case 'send-to-ra-for-rr-pr':
-      newStatus = 'Pending RR & PR (RA)';
-      break;
-    case 'final-approve':
-      newStatus = 'Completed';
-      break;
+    case 'submit-pr':
+        newStatus = 'PR Generated';
+        if (prContent) updates.prContent = prContent;
+        break;
     default:
       return NextResponse.json({ message: 'Invalid action' }, { status: 400 });
   }
 
-  const updatedNote = updateNoteStatus(noteId, newStatus, actorId, editorContent);
+  const updatedNote = updateNoteStatus(noteId, newStatus, actorId, updates);
 
   if (!updatedNote) {
     return NextResponse.json({ message: 'Failed to update note' }, { status: 404 });

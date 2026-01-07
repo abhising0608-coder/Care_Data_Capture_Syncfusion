@@ -83,7 +83,6 @@ const StatusIndicator = ({ status, role }: { status: NoteStatus, role: Role | un
     if (role === 'GROUP_HEAD') {
         if (status === 'In Review (GH)') displayStatus = 'In Review' as NoteStatus;
         if (status === 'In Review (QC)') displayStatus = 'Forwarded to QC' as NoteStatus;
-        if (status === 'In Review (CC)') displayStatus = 'Forwarded to CC' as NoteStatus;
     }
 
     switch (status) {
@@ -93,22 +92,16 @@ const StatusIndicator = ({ status, role }: { status: NoteStatus, role: Role | un
              return <div className={baseClasses}><Dot className="h-3 w-3 fill-blue-500 text-blue-500" /><span>Draft</span></div>;
         case 'In Review (GH)':
              return <div className={baseClasses}><Dot className="h-3 w-3 fill-yellow-500 text-yellow-500" /><span>{displayStatus}</span></div>;
-        case 'Rework Requested':
+        case 'Rework Requested (GH)':
              return <div className={baseClasses}><Dot className="h-3 w-3 fill-orange-500 text-orange-500" /><span>Rework Requested</span></div>;
         case 'In Review (QC)':
             return <div className={baseClasses}><Dot className="h-3 w-3 fill-cyan-500 text-cyan-500" /><span>{displayStatus}</span></div>;
-        case 'QC Approved':
-            return <div className={baseClasses}><Dot className="h-3 w-3 fill-teal-500 text-teal-500" /><span>QC Approved</span></div>;
-        case 'Rework Requested (GH)':
-            return <div className={baseClasses}><Dot className="h-3 w-3 fill-pink-500 text-pink-500" /><span>Rework Requested (GH)</span></div>;
-        case 'In Review (CC)':
-             return <div className={baseClasses}><Dot className="h-3 w-3 fill-indigo-500 text-indigo-500" /><span>{displayStatus}</span></div>;
-        case 'CC Approved':
-            return <div className={baseClasses}><Dot className="h-3 w-3 fill-lime-500 text-lime-500" /><span>CC Approved</span></div>;
-        case 'Pending RR & PR (RA)':
-            return <div className={baseClasses}><Dot className="h-3 w-3 fill-blue-500 text-blue-500" /><span>Pending RR & PR</span></div>;
-        case 'In Final Review (GH)':
-             return <div className={baseClasses}><Dot className="h-3 w-3 fill-yellow-500 text-yellow-500" /><span>In Final Review</span></div>;
+        case 'Approved by QC':
+            return <div className={baseClasses}><Dot className="h-3 w-3 fill-teal-500 text-teal-500" /><span>Approved by QC</span></div>;
+        case 'PR Generation Pending':
+            return <div className={baseClasses}><Dot className="h-3 w-3 fill-blue-500 text-blue-500" /><span>PR Generation Pending</span></div>;
+        case 'PR Generated':
+             return <div className={baseClasses}><Dot className="h-3 w-3 fill-purple-500 text-purple-500" /><span>PR Generated</span></div>;
         default:
             return <span>{status}</span>;
     }
@@ -133,7 +126,7 @@ export default function DashboardClient() {
   const handleAction = (note: RatingNote) => {
     if (!user) return;
 
-    if (note.status === 'Pending RR & PR (RA)') {
+    if (note.status === 'PR Generation Pending') {
         router.push(`/rating-note/final-documents/${note.id}`);
         return;
     }
@@ -148,9 +141,6 @@ export default function DashboardClient() {
         case 'QC':
             router.push(`/qc-review/${note.id}`);
             break;
-        case 'RATING_COMMITTEE':
-            router.push(`/cc-review/${note.id}`);
-            break;
         default:
             // Default view action if any
             router.push(`/rating-note/${note.id}`);
@@ -160,20 +150,16 @@ export default function DashboardClient() {
 
   const getActionText = (role: Role | undefined, note: RatingNote): string => {
     if (!role) return 'View Note';
-    if (note.status === 'Pending RR & PR (RA)') {
-        return 'Generate RR & PR';
+    
+    if (note.status === 'PR Generation Pending' && role === 'RATING_ANALYST') {
+        return 'Generate PR';
     }
-    if (note.status === 'In Final Review (GH)') {
-        return 'Final Review';
-    }
+
     switch (role) {
       case 'RATING_ANALYST':
         return 'Edit Note';
       case 'GROUP_HEAD':
-        return 'Review Note';
       case 'QC':
-        return 'Review Note';
-      case 'RATING_COMMITTEE':
         return 'Review Note';
       default:
         return 'View Note';

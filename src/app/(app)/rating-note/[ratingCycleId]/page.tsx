@@ -10,15 +10,13 @@ import type { DocumentEditorContainer } from '@syncfusion/ej2-documenteditor';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { RatingNoteEditor } from '@/components/rating-note/rating-note-editor';
-import type { RatingNote, RatingNoteDataSchema, Role } from '@/lib/definitions';
+import type { RatingNote, RatingNoteDataSchema, Role, NoteStatus } from '@/lib/definitions';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/firebase';
 import { getBoundRatingNoteSfdt } from '@/lib/rating-note-service';
 
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
-
-type NoteStatus = 'Draft' | 'Rework Requested' | 'In Review (GH)' | 'In Review (QC)' | 'QC Approved' | 'In Review (CC)' | 'CC Approved' | 'Pending RR & PR (RA)' | 'In Final Review (GH)' | 'Completed';
 
 export default function RatingNotePage() {
     const params = useParams();
@@ -38,21 +36,26 @@ export default function RatingNotePage() {
 
     useEffect(() => {
         const loadContent = async () => {
-            if (note && note.ratingNoteData) {
-                setIsLoadingContent(true);
-                try {
-                    const boundSfdt = await getBoundRatingNoteSfdt(note.ratingNoteData);
-                    setDocumentContent(boundSfdt);
-                } catch (error) {
-                    console.error("Error binding SFDT:", error);
-                    toast({
-                        variant: 'destructive',
-                        title: 'Error Loading Document',
-                        description: 'Could not generate the document content from data.',
-                    });
-                } finally {
-                    setIsLoadingContent(false);
+            if (note) {
+                if (note.editorContent && note.editorContent.length > 50) {
+                     setDocumentContent(note.editorContent);
+                } else if (note.ratingNoteData) {
+                    setIsLoadingContent(true);
+                    try {
+                        const boundSfdt = await getBoundRatingNoteSfdt(note.ratingNoteData);
+                        setDocumentContent(boundSfdt);
+                    } catch (error) {
+                        console.error("Error binding SFDT:", error);
+                        toast({
+                            variant: 'destructive',
+                            title: 'Error Loading Document',
+                            description: 'Could not generate the document content from data.',
+                        });
+                    } finally {
+                        setIsLoadingContent(false);
+                    }
                 }
+                 setIsLoadingContent(false);
             }
         };
 
@@ -144,7 +147,7 @@ export default function RatingNotePage() {
 
     const canEdit = (userRole: Role | undefined, noteStatus: NoteStatus) => {
         if (!userRole) return false;
-        if (userRole === 'RATING_ANALYST' && (noteStatus === 'Draft' || noteStatus === 'Rework Requested')) {
+        if (userRole === 'RATING_ANALYST' && noteStatus === 'Draft') {
             return true;
         }
         return false;

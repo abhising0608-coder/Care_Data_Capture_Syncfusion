@@ -1,14 +1,4 @@
 
-
-
-
-
-
-
-
-
-
-
 import type { CKCRequest, AppUser, Role, RequestStatus, CompanyInfo, RatingNote, NoteStatus, RatingNoteDataSchema, DTFirm, DTContact, FeedbackStatus, QuestionnaireItem, IPAFirm, IPAContact, ThirdParty, AuditCommitteeMeeting, SiteVisit, AuditorFirm, AuditorContact, BankerFirm, BankerContact, RatingInstrument, RatingInstrumentCycle, LatestBankDetail, AnnexureVHistory, PressReleaseHistory, DMSDocumentHistory, BankerLenderDetail } from './definitions';
 
 
@@ -122,15 +112,14 @@ let ratingNotes: RatingNote[] = [
         initiatedBy: 'rating.analyst@careedge',
         ghId: 'group.head@careedge',
         qcId: 'qc@careedge.com',
-        ccId: 'cc@careedge.com',
         editorContent: '',
         statusHistory: [
             { status: 'Draft', timestamp: new Date().toISOString(), actorId: 'rating.analyst@careedge' },
             { status: 'In Review (GH)', timestamp: new Date().toISOString(), actorId: 'rating.analyst@careedge' },
             { status: 'In Review (QC)', timestamp: new Date().toISOString(), actorId: 'group.head@careedge' },
-            { status: 'QC Approved', timestamp: new Date().toISOString(), actorId: 'qc@careedge.com' },
-            { status: 'In Review (CC)', timestamp: new Date().toISOString(), actorId: 'group.head@careedge' },
-            { status: 'CC Approved', timestamp: new Date().toISOString(), actorId: 'cc@careedge.com' },
+            { status: 'Approved by QC', timestamp: new Date().toISOString(), actorId: 'qc@careedge.com' },
+            { status: 'PR Generation Pending', timestamp: new Date().toISOString(), actorId: 'group.head@careedge' },
+            { status: 'PR Generated', timestamp: new Date().toISOString(), actorId: 'rating.analyst@careedge' },
             { status: 'Completed', timestamp: new Date().toISOString(), actorId: 'group.head@careedge' },
         ],
         ratingNoteData: getMasterRatingNoteData('NOTE-001', 'Sun Pharmaceutical Industries Limited')
@@ -978,11 +967,10 @@ export const getNotesByRole = (role: Role, userId: string): RatingNote[] => {
     if (!userId) return [];
     switch(role) {
         case 'RATING_ANALYST':
-            // RA sees all notes they initiated, regardless of current actor
-            return ratingNotes.filter(note => note.initiatedBy === userId);
+            // RA sees all notes they initiated or that are pending PR generation by them
+            return ratingNotes.filter(note => note.initiatedBy === userId || (note.status === 'PR Generation Pending' && note.currentActor === 'RATING_ANALYST'));
         case 'GROUP_HEAD':
         case 'QC':
-        case 'RATING_COMMITTEE':
              // Other roles see notes only when they are the current actor
             return ratingNotes.filter(note => note.currentActor === role);
         default:
@@ -1089,52 +1077,40 @@ export const updateNote = (id: string, updates: Partial<RatingNote>): RatingNote
     return JSON.parse(JSON.stringify(updatedNote));
 }
 
-export const updateNoteStatus = (id: string, newStatus: NoteStatus, actorId: string, editorContent?: string) => {
+export const updateNoteStatus = (id: string, newStatus: NoteStatus, actorId: string, updates?: Partial<RatingNote>) => {
     const note = getNoteById(id);
     if (!note) return null;
     
-    let updates: Partial<RatingNote> = {
+    let combinedUpdates: Partial<RatingNote> = {
+        ...updates,
         status: newStatus,
         statusHistory: [...note.statusHistory, { status: newStatus, timestamp: new Date().toISOString(), actorId }],
     };
-
-    if (editorContent) {
-        updates.editorContent = editorContent;
-    }
     
     // Update currentActor based on the new status
     switch (newStatus) {
         case 'In Review (GH)':
-            updates.currentActor = 'GROUP_HEAD';
+            combinedUpdates.currentActor = 'GROUP_HEAD';
             break;
         case 'In Review (QC)':
-            updates.currentActor = 'QC';
+            combinedUpdates.currentActor = 'QC';
             break;
-        case 'In Review (CC)':
-            updates.currentActor = 'RATING_COMMITTEE';
-            break;
-        case 'Rework Requested': // GH sends back to RA
-             updates.currentActor = 'RATING_ANALYST';
+        case 'Rework Requested (GH)': // QC sends back to GH
+             combinedUpdates.currentActor = 'GROUP_HEAD';
              break;
-        case 'QC Approved':
-        case 'Rework Requested (GH)': // QC or CC sends back to GH
-            updates.currentActor = 'GROUP_HEAD';
+        case 'Approved by QC':
+            combinedUpdates.currentActor = 'GROUP_HEAD';
             break;
-        case 'Pending RR & PR (RA)':
-            updates.currentActor = 'RATING_ANALYST';
+        case 'PR Generation Pending':
+            combinedUpdates.currentActor = 'RATING_ANALYST';
             break;
-         case 'In Final Review (GH)':
-            updates.currentActor = 'GROUP_HEAD';
-            break;
-        case 'Draft':
-             updates.currentActor = 'RATING_ANALYST';
-             break;
+        case 'PR Generated':
         case 'Completed':
-            updates.currentActor = 'SYSTEM';
+            combinedUpdates.currentActor = 'SYSTEM'; // Or GH, depends on final hand-off
             break;
     }
     
-    return updateNote(id, updates);
+    return updateNote(id, combinedUpdates);
 };
 
 

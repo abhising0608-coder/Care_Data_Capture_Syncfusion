@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Suspense, useRef } from 'react';
@@ -29,7 +30,7 @@ export default function QualityControlReviewPage() {
       fetcher
     );
 
-    const handleAction = async (action: 'rework-gh' | 'approve-submit') => {
+    const handleAction = async (action: 'rework-gh' | 'approve-gh') => {
         if (!note || !user) return;
 
         try {
@@ -88,7 +89,7 @@ export default function QualityControlReviewPage() {
                     <Button variant="outline" onClick={() => handleAction('rework-gh')}>
                         <MessageSquareWarning className="mr-2 h-4 w-4" /> Send Back to Group Head
                     </Button>
-                     <Button onClick={() => handleAction('approve-submit')}>
+                     <Button onClick={() => handleAction('approve-gh')}>
                         <Send className="mr-2 h-4 w-4" /> Approve & Submit to Group Head
                     </Button>
                 </div>

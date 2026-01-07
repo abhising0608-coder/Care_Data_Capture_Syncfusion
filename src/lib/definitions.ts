@@ -9,6 +9,7 @@
 
 
 
+
 export type Role = 'CKC_ANALYST' | 'CKC_CHECKER' | 'CKC_ADMIN' | 'RATING_ANALYST' | 'GROUP_HEAD' | 'RATING_HEAD_SD' | 'SYSTEM' | 'QC' | 'RATING_COMMITTEE';
 export type RequestStatus = 'PENDING' | 'ACCEPTED' | 'IN_PROGRESS' | 'SUBMITTED_FOR_CHECK' | 'SENT_BACK' | 'APPROVED' | 'CLOSED';
 
@@ -16,14 +17,11 @@ export type RequestStatus = 'PENDING' | 'ACCEPTED' | 'IN_PROGRESS' | 'SUBMITTED_
 export type NoteStatus = 
   | 'Draft'
   | 'In Review (GH)'
-  | 'Rework Requested' // From GH to RA
+  | 'Rework Requested (GH)' // From QC to GH
   | 'In Review (QC)'
-  | 'Rework Requested (GH)' // From QC/CC to GH
-  | 'QC Approved'
-  | 'In Review (CC)'
-  | 'CC Approved'
-  | 'Pending RR & PR (RA)'
-  | 'In Final Review (GH)'
+  | 'Approved by QC'
+  | 'PR Generation Pending' // GH sends to RA for PR
+  | 'PR Generated' // RA completes PR
   | 'Completed';
 
 export type CompanyPriority = 'High' | 'Medium' | 'Low';
@@ -485,9 +483,7 @@ export interface RatingNote {
   initiatedBy: string; // RA's ID
   ghId?: string; // Group Head ID
   qcId?: string; // QC ID
-  ccId?: string; // Care Committee ID
   editorContent?: string; // The SFDT content of the Syncfusion editor
-  rrContent?: string; // Rating Rationale content
   prContent?: string; // Press Release content
   statusHistory: {
       status: NoteStatus;

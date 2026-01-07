@@ -30,7 +30,7 @@ export default function GroupHeadReviewPage() {
       fetcher
     );
 
-    const handleAction = async (action: 'rework' | 'submit-to-qc' | 'submit-to-cc' | 'send-to-ra-for-rr-pr' | 'final-approve') => {
+    const handleAction = async (action: 'rework' | 'submit-to-qc' | 'send-to-ra-for-pr') => {
         if (!editorRef.current || !note || !user) return;
 
         try {
@@ -91,23 +91,13 @@ export default function GroupHeadReviewPage() {
             isReadOnly: false,
         },
         'Rework Requested (GH)': {
-            title: `Group Head Review (Rework): ${note.companyName}`,
-            description: 'This note was sent back for rework. Please address the comments and resubmit.',
+            title: `Group Head Review (Rework from QC): ${note.companyName}`,
+            description: 'This note was sent back by QC. Please address the comments and resubmit.',
             isReadOnly: false,
         },
-        'QC Approved': {
-            title: `Submit to Care Committee: ${note.companyName}`,
-            description: 'This note has been approved by QC. Review and submit to the Care Committee.',
-            isReadOnly: true,
-        },
-        'CC Approved': {
-            title: `Final Handoff: ${note.companyName}`,
-            description: 'This note has been approved by the Care Committee. Send to the Rating Analyst for final document generation.',
-            isReadOnly: true,
-        },
-        'In Final Review (GH)': {
-            title: `Final Document Review: ${note.companyName}`,
-            description: 'Review the final Rating Note, RR, and PR. Approve to complete the workflow.',
+        'Approved by QC': {
+            title: `Final Action: ${note.companyName}`,
+            description: 'This note has been approved by QC. Send to the Rating Analyst for PR Generation.',
             isReadOnly: true,
         },
         default: {
@@ -119,10 +109,8 @@ export default function GroupHeadReviewPage() {
     
     const currentConfig = pageConfig[note.status as keyof typeof pageConfig] || pageConfig.default;
 
-    const showReworkAndSubmitToQC = note.status === 'In Review (GH)' || note.status === 'Rework Requested (GH)';
-    const showSubmitToCC = note.status === 'QC Approved';
-    const showSendToRA = note.status === 'CC Approved';
-    const showFinalApprove = note.status === 'In Final Review (GH)';
+    const showSubmitToQC = note.status === 'In Review (GH)' || note.status === 'Rework Requested (GH)';
+    const showSendToRA = note.status === 'Approved by QC';
 
 
     return (
@@ -137,9 +125,9 @@ export default function GroupHeadReviewPage() {
                     </p>
                 </div>
                 <div className="flex items-center gap-2">
-                    {showReworkAndSubmitToQC && (
+                    {showSubmitToQC && (
                         <>
-                            <Button variant="outline" onClick={() => handleAction('rework')}>
+                            <Button variant="outline" onClick={() => toast({title: "Placeholder", description:"Rework to RA is not part of this flow."})}>
                                 <MessageSquareWarning className="mr-2 h-4 w-4" /> Rework
                             </Button>
                             <Button onClick={() => handleAction('submit-to-qc')}>
@@ -147,19 +135,9 @@ export default function GroupHeadReviewPage() {
                             </Button>
                         </>
                     )}
-                    {showSubmitToCC && (
-                         <Button onClick={() => handleAction('submit-to-cc')}>
-                            <Send className="mr-2 h-4 w-4" /> Submit to Care Committee
-                        </Button>
-                    )}
                     {showSendToRA && (
-                        <Button onClick={() => handleAction('send-to-ra-for-rr-pr')}>
-                            <Send className="mr-2 h-4 w-4" /> Send to RA for RR & PR Generation
-                        </Button>
-                    )}
-                     {showFinalApprove && (
-                        <Button onClick={() => handleAction('final-approve')}>
-                            <Send className="mr-2 h-4 w-4" /> Final Approve
+                        <Button onClick={() => handleAction('send-to-ra-for-pr')}>
+                            <Send className="mr-2 h-4 w-4" /> Send to RA for PR Generation
                         </Button>
                     )}
                 </div>

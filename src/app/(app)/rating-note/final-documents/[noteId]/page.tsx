@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Suspense, useRef, useState } from 'react';
@@ -28,13 +29,9 @@ export default function FinalDocumentsPage() {
     const { user } = useAuth();
     
     const rnEditorRef = useRef<DocumentEditorContainer | null>(null);
-    const rrEditorRef = useRef<DocumentEditorContainer | null>(null);
     const prEditorRef = useRef<DocumentEditorContainer | null>(null);
 
-    const [activeTab, setActiveTab] = useState('rating-note');
-    const [rrContent, setRrContent] = useState<string | undefined>(undefined);
     const [prContent, setPrContent] = useState<string | undefined>(undefined);
-    const [rrGenerated, setRrGenerated] = useState(false);
     const [prGenerated, setPrGenerated] = useState(false);
 
     const { data: note, isLoading, mutate } = useSWR<RatingNote>(
@@ -42,10 +39,6 @@ export default function FinalDocumentsPage() {
       fetcher,
       {
           onSuccess: (data) => {
-              if (data.rrContent) {
-                  setRrContent(data.rrContent);
-                  setRrGenerated(true);
-              }
               if (data.prContent) {
                   setPrContent(data.prContent);
                   setPrGenerated(true);
@@ -54,59 +47,40 @@ export default function FinalDocumentsPage() {
       }
     );
     
-    const handleGenerate = (docType: 'rr' | 'pr') => {
-        if (docType === 'rr') {
-            setRrContent(note?.rrContent || newDocContent);
-            setRrGenerated(true);
-            setActiveTab('rating-rationale');
-            toast({ title: 'Success', description: 'Rating Rationale editor is now available.' });
-        } else if (docType === 'pr') {
-             if (!rrGenerated) {
-                toast({ variant: 'destructive', title: 'Error', description: 'Please generate the Rating Rationale before generating the Press Release.' });
-                return;
-            }
-            setPrContent(note?.prContent || newDocContent);
-            setPrGenerated(true);
-            setActiveTab('press-release');
-            toast({ title: 'Success', description: 'Press Release editor is now available.' });
-        }
+    const handleGenerate = () => {
+        setPrContent(note?.prContent || newDocContent);
+        setPrGenerated(true);
+        toast({ title: 'Success', description: 'Press Release editor is now available.' });
     };
     
     const handleFinalSubmit = async () => {
-        if (!rrEditorRef.current || !prEditorRef.current || !note || !user) {
+        if (!prEditorRef.current || !note || !user) {
             toast({ variant: 'destructive', title: 'Error', description: 'Ensure all documents are generated and ready.' });
             return;
         }
 
         try {
-            const rrContentBlob = await rrEditorRef.current.documentEditor.saveAsBlob('Sfdt');
             const prContentBlob = await prEditorRef.current.documentEditor.saveAsBlob('Sfdt');
             
-            const finalRrContent = await new Promise<string>(resolve => {
-                const reader = new FileReader();
-                reader.onloadend = () => resolve(reader.result as string);
-                reader.readAsText(rrContentBlob);
-            });
-
             const finalPrContent = await new Promise<string>(resolve => {
                 const reader = new FileReader();
                 reader.onloadend = () => resolve(reader.result as string);
                 reader.readAsText(prContentBlob);
             });
 
-            const res = await fetch(`/api/notes/${noteId}`, {
+            const res = await fetch(`/api/notes/${noteId}/review`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
-                    status: 'In Final Review (GH)',
-                    rrContent: finalRrContent,
+                    action: 'submit-pr',
+                    actorId: user.uid,
                     prContent: finalPrContent,
                  }),
             });
 
             if (!res.ok) throw new Error('Failed to submit final documents');
 
-            toast({ title: 'Success', description: 'All final documents have been submitted to the Group Head.' });
+            toast({ title: 'Success', description: 'Press Release has been generated and saved.' });
             mutate();
             router.push('/dashboard');
 
@@ -132,27 +106,29 @@ export default function FinalDocumentsPage() {
             <header className="flex h-auto items-center justify-between gap-4 flex-wrap">
                 <div className="flex-1">
                      <h1 className="text-2xl font-semibold text-foreground">
-                        Final Documents Generation: {note.companyName}
+                        Press Release Generation: {note.companyName}
                     </h1>
                     <p className="text-muted-foreground">
-                        Generate the Rating Rationale (RR) and Press Release (PR). The Rating Note is read-only.
+                        Generate the Press Release (PR). The Rating Note is read-only.
                     </p>
                 </div>
-                <div className="flex items-center gap-2">
-                    <Button 
-                        onClick={handleFinalSubmit}
-                        disabled={!rrGenerated || !prGenerated}
-                    >
-                        <Send className="mr-2 h-4 w-4" /> Submit All to Group Head
-                    </Button>
+                 <div className="flex items-center gap-2">
+                    {!prGenerated ? (
+                        <Button onClick={handleGenerate}>
+                            <Newspaper className="mr-2 h-4 w-4" /> Generate PR
+                        </Button>
+                    ) : (
+                        <Button onClick={handleFinalSubmit}>
+                            <Send className="mr-2 h-4 w-4" /> Submit PR
+                        </Button>
+                    )}
                 </div>
             </header>
 
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <Tabs defaultValue="rating-note" className="w-full">
                 <TabsList>
                     <TabsTrigger value="rating-note"><FileText className="mr-2 h-4 w-4" />Rating Note (Read-only)</TabsTrigger>
-                    <TabsTrigger value="rating-rationale" disabled={!rrGenerated}><FileText className="mr-2 h-4 w-4" />Rating Rationale</TabsTrigger>
-                    <TabsTrigger value="press-release" disabled={!prGenerated}><Newspaper className="mr-2 h-4 w-4" />Press Release</TabsTrigger>
+                    {prGenerated && <TabsTrigger value="press-release"><Newspaper className="mr-2 h-4 w-4" />Press Release</TabsTrigger>}
                 </TabsList>
                 
                 <TabsContent value="rating-note">
@@ -160,15 +136,6 @@ export default function FinalDocumentsPage() {
                         <CardHeader><CardTitle>Approved Rating Note</CardTitle></CardHeader>
                         <CardContent>
                              <RatingNoteEditor key="rn" ref={rnEditorRef} isReadOnly={true} content={note.editorContent} />
-                        </CardContent>
-                    </Card>
-                </TabsContent>
-
-                <TabsContent value="rating-rationale">
-                     <Card>
-                        <CardHeader><CardTitle>Rating Rationale (RR)</CardTitle></CardHeader>
-                        <CardContent>
-                            <RatingNoteEditor key="rr" ref={rrEditorRef} isReadOnly={false} content={rrContent} />
                         </CardContent>
                     </Card>
                 </TabsContent>
@@ -182,37 +149,6 @@ export default function FinalDocumentsPage() {
                     </Card>
                  </TabsContent>
             </Tabs>
-
-            <div className="grid md:grid-cols-2 gap-4 mt-4">
-                 <Card>
-                    <CardHeader>
-                        <CardTitle>Step 1: Generate Rating Rationale</CardTitle>
-                        <CardDescription>
-                            Auto-populate and edit the RR based on the approved Rating Note.
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                         <Button onClick={() => handleGenerate('rr')} disabled={rrGenerated}>
-                            <FileText className="mr-2 h-4 w-4" />
-                            {rrGenerated ? 'RR Generated' : 'Generate Rating Rationale'}
-                        </Button>
-                    </CardContent>
-                </Card>
-                 <Card>
-                    <CardHeader>
-                        <CardTitle>Step 2: Generate Press Release</CardTitle>
-                        <CardDescription>
-                            Auto-populate and edit the PR based on the RR and RN.
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                         <Button onClick={() => handleGenerate('pr')} disabled={!rrGenerated || prGenerated}>
-                             <Newspaper className="mr-2 h-4 w-4" />
-                            {prGenerated ? 'PR Generated' : 'Generate Press Release'}
-                        </Button>
-                    </CardContent>
-                </Card>
-            </div>
         </div>
     );
 }

@@ -1,3 +1,4 @@
+
 import { NextResponse } from 'next/server';
 import { updateNoteStatus } from '@/lib/mock-data';
 import type { NoteStatus } from '@/lib/definitions';
@@ -19,8 +20,8 @@ export async function POST(
     case 'rework-gh':
       newStatus = 'Rework Requested (GH)';
       break;
-    case 'approve-submit':
-      newStatus = 'QC Approved';
+    case 'approve-gh':
+      newStatus = 'Approved by QC';
       break;
     default:
       return NextResponse.json({ message: 'Invalid action' }, { status: 400 });
