@@ -19,16 +19,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog';
 import type { RatingNote, RatingInstrument } from '@/lib/definitions';
 import { Skeleton } from '../ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
@@ -70,7 +61,7 @@ export function PressReleasePublication({ note }: PressReleasePublicationProps) 
     );
     const { toast } = useToast();
     const router = useRouter();
-    const [isAlertOpen, setIsAlertOpen] = useState(false);
+    const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
 
     const form = useForm<PublicationFormValues>({
         resolver: zodResolver(publicationSchema),
@@ -108,7 +99,7 @@ export function PressReleasePublication({ note }: PressReleasePublicationProps) 
     const handleSave = () => {
          const status = form.getValues('clientConfirmationStatus');
          if (status === 'Representation') {
-             setIsAlertOpen(true);
+             setIsConfirmModalOpen(true);
          } else {
              toast({
                 title: 'Draft Saved',
@@ -118,12 +109,11 @@ export function PressReleasePublication({ note }: PressReleasePublicationProps) 
     };
     
     const handleConfirmRepresentation = () => {
-        setIsAlertOpen(false);
+        setIsConfirmModalOpen(false);
         toast({
             title: 'Case Moved to Representation',
             description: 'A new representation cycle has been initiated in Pre-committee.',
         });
-        // Here you would navigate or update the state as needed
         router.push('/dashboard');
     }
 
@@ -133,7 +123,7 @@ export function PressReleasePublication({ note }: PressReleasePublicationProps) 
         <form onSubmit={handleSubmit(onPublicationSubmit)}>
             <Card className="mt-4">
                 <CardHeader>
-                    <CardTitle>Shriram Transport Finance Company Ltd (STFCL)</CardTitle>
+                    <CardTitle>{note.companyName}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 border rounded-lg">
@@ -253,20 +243,22 @@ export function PressReleasePublication({ note }: PressReleasePublicationProps) 
         </form>
         </FormProvider>
 
-        <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
-            <AlertDialogContent>
-                <AlertDialogHeader>
-                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                        This will move the case to Pre-committee as a new representation cycle. Are you sure you want to proceed?
-                    </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                    <AlertDialogCancel>No</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleConfirmRepresentation}>Yes</AlertDialogAction>
-                </AlertDialogFooter>
-            </AlertDialogContent>
-        </AlertDialog>
+        <Dialog open={isConfirmModalOpen} onOpenChange={setIsConfirmModalOpen}>
+            <DialogContent className="sm:max-w-md">
+                 <DialogHeader>
+                    <DialogTitle>Confirmation</DialogTitle>
+                </DialogHeader>
+                <div className="py-4">
+                    <p>Are you sure you want to move back this case to pre committee level as you have selected client confirmation status as "Representation"?</p>
+                </div>
+                <DialogFooter>
+                    <DialogClose asChild>
+                        <Button variant="outline">No</Button>
+                    </DialogClose>
+                    <Button onClick={handleConfirmRepresentation}>Yes</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
     </>
   );
 }
