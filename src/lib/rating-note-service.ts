@@ -1,6 +1,6 @@
 
 import type { RatingNoteDataSchema, TableDefinition } from './definitions';
-import * as template from './rating-note-template.json';
+import template from './rating-note-template.json';
 import pako from 'pako';
 
 /**
@@ -116,4 +116,3 @@ export async function getBoundRatingNoteSfdt(ratingNoteData: RatingNoteDataSchem
 
     return JSON.stringify(sfdtObject);
 }
-
