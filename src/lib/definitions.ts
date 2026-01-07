@@ -314,6 +314,36 @@ export interface ThirdPartyCheck {
     status: DiscussionStatus;
 }
 
+export interface SiteVisitPersonnel {
+  id: string;
+  name: string;
+  designation: string;
+}
+
+export interface SiteVisitWaiver {
+    requestedBy: string;
+    requestedAt: string;
+    reason: string;
+    status: 'Pending' | 'Approved' | 'Rejected';
+    approvedBy?: string;
+    approvedAt?: string;
+}
+
+export interface SiteVisit {
+    companyId: string;
+    visitDate?: Date | null;
+    careTeam: string[];
+    plantVisited?: string;
+    location?: string;
+    clientPersonnel: SiteVisitPersonnel[];
+    productManufactured?: string;
+    installedCapacity?: string;
+    otherInfo?: string;
+    isMandatory?: boolean;
+    status: 'Pending' | 'Completed' | 'Waived';
+    waiver?: SiteVisitWaiver;
+}
+
 
 export interface RatingNote {
   id: string;

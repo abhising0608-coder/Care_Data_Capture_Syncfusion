@@ -23,6 +23,7 @@ import {
   Landmark,
   ShieldCheck,
   UserCheck,
+  Plane,
 } from 'lucide-react';
 import { useAuth } from '@/firebase';
 
@@ -49,6 +50,7 @@ const menuItems = [
         { href: '/due-diligence/management-discussion', label: 'Management Discussion', icon: Users },
         { href: '/due-diligence/third-party-check', label: 'Third Party Check', icon: UserCheck },
         { href: '/due-diligence/audit-committee-meeting', label: 'Audit Committee Meeting', icon: Building },
+        { href: '/due-diligence/site-visit', label: 'Site / Plant Visit', icon: Plane },
     ]
   },
    {
