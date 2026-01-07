@@ -40,8 +40,12 @@ const formSchema = z.object({
     otherInfo: z.string().optional(),
 });
 
+interface SiteVisitPageProps {
+  isEmbedded?: boolean;
+}
 
-export default function SiteVisitPage() {
+
+export default function SiteVisitPage({ isEmbedded = false }: SiteVisitPageProps) {
     const { user, isLoading: isAuthLoading } = useAuth();
     const router = useRouter();
     const { toast } = useToast();
@@ -100,10 +104,12 @@ export default function SiteVisitPage() {
     return (
         <FormProvider {...form}>
             <div className="space-y-6">
-                <header>
-                    <h1 className="text-3xl font-bold tracking-tight text-foreground">Site / Plant Visit</h1>
-                    <p className="text-muted-foreground">Capture details of plant visits and manage waivers.</p>
-                </header>
+                {!isEmbedded && (
+                    <header>
+                        <h1 className="text-3xl font-bold tracking-tight text-foreground">Site / Plant Visit</h1>
+                        <p className="text-muted-foreground">Capture details of plant visits and manage waivers.</p>
+                    </header>
+                )}
 
                  <Card>
                     <CardHeader>

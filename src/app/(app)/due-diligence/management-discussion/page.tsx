@@ -45,7 +45,12 @@ const formSchema = z.object({
 
 type ManagementDiscussionFormValues = z.infer<typeof formSchema>;
 
-export default function ManagementDiscussionPage() {
+interface ManagementDiscussionPageProps {
+  isEmbedded?: boolean;
+}
+
+
+export default function ManagementDiscussionPage({ isEmbedded = false }: ManagementDiscussionPageProps) {
     const { user } = useAuth();
     const router = useRouter();
     const { toast } = useToast();
@@ -166,10 +171,12 @@ export default function ManagementDiscussionPage() {
 
     return (
         <div className="space-y-6">
-            <header>
-                <h1 className="text-3xl font-bold tracking-tight text-foreground">Management Discussion</h1>
-                <p className="text-muted-foreground">Capture minutes of discussion with company management.</p>
-            </header>
+            {!isEmbedded && (
+                <header>
+                    <h1 className="text-3xl font-bold tracking-tight text-foreground">Management Discussion</h1>
+                    <p className="text-muted-foreground">Capture minutes of discussion with company management.</p>
+                </header>
+            )}
 
             <FormProvider {...form}>
                 <form>

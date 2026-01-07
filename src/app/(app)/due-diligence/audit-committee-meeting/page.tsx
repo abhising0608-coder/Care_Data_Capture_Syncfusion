@@ -44,7 +44,11 @@ const formSchema = z.object({
 
 type AuditCommitteeFormValues = z.infer<typeof formSchema>;
 
-export default function AuditCommitteeMeetingPage() {
+interface AuditCommitteeMeetingPageProps {
+  isEmbedded?: boolean;
+}
+
+export default function AuditCommitteeMeetingPage({ isEmbedded = false }: AuditCommitteeMeetingPageProps) {
     const { user } = useAuth();
     const router = useRouter();
     const { toast } = useToast();
@@ -195,10 +199,12 @@ export default function AuditCommitteeMeetingPage() {
 
     return (
         <div className="space-y-6">
-            <header>
-                <h1 className="text-3xl font-bold tracking-tight text-foreground">Audit Committee Meeting</h1>
-                <p className="text-muted-foreground">Capture minutes of discussion with the Audit Committee.</p>
-            </header>
+            {!isEmbedded && (
+                <header>
+                    <h1 className="text-3xl font-bold tracking-tight text-foreground">Audit Committee Meeting</h1>
+                    <p className="text-muted-foreground">Capture minutes of discussion with the Audit Committee.</p>
+                </header>
+            )}
 
             <FormProvider {...form}>
                 <form>

@@ -46,7 +46,11 @@ const formSchema = z.object({
 
 type ThirdPartyCheckFormValues = z.infer<typeof formSchema>;
 
-export default function ThirdPartyCheckPage() {
+interface ThirdPartyCheckPageProps {
+  isEmbedded?: boolean;
+}
+
+export default function ThirdPartyCheckPage({ isEmbedded = false }: ThirdPartyCheckPageProps) {
     const { user } = useAuth();
     const router = useRouter();
     const { toast } = useToast();
@@ -211,10 +215,12 @@ export default function ThirdPartyCheckPage() {
 
     return (
         <div className="space-y-6">
-            <header>
-                <h1 className="text-3xl font-bold tracking-tight text-foreground">Third Party Check</h1>
-                <p className="text-muted-foreground">Capture minutes of discussion with third parties.</p>
-            </header>
+            {!isEmbedded && (
+                <header>
+                    <h1 className="text-3xl font-bold tracking-tight text-foreground">Third Party Check</h1>
+                    <p className="text-muted-foreground">Capture minutes of discussion with third parties.</p>
+                </header>
+            )}
 
             <FormProvider {...form}>
                 <form>
