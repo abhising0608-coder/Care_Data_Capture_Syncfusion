@@ -15,6 +15,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/firebase';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PressReleaseInitiation } from '@/components/rating-note/press-release-initiation';
+import { PressReleasePreparation } from '@/components/rating-note/press-release-preparation';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
@@ -31,7 +32,7 @@ export default function FinalDocumentsPage() {
     
     const prEditorRef = useRef<DocumentEditorContainer | null>(null);
 
-    const [view, setView] = useState<'initiation' | 'editor'>('initiation');
+    const [view, setView] = useState<'initiation' | 'preparation' | 'editor'>('initiation');
     const [prContent, setPrContent] = useState<string | undefined>(undefined);
 
     const { data: note, isLoading, mutate } = useSWR<RatingNote>(
@@ -47,6 +48,12 @@ export default function FinalDocumentsPage() {
     );
     
     const handlePrepare = () => {
+        setView('preparation');
+        toast({ title: 'Configure Press Release', description: 'Please select the appropriate options to continue.' });
+    };
+
+    const handlePreparationSubmit = (preparationData: any) => {
+        console.log("PR Preparation Data:", preparationData); // Log the data for now
         setPrContent(note?.prContent || newDocContent);
         setView('editor');
         toast({ title: 'Success', description: 'Press Release editor is now ready.' });
@@ -99,24 +106,14 @@ export default function FinalDocumentsPage() {
         )
     }
     
-    return (
-        <div className="space-y-6">
-             <header>
-                 <h1 className="text-2xl font-semibold text-foreground">
-                    {note.companyName}
-                </h1>
-            </header>
-
-            <Tabs defaultValue="preparation">
-                <TabsList>
-                    <TabsTrigger value="preparation">Preparation of Press Release</TabsTrigger>
-                    <TabsTrigger value="publication">Press Release Publication</TabsTrigger>
-                    <TabsTrigger value="history">PR History</TabsTrigger>
-                </TabsList>
-                <TabsContent value="preparation">
-                    {view === 'initiation' ? (
-                        <PressReleaseInitiation note={note} onPrepare={handlePrepare} />
-                    ) : (
+    const renderContent = () => {
+        switch (view) {
+            case 'initiation':
+                return <PressReleaseInitiation note={note} onPrepare={handlePrepare} />;
+            case 'preparation':
+                return <PressReleasePreparation note={note} onSubmit={handlePreparationSubmit} onCancel={() => setView('initiation')} />;
+            case 'editor':
+                 return (
                         <div className="space-y-6 mt-4">
                             <div className="flex justify-end">
                                 <Button onClick={handleFinalSubmit}>
@@ -132,7 +129,28 @@ export default function FinalDocumentsPage() {
                                 </CardContent>
                             </Card>
                         </div>
-                    )}
+                    );
+            default:
+                 return <PressReleaseInitiation note={note} onPrepare={handlePrepare} />;
+        }
+    };
+
+    return (
+        <div className="space-y-6">
+             <header>
+                 <h1 className="text-2xl font-semibold text-foreground">
+                    {note.companyName}
+                </h1>
+            </header>
+
+            <Tabs defaultValue="preparation">
+                <TabsList>
+                    <TabsTrigger value="preparation">Preparation of Press Release</TabsTrigger>
+                    <TabsTrigger value="publication">Press Release Publication</TabsTrigger>
+                    <TabsTrigger value="history">PR History</TabsTrigger>
+                </TabsList>
+                <TabsContent value="preparation">
+                    {renderContent()}
                 </TabsContent>
                  <TabsContent value="publication">
                     <Card className="mt-4">
