@@ -4,7 +4,7 @@ import { useForm, FormProvider, useFormContext } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useState } from 'react';
-import { Info } from 'lucide-react';
+import { Info, Save } from 'lucide-react';
 import useSWR from 'swr';
 import { format } from 'date-fns';
 
@@ -106,7 +106,6 @@ export function PressReleaseFinalForm({ note, onSubmit, onCancel }: PressRelease
           <div className="flex justify-between items-center">
             <CardTitle>Prepare Press Release</CardTitle>
             <div className="flex gap-2">
-                <Button type="button" onClick={form.handleSubmit(onSubmit)}>Save & Preview</Button>
                 <Button type="button" variant="outline" onClick={() => alert('Placeholder for Upload E-Sign')}>Upload E-sign</Button>
                 <Button type="button" variant="outline" onClick={handleCancelClick}>Cancel</Button>
             </div>
@@ -135,7 +134,7 @@ export function PressReleaseFinalForm({ note, onSubmit, onCancel }: PressRelease
            </div>
 
             <FormProvider {...form}>
-                <form className="space-y-6">
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                     <FormField
                         control={form.control}
                         name="annexureNote"
@@ -194,6 +193,12 @@ export function PressReleaseFinalForm({ note, onSubmit, onCancel }: PressRelease
                             )}
                         />
                     </div>
+                     <div className="flex justify-end">
+                        <Button type="submit">
+                            <Save className="mr-2 h-4 w-4" />
+                            Save & Preview
+                        </Button>
+                    </div>
                 </form>
             </FormProvider>
 
@@ -205,7 +210,7 @@ export function PressReleaseFinalForm({ note, onSubmit, onCancel }: PressRelease
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure you want to cancel?</AlertDialogTitle>
             <AlertDialogDescription>
-              Any unsaved changes will be lost. You will be returned to the PR initiation page.
+              Any unsaved changes will be lost. You will be returned to the PR preparation page.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

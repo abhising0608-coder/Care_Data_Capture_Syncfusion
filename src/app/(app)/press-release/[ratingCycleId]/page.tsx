@@ -18,6 +18,7 @@ import { PressReleaseInitiation } from '@/components/rating-note/press-release-i
 import { PressReleasePreparation } from '@/components/rating-note/press-release-preparation';
 import { PressReleaseFinalForm } from '@/components/rating-note/press-release-final-form';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { PressReleasePreview } from '@/components/rating-note/press-release-preview';
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
 
@@ -28,9 +29,9 @@ export default function PressReleasePage() {
     const { toast } = useToast();
     const { user } = useAuth();
     
-    const [view, setView] = useState<'initiation' | 'preparation' | 'editor'>('initiation');
-    const [prContent, setPrContent] = useState<any>(null);
+    const [view, setView] = useState<'initiation' | 'preparation' | 'editor' | 'preview'>('initiation');
     const [preparationData, setPreparationData] = useState<any>(null);
+    const [finalFormData, setFinalFormData] = useState<any>(null);
 
     const { data: note, isLoading, mutate } = useSWR<RatingNote>(
       ratingCycleId ? `/api/notes/${ratingCycleId}` : null,
@@ -43,14 +44,19 @@ export default function PressReleasePage() {
     };
 
     const handlePreparationSubmit = (prepData: any) => {
-        console.log("PR Preparation Data:", prepData); 
         setPreparationData(prepData);
         setView('editor');
         toast({ title: 'Success', description: 'Press Release editor is now ready.' });
     };
+
+    const handleEditorSubmit = (formData: any) => {
+        setFinalFormData(formData);
+        setView('preview');
+        toast({ title: 'Preview Ready', description: 'The Press Release preview has been generated.' });
+    };
     
-    const handleFinalSubmit = async (formData: any) => {
-        if (!note || !user) {
+    const handleFinalSubmit = async () => {
+        if (!note || !user || !finalFormData) {
             toast({ variant: 'destructive', title: 'Error', description: 'Ensure all documents are generated and ready.' });
             return;
         }
@@ -62,7 +68,7 @@ export default function PressReleasePage() {
                 body: JSON.stringify({ 
                     action: 'submit-pr',
                     actorId: user.uid,
-                    prContent: JSON.stringify(formData), // Save form data as JSON string
+                    prContent: JSON.stringify(finalFormData),
                  }),
             });
 
@@ -77,6 +83,7 @@ export default function PressReleasePage() {
             toast({ variant: 'destructive', title: 'Error', description: 'Failed to submit final documents.' });
         }
     };
+
 
     if (isLoading || !note) {
         return (
@@ -95,7 +102,9 @@ export default function PressReleasePage() {
             case 'preparation':
                 return <PressReleasePreparation note={note} onSubmit={handlePreparationSubmit} onCancel={() => setView('initiation')} />;
             case 'editor':
-                 return <PressReleaseFinalForm note={note} onSubmit={handleFinalSubmit} onCancel={() => setView('preparation')} />;
+                 return <PressReleaseFinalForm note={note} onSubmit={handleEditorSubmit} onCancel={() => setView('preparation')} />;
+            case 'preview':
+                return <PressReleasePreview note={note} onEdit={() => setView('editor')} onClose={() => setView('initiation')} onSubmit={handleFinalSubmit} />;
             default:
                  return <PressReleaseInitiation note={note} onPrepare={handlePrepare} />;
         }
