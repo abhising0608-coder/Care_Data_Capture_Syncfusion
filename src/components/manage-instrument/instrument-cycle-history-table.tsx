@@ -50,8 +50,8 @@ export function InstrumentCycleHistoryTable({ cycleHistory }: InstrumentCycleHis
         router.push(`/manage-instrument/isin-update/${companyId}/${instrumentId}/${rcmId}`);
     };
 
-    const handleAddBanker = (rcmId: string) => {
-         toast({ title: 'Placeholder', description: `Add Banker/Lender action for RCM ID: ${rcmId}` });
+    const handleAddBanker = (instrumentId: string, rcmId: string) => {
+         router.push(`/manage-instrument/banker-lender/${companyId}/${instrumentId}/${rcmId}`);
     };
 
     const columns: ColumnDef<RatingInstrumentCycle>[] = [
@@ -103,7 +103,7 @@ export function InstrumentCycleHistoryTable({ cycleHistory }: InstrumentCycleHis
                             <DropdownMenuItem onClick={() => handleEditIsin(cycle.instrumentId, cycle.rcmId)}>
                                 <Pencil className="mr-2 h-4 w-4" />Edit ISIN
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleAddBanker(cycle.rcmId)}>
+                            <DropdownMenuItem onClick={() => handleAddBanker(cycle.instrumentId, cycle.rcmId)}>
                                 Add Banker/Lender
                             </DropdownMenuItem>
                         </DropdownMenuContent>

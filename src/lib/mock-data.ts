@@ -7,7 +7,9 @@
 
 
 
-import type { CKCRequest, AppUser, Role, RequestStatus, CompanyInfo, RatingNote, NoteStatus, RatingNoteDataSchema, DTFirm, DTContact, FeedbackStatus, QuestionnaireItem, IPAFirm, IPAContact, ThirdParty, AuditCommitteeMeeting, SiteVisit, AuditorFirm, AuditorContact, BankerFirm, BankerContact, RatingInstrument, RatingInstrumentCycle, LatestBankDetail, AnnexureVHistory, PressReleaseHistory, DMSDocumentHistory } from './definitions';
+
+
+import type { CKCRequest, AppUser, Role, RequestStatus, CompanyInfo, RatingNote, NoteStatus, RatingNoteDataSchema, DTFirm, DTContact, FeedbackStatus, QuestionnaireItem, IPAFirm, IPAContact, ThirdParty, AuditCommitteeMeeting, SiteVisit, AuditorFirm, AuditorContact, BankerFirm, BankerContact, RatingInstrument, RatingInstrumentCycle, LatestBankDetail, AnnexureVHistory, PressReleaseHistory, DMSDocumentHistory, BankerLenderDetail } from './definitions';
 
 
 // --- FSD-based Master JSON Data Structure ---
@@ -191,6 +193,7 @@ let ratingInstruments: Record<string, RatingInstrument[]> = {
       cycleHistory: [
         {
           rcmId: '109630',
+          instrumentId: '109630',
           instrumentDetailId: '604326',
           cycleStatus: 'C',
           cycleStartDate: '2023-08-16',
@@ -202,8 +205,9 @@ let ratingInstruments: Record<string, RatingInstrument[]> = {
           outstandingAmount: 30000.00,
         },
         {
-          rcmId: '109630',
-          instrumentDetailId: '604326',
+          rcmId: '109631',
+          instrumentId: '109630',
+          instrumentDetailId: '604327',
           cycleStatus: 'C',
           cycleStartDate: '2022-08-16',
           meetingType: 'Internal',
@@ -235,6 +239,7 @@ let ratingInstruments: Record<string, RatingInstrument[]> = {
       cycleHistory: [
          {
           rcmId: `12363${i}`,
+          instrumentId: `12363${i}`,
           instrumentDetailId: `501${i}`,
           cycleStatus: 'A' as 'C' | 'A',
           cycleStartDate: '2023-09-01',
@@ -1001,6 +1006,37 @@ export const getInstrumentsByCompanyId = (companyId: string): RatingInstrument[]
   return ratingInstruments[companyId] || [];
 }
 
+export const getInstrumentById = (instrumentId: string): RatingInstrument | undefined => {
+  for (const companyId in ratingInstruments) {
+    const instrument = ratingInstruments[companyId].find(inst => inst.id === instrumentId);
+    if (instrument) return JSON.parse(JSON.stringify(instrument));
+  }
+  return undefined;
+};
+
+export const getBankerLenderDetails = (instrumentId: string, rcmId: string): BankerLenderDetail[] => {
+    const instrument = getInstrumentById(instrumentId);
+    if (instrument && instrument.bankerLenderDetails) {
+        return instrument.bankerLenderDetails[rcmId] || [];
+    }
+    return [];
+};
+
+export const updateBankerLenderDetails = (instrumentId: string, rcmId: string, details: BankerLenderDetail[]): RatingInstrument | null => {
+    for (const companyId in ratingInstruments) {
+        const instIndex = ratingInstruments[companyId].findIndex(inst => inst.id === instrumentId);
+        if (instIndex !== -1) {
+            const instrument = ratingInstruments[companyId][instIndex];
+            if (!instrument.bankerLenderDetails) {
+                instrument.bankerLenderDetails = {};
+            }
+            instrument.bankerLenderDetails[rcmId] = details;
+            return instrument;
+        }
+    }
+    return null;
+}
+
 export const getLatestBankDetailsByCompanyId = (companyId: string): LatestBankDetail[] => {
   return mockLatestBankDetails || [];
 };
@@ -1292,4 +1328,21 @@ export const saveCompanyInfo = (ratingCycleId: string, data: CompanyInfo): Compa
 
 export const getDMSDocumentHistory = (companyId: string): DMSDocumentHistory[] => {
   return mockDMSDocumentHistoryData;
+}
+
+// --- ISIN Records Functions ---
+export function getIsinRecords(instrumentId: string, rcmId: string): ISINRecord[] {
+    const instrument = getInstrumentById(instrumentId);
+    return instrument?.isinRecords || [];
+}
+
+export function updateIsinRecord(instrumentId: string, rcmId: string, records: ISINRecord[]): ISINRecord[] {
+    for (const companyId in ratingInstruments) {
+        const instIndex = ratingInstruments[companyId].findIndex(inst => inst.id === instrumentId);
+        if (instIndex !== -1) {
+            ratingInstruments[companyId][instIndex].isinRecords = records;
+            return records;
+        }
+    }
+    return [];
 }

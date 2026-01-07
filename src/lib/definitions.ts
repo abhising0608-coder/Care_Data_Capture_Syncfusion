@@ -8,6 +8,7 @@
 
 
 
+
 export type Role = 'CKC_ANALYST' | 'CKC_CHECKER' | 'CKC_ADMIN' | 'RATING_ANALYST' | 'GROUP_HEAD' | 'RATING_HEAD_SD' | 'SYSTEM' | 'QC' | 'RATING_COMMITTEE';
 export type RequestStatus = 'PENDING' | 'ACCEPTED' | 'IN_PROGRESS' | 'SUBMITTED_FOR_CHECK' | 'SENT_BACK' | 'APPROVED' | 'CLOSED';
 
@@ -108,6 +109,17 @@ export type LatestBankDetail = {
   remark: string;
 };
 
+export type BankerLenderDetail = {
+  id: string;
+  bankName: string;
+  ratedAmount: number;
+  currencyType: string;
+  ratedAmountForeign?: number;
+  repaymentTerms: string;
+  remarks: string;
+  status: 'Pending' | 'Verified by GH';
+};
+
 export type ISINRecord = {
   id: string;
   isin: string;
@@ -163,6 +175,7 @@ export type RatingInstrument = {
   accountManager?: string;
   cycleHistory: RatingInstrumentCycle[];
   isinRecords?: ISINRecord[];
+  bankerLenderDetails?: Record<string, BankerLenderDetail[]>;
 };
 
 export type CKCRequest = {
