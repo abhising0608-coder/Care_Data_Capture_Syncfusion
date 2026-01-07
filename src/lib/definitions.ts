@@ -1,6 +1,7 @@
 
 
 
+
 export type Role = 'CKC_ANALYST' | 'CKC_CHECKER' | 'CKC_ADMIN' | 'RATING_ANALYST' | 'GROUP_HEAD' | 'RATING_HEAD_SD' | 'SYSTEM' | 'QC' | 'RATING_COMMITTEE';
 export type RequestStatus = 'PENDING' | 'ACCEPTED' | 'IN_PROGRESS' | 'SUBMITTED_FOR_CHECK' | 'SENT_BACK' | 'APPROVED' | 'CLOSED';
 
@@ -49,6 +50,25 @@ export interface CompanyDashboard {
     status: NoteStatus;
     raId: string;
     ghId?: string;
+}
+
+export type RatingInstrument = {
+  id: string; // Running Ins. ID
+  instrumentStatus: 'Active' | 'Withdrawn';
+  groupHead: string;
+  ratingAnalyst: string;
+  client: string;
+  mandateId: string;
+  mandateDate: string;
+  mandateStatus: string;
+  instrumentId: number;
+  category: string;
+  subCategory: string;
+  instrument: string;
+  complexityLevel: 'Simple' | 'Complex' | 'Highly Complex';
+  instrumentSize: number; // in Lacs
+  initialRatingDate?: string;
+  accountManager?: string;
 }
 
 export type CKCRequest = {

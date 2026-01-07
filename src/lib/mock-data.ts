@@ -4,7 +4,8 @@
 
 
 
-import type { CKCRequest, AppUser, Role, RequestStatus, CompanyInfo, RatingNote, NoteStatus, RatingNoteDataSchema, DTFirm, DTContact, FeedbackStatus, QuestionnaireItem, IPAFirm, IPAContact, ThirdParty, AuditCommitteeMeeting, SiteVisit, AuditorFirm, AuditorContact, BankerFirm, BankerContact } from './definitions';
+
+import type { CKCRequest, AppUser, Role, RequestStatus, CompanyInfo, RatingNote, NoteStatus, RatingNoteDataSchema, DTFirm, DTContact, FeedbackStatus, QuestionnaireItem, IPAFirm, IPAContact, ThirdParty, AuditCommitteeMeeting, SiteVisit, AuditorFirm, AuditorContact, BankerFirm, BankerContact, RatingInstrument } from './definitions';
 
 
 // --- FSD-based Master JSON Data Structure ---
@@ -165,6 +166,47 @@ let ratingNotes: RatingNote[] = [
         ratingNoteData: getMasterRatingNoteData('NOTE-003', 'Cipla Limited')
     },
 ];
+
+let ratingInstruments: Record<string, RatingInstrument[]> = {
+  'COMP-101': [
+    {
+      id: '109630',
+      instrumentStatus: 'Active',
+      groupHead: 'Akshay Dilip',
+      ratingAnalyst: 'Naman Doshi',
+      client: 'Shriram Transport Finance Ltd',
+      mandateId: '2023-2024/20/64858',
+      mandateDate: '2023-07-18',
+      mandateStatus: '5901',
+      instrumentId: 109630,
+      category: 'Long Term',
+      subCategory: 'Bank Facilities',
+      instrument: 'Term Loan',
+      complexityLevel: 'Simple',
+      instrumentSize: 50000,
+      initialRatingDate: '2021-01-15',
+      accountManager: 'Priya Singh'
+    },
+    ...Array.from({ length: 7 }, (_, i) => ({
+      id: `12363${i}`,
+      instrumentStatus: 'Active' as 'Active' | 'Withdrawn',
+      groupHead: 'Kiran Kumar',
+      ratingAnalyst: 'Naman Doshi',
+      client: 'Shriram Transport Finance Ltd',
+      mandateId: '3996',
+      mandateDate: '2009-08-03',
+      mandateStatus: '5901',
+      instrumentId: 12363,
+      category: 'Short Term',
+      subCategory: 'Commercial Paper',
+      instrument: 'Commercial Paper',
+      complexityLevel: 'Simple' as 'Simple' | 'Complex' | 'Highly Complex',
+      instrumentSize: 20000,
+      initialRatingDate: '2008-05-20',
+      accountManager: 'Priya Singh'
+    }))
+  ]
+};
 
 let requests: CKCRequest[] = [
   {
@@ -855,6 +897,10 @@ export const getNoteById = (id: string): RatingNote | undefined => {
   }
   return note ? JSON.parse(JSON.stringify(note)) : undefined;
 };
+
+export const getInstrumentsByCompanyId = (companyId: string): RatingInstrument[] => {
+  return ratingInstruments[companyId] || [];
+}
 
 export const createNote = (body: Partial<RatingNote>): RatingNote => {
     const company = mockCompanies.find(c => c.id === body.companyId);
