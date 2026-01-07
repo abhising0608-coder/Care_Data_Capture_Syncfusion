@@ -7,7 +7,8 @@
 
 
 
-import type { CKCRequest, AppUser, Role, RequestStatus, CompanyInfo, RatingNote, NoteStatus, RatingNoteDataSchema, DTFirm, DTContact, FeedbackStatus, QuestionnaireItem, IPAFirm, IPAContact, ThirdParty, AuditCommitteeMeeting, SiteVisit, AuditorFirm, AuditorContact, BankerFirm, BankerContact, RatingInstrument, RatingInstrumentCycle, LatestBankDetail } from './definitions';
+
+import type { CKCRequest, AppUser, Role, RequestStatus, CompanyInfo, RatingNote, NoteStatus, RatingNoteDataSchema, DTFirm, DTContact, FeedbackStatus, QuestionnaireItem, IPAFirm, IPAContact, ThirdParty, AuditCommitteeMeeting, SiteVisit, AuditorFirm, AuditorContact, BankerFirm, BankerContact, RatingInstrument, RatingInstrumentCycle, LatestBankDetail, AnnexureVHistory } from './definitions';
 
 
 // --- FSD-based Master JSON Data Structure ---
@@ -259,6 +260,17 @@ export const mockLatestBankDetails: LatestBankDetail[] = [
   { id: '12363', bankLender: 'HDFC Bank Ltd', instrument: 'Non Fund Based Limits', ratedAmount: 150, foreignCurrAmount: 0, currency: 'INR', debtRepaymentTerms: 'Repayable in 8 unequal...', remark: '-' },
   { id: '12363', bankLender: 'HDFC Bank Ltd', instrument: 'Term Loan', ratedAmount: 150, foreignCurrAmount: 0, currency: 'INR', debtRepaymentTerms: 'Repayable in 8 unequal...', remark: '-' },
   { id: '12363', bankLender: 'HDFC Bank Ltd', instrument: 'Term Loan', ratedAmount: 150, foreignCurrAmount: 0, currency: 'INR', debtRepaymentTerms: 'Repayable in 8 unequal...', remark: '-' },
+];
+
+export const mockAnnexureVHistoryData: AnnexureVHistory[] = [
+    { id: '109630', instrument: 'Bank Facilities-Term Loan-Long Term', status: 'Active', amount: 464.90, count: 3, initialRatingDate: '2010-09-24', initialRating: 'CARE BB+', ratingActions: [{ date: '2010-09-24', rating: 'CARE BB+' }] },
+    { id: '12363', instrument: 'Bank Facilities-Non-fund-based - ST-BG/LC', status: 'Closed', amount: 166.66, count: 0, initialRatingDate: '2011-05-09', initialRating: 'CARE A3', ratingActions: [{ date: '2011-05-09', rating: 'CARE A3' }] },
+    { id: '12363', instrument: 'Bank Facilities-Fund-based - LT/ ST-Cash Credit', status: 'Closed', amount: 524.67, count: 0, initialRatingDate: '2011-05-09', initialRating: 'CARE BBB-', ratingActions: [{ date: '2011-05-09', rating: 'CARE BBB-' }] },
+    { id: '12363', instrument: 'Term Loan', status: 'Closed', amount: 125.00, count: 3, initialRatingDate: '2010-09-24', initialRating: 'CARE A4', ratingActions: [{ date: '2010-09-24', rating: 'CARE A4' }] },
+    { id: '12363', instrument: 'Term Loan', status: 'Withdrawn', amount: 0, count: 3, initialRatingDate: '2010-09-24', initialRating: 'CARE BB+', ratingActions: [{ date: '2010-09-24', rating: 'CARE BB+' }] },
+    { id: '12363', instrument: 'Non Fund Based Limits', status: 'Active', amount: 886.01, count: 0, initialRatingDate: '2010-09-24', initialRating: 'CARE AA: Stable', ratingActions: [{ date: '2010-09-24', rating: 'CARE AA: Stable' }] },
+    { id: '12363', instrument: 'Term Loan', status: 'Closed', amount: 1549.82, count: 0, initialRatingDate: '2010-09-24', initialRating: 'CARE BB+', ratingActions: [{ date: '2010-09-24', rating: 'CARE BB+' }] },
+    { id: '12363', instrument: 'Term Loan', status: 'Closed', amount: 150.00, count: 0, initialRatingDate: '2010-09-24', initialRating: 'CARE BB+', ratingActions: [{ date: '2010-09-24', rating: 'CARE BB+' }] },
 ];
 
 
@@ -725,6 +737,10 @@ export const getIPAFeedbackByCompanyId = (companyId: string): IPAFirm[] => {
         ...firm,
         contacts: firm.contacts.map(c => ({...c, status: c.status || null}))
     }));
+}
+
+export const getAnnexureVHistoryByCompanyId = (companyId: string): AnnexureVHistory[] => {
+    return mockAnnexureVHistoryData || [];
 }
 
 export const getAuditorFeedbackByContactId = (companyId: string, firmId: string, contactId: string): { firm: AuditorFirm, contact: AuditorContact } | null => {

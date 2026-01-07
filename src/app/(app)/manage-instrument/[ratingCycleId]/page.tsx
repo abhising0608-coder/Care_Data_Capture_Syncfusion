@@ -12,6 +12,8 @@ import useSWR from 'swr';
 import type { RatingNote } from '@/lib/definitions';
 import { Skeleton } from "@/components/ui/skeleton";
 import { LatestBankDetailsTab } from "@/components/manage-instrument/latest-bank-details-tab";
+import { AnnexureVHistoryTab } from "@/components/manage-instrument/annexure-v-history-tab";
+
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
 
@@ -72,6 +74,7 @@ export default function ManageInstrumentPage() {
         <TabsList>
           <TabsTrigger value="instrument-details">Instrument Details</TabsTrigger>
           <TabsTrigger value="latest-bank-details">Latest Bank Details</TabsTrigger>
+          <TabsTrigger value="annexure-v-history">Annexure V History</TabsTrigger>
           <TabsTrigger value="press-release-history">Press Release History</TabsTrigger>
         </TabsList>
         <TabsContent value="instrument-details">
@@ -79,6 +82,9 @@ export default function ManageInstrumentPage() {
         </TabsContent>
         <TabsContent value="latest-bank-details">
           <LatestBankDetailsTab />
+        </TabsContent>
+         <TabsContent value="annexure-v-history">
+          <AnnexureVHistoryTab />
         </TabsContent>
         <TabsContent value="press-release-history">
           <PressReleaseHistoryTab />

@@ -4,6 +4,7 @@
 
 
 
+
 export type Role = 'CKC_ANALYST' | 'CKC_CHECKER' | 'CKC_ADMIN' | 'RATING_ANALYST' | 'GROUP_HEAD' | 'RATING_HEAD_SD' | 'SYSTEM' | 'QC' | 'RATING_COMMITTEE';
 export type RequestStatus = 'PENDING' | 'ACCEPTED' | 'IN_PROGRESS' | 'SUBMITTED_FOR_CHECK' | 'SENT_BACK' | 'APPROVED' | 'CLOSED';
 
@@ -76,6 +77,20 @@ export type LatestBankDetail = {
   currency: string;
   debtRepaymentTerms: string;
   remark: string;
+};
+
+export type AnnexureVHistory = {
+  id: string; // Running Instrument ID
+  instrument: string;
+  status: 'Active' | 'Withdrawn' | 'Closed';
+  amount: number;
+  count: number;
+  initialRatingDate: string;
+  initialRating: string;
+  ratingActions: {
+    date: string;
+    rating: string;
+  }[];
 };
 
 export type RatingInstrument = {
