@@ -62,6 +62,7 @@ export function PressReleasePublication({ note }: PressReleasePublicationProps) 
     const { toast } = useToast();
     const router = useRouter();
     const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+    const [modalContent, setModalContent] = useState({ title: '', description: '', onConfirm: () => {} });
 
     const form = useForm<PublicationFormValues>({
         resolver: zodResolver(publicationSchema),
@@ -96,18 +97,6 @@ export function PressReleasePublication({ note }: PressReleasePublicationProps) 
         // In a real app, this would trigger an API call to a backend service.
     };
     
-    const handleSave = () => {
-         const status = form.getValues('clientConfirmationStatus');
-         if (status === 'Representation') {
-             setIsConfirmModalOpen(true);
-         } else {
-             toast({
-                title: 'Draft Saved',
-                description: 'Your changes have been saved.',
-            });
-         }
-    };
-    
     const handleConfirmRepresentation = () => {
         setIsConfirmModalOpen(false);
         toast({
@@ -116,6 +105,39 @@ export function PressReleasePublication({ note }: PressReleasePublicationProps) 
         });
         router.push('/dashboard');
     }
+
+    const handleConfirmReview = () => {
+        setIsConfirmModalOpen(false);
+        toast({
+            title: 'Case Moved for Review',
+            description: 'A new review cycle has been initiated in Pre-committee for enhancement.',
+        });
+        router.push('/dashboard');
+    }
+    
+    const handleSave = () => {
+         const status = form.getValues('clientConfirmationStatus');
+         if (status === 'Representation') {
+             setModalContent({
+                title: 'Confirmation',
+                description: 'Are you sure you want to move back this case to pre committee level as you have selected client confirmation status as "Representation"?',
+                onConfirm: handleConfirmRepresentation,
+             });
+             setIsConfirmModalOpen(true);
+         } else if (status === 'Review') {
+             setModalContent({
+                title: 'Confirmation',
+                description: 'Are you sure you want to move back this case to pre committee level as you have selected client confirmation status as "Review"?',
+                onConfirm: handleConfirmReview,
+             });
+             setIsConfirmModalOpen(true);
+         } else {
+             toast({
+                title: 'Draft Saved',
+                description: 'Your changes have been saved.',
+            });
+         }
+    };
 
   return (
     <>
@@ -246,16 +268,16 @@ export function PressReleasePublication({ note }: PressReleasePublicationProps) 
         <Dialog open={isConfirmModalOpen} onOpenChange={setIsConfirmModalOpen}>
             <DialogContent className="sm:max-w-md">
                  <DialogHeader>
-                    <DialogTitle>Confirmation</DialogTitle>
+                    <DialogTitle>{modalContent.title}</DialogTitle>
                 </DialogHeader>
                 <div className="py-4">
-                    <p>Are you sure you want to move back this case to pre committee level as you have selected client confirmation status as "Representation"?</p>
+                    <p>{modalContent.description}</p>
                 </div>
                 <DialogFooter>
                     <DialogClose asChild>
                         <Button variant="outline">No</Button>
                     </DialogClose>
-                    <Button onClick={handleConfirmRepresentation}>Yes</Button>
+                    <Button onClick={modalContent.onConfirm}>Yes</Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>
