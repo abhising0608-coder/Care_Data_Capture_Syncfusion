@@ -1,5 +1,5 @@
 'use client';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import useSWR from 'swr';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AuditorFeedbackView } from '@/components/due-diligence/auditor-feedback-view';
@@ -14,6 +14,10 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 import { Skeleton } from '@/components/ui/skeleton';
 import type { RatingNote } from '@/lib/definitions';
 import { useAuth } from '@/firebase';
+import { Button } from '@/components/ui/button';
+import { Save } from 'lucide-react';
+import { useWorkflow } from '@/context/workflow-context';
+import { useToast } from '@/hooks/use-toast';
 
 
 const tabsConfig = [
@@ -31,20 +35,38 @@ const fetcher = (url: string) => fetch(url).then(res => res.json());
 
 export default function DueDiligencePage() {
     const params = useParams();
+    const router = useRouter();
+    const { completeStep } = useWorkflow();
+    const { toast } = useToast();
     const ratingCycleId = params.ratingCycleId as string;
     
-    // Fetch the specific rating note to get the company name
     const { data: note, isLoading } = useSWR<RatingNote>(
       ratingCycleId ? `/api/notes/${ratingCycleId}` : null, 
       fetcher
     );
 
+    const handleComplete = () => {
+        // Here you would add validation logic to ensure all mandatory DD items are complete.
+        completeStep('due-diligence');
+        toast({
+            title: 'Due Diligence Complete',
+            description: 'The due diligence step has been marked as complete.',
+        });
+        router.push(`/manage-instrument/${ratingCycleId}`);
+    }
+
 
     return (
         <div className="space-y-6">
-             <header>
-                <h1 className="text-2xl font-bold tracking-tight text-foreground">Due Diligence</h1>
-                <p className="text-muted-foreground">Complete all required due diligence activities for the rating cycle.</p>
+             <header className="flex items-center justify-between">
+                <div>
+                    <h1 className="text-2xl font-bold tracking-tight text-foreground">Due Diligence</h1>
+                    <p className="text-muted-foreground">Complete all required due diligence activities for the rating cycle.</p>
+                </div>
+                <Button onClick={handleComplete}>
+                    <Save className="mr-2 h-4 w-4" />
+                    Save & Mark as Complete
+                </Button>
             </header>
 
             <Card>
