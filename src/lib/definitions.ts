@@ -7,6 +7,7 @@
 
 
 
+
 export type Role = 'CKC_ANALYST' | 'CKC_CHECKER' | 'CKC_ADMIN' | 'RATING_ANALYST' | 'GROUP_HEAD' | 'RATING_HEAD_SD' | 'SYSTEM' | 'QC' | 'RATING_COMMITTEE';
 export type RequestStatus = 'PENDING' | 'ACCEPTED' | 'IN_PROGRESS' | 'SUBMITTED_FOR_CHECK' | 'SENT_BACK' | 'APPROVED' | 'CLOSED';
 
@@ -84,6 +85,7 @@ export type DMSDocumentHistory = {
 
 export type RatingInstrumentCycle = {
   rcmId: string;
+  instrumentId: string;
   instrumentDetailId: string;
   cycleStatus: 'C' | 'A'; // Completed or Active
   cycleStartDate: string;
@@ -105,6 +107,22 @@ export type LatestBankDetail = {
   debtRepaymentTerms: string;
   remark: string;
 };
+
+export type ISINRecord = {
+  id: string;
+  isin: string;
+  type: string;
+  status: string;
+  issueType: string;
+  listedOn: string;
+  issuanceDate?: string | Date | null;
+  couponRate?: number | null;
+  maturityDate?: string | Date | null;
+  redemptionDate?: string | Date | null;
+  issueAmount?: number | null;
+  outstandingAmount?: number | null;
+};
+
 
 export type AnnexureVHistory = {
   id: string; // Running Instrument ID
@@ -144,6 +162,7 @@ export type RatingInstrument = {
   initialRatingDate?: string;
   accountManager?: string;
   cycleHistory: RatingInstrumentCycle[];
+  isinRecords?: ISINRecord[];
 };
 
 export type CKCRequest = {

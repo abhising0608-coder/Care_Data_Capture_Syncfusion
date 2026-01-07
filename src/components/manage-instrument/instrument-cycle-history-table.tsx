@@ -32,6 +32,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import type { RatingInstrumentCycle } from '@/lib/definitions';
 import { Badge } from '../ui/badge';
+import { useRouter, useParams } from 'next/navigation';
 
 interface InstrumentCycleHistoryTableProps {
     cycleHistory: RatingInstrumentCycle[];
@@ -40,9 +41,13 @@ interface InstrumentCycleHistoryTableProps {
 
 export function InstrumentCycleHistoryTable({ cycleHistory }: InstrumentCycleHistoryTableProps) {
     const { toast } = useToast();
+    const router = useRouter();
+    const params = useParams();
+    const companyId = params.ratingCycleId as string;
 
-    const handleEditIsin = (rcmId: string) => {
-        toast({ title: 'Placeholder', description: `Edit ISIN action for RCM ID: ${rcmId}` });
+
+    const handleEditIsin = (instrumentId: string, rcmId: string) => {
+        router.push(`/manage-instrument/isin-update/${companyId}/${instrumentId}/${rcmId}`);
     };
 
     const handleAddBanker = (rcmId: string) => {
@@ -95,7 +100,9 @@ export function InstrumentCycleHistoryTable({ cycleHistory }: InstrumentCycleHis
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                            <DropdownMenuItem onClick={() => handleEditIsin(cycle.rcmId)}><Pencil className="mr-2 h-4 w-4" />Edit ISIN</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleEditIsin(cycle.instrumentId, cycle.rcmId)}>
+                                <Pencil className="mr-2 h-4 w-4" />Edit ISIN
+                            </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => handleAddBanker(cycle.rcmId)}>
                                 Add Banker/Lender
                             </DropdownMenuItem>
