@@ -180,6 +180,8 @@ export interface IPAContact {
     minutesCaptured: 'Yes' | 'No' | 'Partial';
     minutesCapturedOn: string | null;
     status: FeedbackStatus | null;
+    questionnaire?: QuestionnaireItem[];
+    summary?: string;
 }
 
 export interface IPAFirm {

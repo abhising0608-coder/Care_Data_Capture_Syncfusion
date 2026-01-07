@@ -12,8 +12,11 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
-import type { IPAFirm, IPAContact, FeedbackStatus } from '@/lib/definitions';
+import type { IPAFirm, IPAContact, FeedbackStatus, CompanyDashboard } from '@/lib/definitions';
 import { useToast } from '@/hooks/use-toast';
+import { IpaEmailModal } from './ipa-email-modal';
+import { getCompaniesByRole } from '@/lib/mock-data';
+import { useAuth } from '@/firebase';
 
 interface IPAFeedbackAccordionProps {
     firms: IPAFirm[];
@@ -23,10 +26,12 @@ interface IPAFeedbackAccordionProps {
 export function IPAFeedbackAccordion({ firms, companyId }: IPAFeedbackAccordionProps) {
     const { mutate } = useSWRConfig();
     const { toast } = useToast();
+    const { user } = useAuth();
 
     const [isUploadModalOpen, setUploadModalOpen] = useState(false);
     const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
     const [activeContact, setActiveContact] = useState<IPAContact | null>(null);
+    const [activeFirm, setActiveFirm] = useState<IPAFirm | null>(null);
 
     const [selectedContacts, setSelectedContacts] = useState<Record<string, {contactId: string, discussionHappened: 'Yes' | 'No' | ''}>>({});
 
@@ -54,6 +59,8 @@ export function IPAFeedbackAccordion({ firms, companyId }: IPAFeedbackAccordionP
                     contactId: selection.contactId, 
                     updates: { 
                         discussionHappened: selection.discussionHappened, 
+                        status: 'Pending',
+                        minutesCapturedOn: new Date().toISOString()
                     } 
                 }),
             });
@@ -74,7 +81,8 @@ export function IPAFeedbackAccordion({ firms, companyId }: IPAFeedbackAccordionP
         setUploadModalOpen(true);
     };
 
-    const openEmailModal = (contact: IPAContact) => {
+    const openEmailModal = (firm: IPAFirm, contact: IPAContact) => {
+        setActiveFirm(firm);
         setActiveContact(contact);
         setIsEmailModalOpen(true);
     }
@@ -96,6 +104,8 @@ export function IPAFeedbackAccordion({ firms, companyId }: IPAFeedbackAccordionP
             default: return 'outline';
         }
     };
+    
+    const currentCompany = getCompaniesByRole(user).find(c => c.id === companyId);
 
     return (
         <>
@@ -153,10 +163,12 @@ export function IPAFeedbackAccordion({ firms, companyId }: IPAFeedbackAccordionP
                                                 <TableCell><Badge variant={statusVariant(contact.status!)}>{contact.status}</Badge></TableCell>
                                                 <TableCell className="text-right">
                                                     <div className="flex gap-1 justify-end">
-                                                        <Button variant="ghost" size="icon" onClick={() => toast({title: "Placeholder", description: "Navigate to IPA feedback capture page."})} disabled={contact.discussionHappened !== 'Yes'}>
-                                                            <Eye className="h-4 w-4" />
+                                                        <Button variant="ghost" size="icon" asChild disabled={contact.discussionHappened !== 'Yes'}>
+                                                            <Link href={`/due-diligence/ipa-feedback/${companyId}/${firm.id}/${contact.id}`}>
+                                                                <Eye className="h-4 w-4" />
+                                                            </Link>
                                                         </Button>
-                                                        <Button variant="ghost" size="icon" onClick={() => openEmailModal(contact)} disabled={contact.discussionHappened !== 'No'}><Mail className="h-4 w-4" /></Button>
+                                                        <Button variant="ghost" size="icon" onClick={() => openEmailModal(firm, contact)} disabled={contact.discussionHappened !== 'No'}><Mail className="h-4 w-4" /></Button>
                                                         <Button variant="ghost" size="icon" onClick={() => openUploadModal(contact)}><Upload className="h-4 w-4" /></Button>
                                                     </div>
                                                 </TableCell>
@@ -173,7 +185,7 @@ export function IPAFeedbackAccordion({ firms, companyId }: IPAFeedbackAccordionP
                 ))}
             </Accordion>
 
-            {/* Placeholder Modals */}
+            {/* Upload Document Modal */}
             <Dialog open={isUploadModalOpen} onOpenChange={setUploadModalOpen}>
                  <DialogContent className="sm:max-w-md">
                     <DialogHeader>
@@ -187,23 +199,21 @@ export function IPAFeedbackAccordion({ firms, companyId }: IPAFeedbackAccordionP
                     </div>
                      <DialogFooter>
                         <DialogClose asChild><Button variant="outline">Cancel</Button></DialogClose>
-                        <Button onClick={() => toast({title: 'Placeholder', description: 'File upload logic to be implemented.'})}>Upload</Button>
+                        <Button>Upload</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
 
-            <Dialog open={isEmailModalOpen} onOpenChange={setIsEmailModalOpen}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Email to {activeContact?.name}</DialogTitle>
-                    </DialogHeader>
-                    <p className="text-muted-foreground">(Placeholder for IPA email composition modal)</p>
-                     <DialogFooter>
-                        <DialogClose asChild><Button variant="outline">Cancel</Button></DialogClose>
-                        <Button onClick={() => toast({title: 'Placeholder', description: 'Email sending logic to be implemented.'})}>Send</Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
+            {/* Email Modal */}
+            {activeFirm && activeContact && currentCompany && (
+                 <IpaEmailModal
+                    isOpen={isEmailModalOpen}
+                    onClose={() => setIsEmailModalOpen(false)}
+                    firm={activeFirm}
+                    contact={activeContact}
+                    company={currentCompany}
+                 />
+            )}
         </>
     );
 }

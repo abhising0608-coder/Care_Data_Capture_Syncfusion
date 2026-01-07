@@ -1,5 +1,6 @@
 
 
+
 import type { CKCRequest, AppUser, Role, RequestStatus, CompanyInfo, RatingNote, NoteStatus, RatingNoteDataSchema, DTFirm, DTContact, FeedbackStatus, QuestionnaireItem, IPAFirm, IPAContact } from './definitions';
 
 
@@ -458,7 +459,7 @@ let ipaFeedbackData: Record<string, IPAFirm[]> = {
             id: 'IPAF-001',
             firmName: 'SDK & PR Associates',
             contacts: [
-                { id: 'IPAC-001', name: 'Anish Kumar', email: 'anish.k@sdkpr.com', contact: '9876543211', discussionHappened: '', minutesCaptured: 'No', minutesCapturedOn: null, status: null },
+                { id: 'IPAC-001', name: 'Anish Kumar', email: 'anish.k@sdkpr.com', contact: '9876543211', discussionHappened: '', minutesCaptured: 'No', minutesCapturedOn: null, status: null, questionnaire: [], summary: '' },
             ]
         },
     ],
@@ -467,7 +468,7 @@ let ipaFeedbackData: Record<string, IPAFirm[]> = {
             id: 'IPAF-002',
             firmName: 'Nelson and Co.',
             contacts: [
-                 { id: 'IPAC-002', name: 'Priya Sharma', email: 'priya.s@nelson.com', contact: '6543210988', discussionHappened: '', minutesCaptured: 'No', minutesCapturedOn: null, status: null },
+                 { id: 'IPAC-002', name: 'Priya Sharma', email: 'priya.s@nelson.com', contact: '6543210988', discussionHappened: '', minutesCaptured: 'No', minutesCapturedOn: null, status: null, questionnaire: [], summary: '' },
             ]
         }
     ]
@@ -564,6 +565,17 @@ export const getDTFeedbackByContactId = (companyId: string, firmId: string, cont
     return null;
 }
 
+export const getIPAFeedbackByContactId = (companyId: string, firmId: string, contactId: string): { firm: IPAFirm, contact: IPAContact } | null => {
+    const firm = ipaFeedbackData[companyId]?.find(f => f.id === firmId);
+    if (firm) {
+        const contact = firm.contacts.find(c => c.id === contactId);
+        if (contact) {
+            return { firm: JSON.parse(JSON.stringify(firm)), contact: JSON.parse(JSON.stringify(contact)) };
+        }
+    }
+    return null;
+}
+
 export const createDTRecord = (companyId: string, firmId: string, contactId: string, discussionHappened: 'Yes' | 'No') => {
     const firm = dtFeedbackData[companyId]?.find(f => f.id === firmId);
     if (!firm) return null;
@@ -636,6 +648,37 @@ export const updateDTFeedback = (companyId: string, firmId: string, contactId: s
     }
     return null;
 };
+
+
+export const updateIPAFeedback = (companyId: string, firmId: string, contactId: string, updates: Partial<IPAContact>) => {
+    const firms = ipaFeedbackData[companyId];
+    if (firms) {
+        const firm = firms.find(f => f.id === firmId);
+        if (firm) {
+            const contactIndex = firm.contacts.findIndex(c => c.id === contactId);
+            if (contactIndex !== -1) {
+                const originalContact = firm.contacts[contactIndex];
+                const updatedContact = { ...originalContact, ...updates };
+
+                if (updates.status === 'Completed') {
+                    updatedContact.minutesCaptured = 'Yes';
+                } else if (updates.summary || (updates.questionnaire && updates.questionnaire.some(q => q.remarks))) {
+                    updatedContact.status = 'In Progress';
+                    updatedContact.minutesCaptured = 'Partial';
+                }
+
+                 if (!updatedContact.minutesCapturedOn && (updatedContact.minutesCaptured === 'Partial' || updatedContact.minutesCaptured === 'Yes')) {
+                    updatedContact.minutesCapturedOn = new Date().toISOString();
+                }
+
+                firm.contacts[contactIndex] = updatedContact;
+                return updatedContact;
+            }
+        }
+    }
+    return null;
+};
+
 
 export const getNotesByRole = (role: Role, userId: string): RatingNote[] => {
     if (!userId) return [];
