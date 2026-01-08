@@ -2,86 +2,82 @@
 'use client';
 import React, { forwardRef, useImperativeHandle, useRef, useEffect, useState } from 'react';
 import {
-    DocumentEditorContainer,
+    DocumentEditorContainer as DocumentEditorContainerComponent,
     Toolbar,
     SfdtExport,
     WordExport,
-} from '@syncfusion/ej2-documenteditor';
+    DocumentEditorContainer,
+} from '@syncfusion/ej2-react-documenteditor';
 
 // Inject the required modules for toolbar, SFDT, and DOCX export functionality.
-DocumentEditorContainer.Inject(Toolbar, SfdtExport, WordExport);
+DocumentEditorContainerComponent.Inject(Toolbar, SfdtExport, WordExport);
 
 interface RatingNoteEditorProps {
     isReadOnly?: boolean;
     content?: string; // SFDT JSON string
 }
 
+// A simple hook to prevent server-side rendering of a component
+const useIsClient = () => {
+  const [isClient, setIsClient] = useState(false);
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+  return isClient;
+};
+
 export const RatingNoteEditor = forwardRef<DocumentEditorContainer | null, RatingNoteEditorProps>(
     ({ isReadOnly = false, content }, ref) => {
-        const editorContainerRef = useRef<HTMLDivElement>(null);
-        const editorInstanceRef = useRef<DocumentEditorContainer | null>(null);
+        const editorRef = useRef<DocumentEditorContainerComponent>(null);
+        const isClient = useIsClient();
 
-        // This allows parent components to call methods on the editor instance
-        useImperativeHandle(ref, () => editorInstanceRef.current, []);
+        // Expose the editor instance to the parent component via the ref
+        useImperativeHandle(ref, () => editorRef.current?.container, []);
 
-        useEffect(() => {
-            // This effect runs only once on the client-side after the component mounts
-            let editor: DocumentEditorContainer | undefined;
-            
-            if (editorContainerRef.current && !editorInstanceRef.current) {
-                // Create a new instance of the editor
-                editor = new DocumentEditorContainer({
-                    enableToolbar: true,
-                    isReadOnly: isReadOnly,
-                    showPropertiesPane: false,
-                    height: 'calc(100vh - 180px)',
-                    serviceUrl: 'https://document.syncfusion.com/web-services/docx-editor/api/documenteditor/'
-                });
-                
-                // Set the current instance
-                editorInstanceRef.current = editor;
+        // Render a placeholder or null on the server
+        if (!isClient || !content) {
+            return null;
+        }
 
-                // Append the editor to the container div
-                editor.appendTo(editorContainerRef.current);
-                
-                // Initialize the document editor after it's appended
-                if (editor.documentEditor) {
-                     editor.documentEditor.showTrackChanges = true;
-
-                    try {
-                        if (content && content.length > 50) {
-                            // Ensure content is valid JSON before attempting to open
-                            JSON.parse(content);
-                            editor.documentEditor.open(content);
-                        } else {
-                             const defaultContent = JSON.stringify({ "sfdt": "{\"sections\":[{\"blocks\":[{\"inlines\":[{\"text\":\"Start drafting the rating note here...\"}]}]}]}" });
-                             editor.documentEditor.open(defaultContent);
-                        }
-                    } catch (e) {
-                         console.error("Invalid SFDT content provided:", e);
-                         const errorContent = JSON.stringify({ "sfdt": "{\"sections\":[{\"blocks\":[{\"inlines\":[{\"text\":\"Error: Could not load document. The content provided was invalid.\"}]}]}]}" });
-                         editor.documentEditor.open(errorContent);
-                    }
-                }
-            }
-
-            // Cleanup function to destroy the component instance on unmount
-            return () => {
-                if (editorInstanceRef.current) {
-                    editorInstanceRef.current.destroy();
-                    editorInstanceRef.current = null;
-                }
-            };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        }, []); // Empty dependency array ensures this runs only once.
-
+        // The key prop is crucial. It forces React to create a new component instance
+        // whenever the content changes, ensuring it re-initializes correctly.
         return (
             <div className="h-full w-full">
                 <style>
                     {`@import url('https://cdn.syncfusion.com/ej2/material.css');`}
                 </style>
-                {/* This div is the stable host for the imperative component */}
-                <div ref={editorContainerRef}></div>
+                <DocumentEditorContainerComponent
+                    key={content} // Force re-mount on content change
+                    ref={editorRef}
+                    height={'calc(100vh - 180px)'}
+                    enableToolbar={true}
+                    isReadOnly={isReadOnly}
+                    showPropertiesPane={false} // Disable the properties pane
+                    serviceUrl='https://document.syncfusion.com/web-services/docx-editor/api/documenteditor/'
+                    created={() => {
+                        if (editorRef.current) {
+                            // Ensure track changes is enabled after creation
+                            editorRef.current.documentEditor.showTrackChanges = true;
+                            
+                            // Safely open the document
+                            try {
+                                if (content && content.length > 50) {
+                                    // Verify it's valid JSON before opening
+                                    JSON.parse(content);
+                                    editorRef.current.documentEditor.open(content);
+                                } else {
+                                    // Provide a default document if content is missing
+                                    const defaultContent = JSON.stringify({ "sfdt": "{\"sections\":[{\"blocks\":[{\"inlines\":[{\"text\":\"Start drafting the rating note here...\"}]}]}]}" });
+                                    editorRef.current.documentEditor.open(defaultContent);
+                                }
+                            } catch (e) {
+                                console.error("Invalid SFDT content provided:", e);
+                                const errorContent = JSON.stringify({ "sfdt": "{\"sections\":[{\"blocks\":[{\"inlines\":[{\"text\":\"Error: Could not load document. The content provided was invalid.\"}]}]}]}" });
+                                editorRef.current.documentEditor.open(errorContent);
+                            }
+                        }
+                    }}
+                />
             </div>
         );
     }
