@@ -5,6 +5,8 @@ import { useParams, useRouter } from 'next/navigation';
 import { FormProvider, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import useSWR from 'swr';
+import { useEffect } from 'react';
 
 import { Step1Form } from '@/components/initiate-rating-note/step-1-form';
 import { Step2Form } from '@/components/initiate-rating-note/step-2-form';
@@ -13,11 +15,13 @@ import { Step4Form } from '@/components/initiate-rating-note/step-4-form';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
-import { useFirestore } from '@/firebase';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { useWorkflow } from '@/context/workflow-context';
 import { ArrowRight } from 'lucide-react';
-import type { RatingNote } from '@/lib/definitions';
+import type { RatingNote, CKCRequest } from '@/lib/definitions';
+import { Skeleton } from '@/components/ui/skeleton';
+
+const fetcher = (url: string) => fetch(url).then(res => res.json());
+
 
 const validationSchema = z.object({
   step1: z.object({
@@ -49,10 +53,15 @@ export default function NewRatingNotePage() {
   const { toast } = useToast();
   const { completeStep } = useWorkflow();
 
+  const { data: request, isLoading } = useSWR<CKCRequest>(
+    ratingCycleId ? `/api/requests/${ratingCycleId}` : null, 
+    fetcher
+  );
+
   const methods = useForm({
     resolver: zodResolver(validationSchema),
     defaultValues: {
-      step1: { companyId: '', templateId: '' },
+      step1: { companyId: '', templateId: 'template-001' },
       step2: { comments: '' },
       step3: {
         financialApproach: 'Standalone',
@@ -63,11 +72,18 @@ export default function NewRatingNotePage() {
         applicableCriteria: [],
       },
        step4: {
-        ratingCommitteeType: '',
+        ratingCommitteeType: 'standard',
         analystRemarks: '',
       }
     },
   });
+
+  useEffect(() => {
+    if (request) {
+        methods.setValue('step1.companyId', request.companyId);
+        methods.setValue('step3.financialApproach', request.resultType);
+    }
+  }, [request, methods]);
 
   const onSubmit = async (data: any) => {
     if (!user) {
@@ -79,17 +95,30 @@ export default function NewRatingNotePage() {
       return;
     }
     
-    const companyId = methods.getValues('step1.companyId');
+    if(!request) {
+       toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Original request data not found.',
+      });
+      return;
+    }
 
     const notePayload = {
-      noteName: `${companyId} Rating Note`,
-      companyId: companyId,
-      templateId: data.step1.templateId,
-      analysts: [user.uid],
+      id: request.id,
+      companyId: request.companyId,
+      companyName: request.companyName,
+      ratingCycle: request.cycle,
+      priority: 'Medium',
+      dueDate: 'N/A',
       status: 'Draft',
-      // ... include other fields from the form
-      createdBy: user.uid,
-      // ... other necessary fields
+      currentActor: 'RATING_ANALYST',
+      initiatedBy: user.uid,
+      ghId: request.groupHead,
+      statusHistory: [
+        { status: 'Draft', actorId: user.uid, timestamp: new Date().toISOString() }
+      ],
+      // This is a partial payload; the API will fill in the rest
     };
 
     try {
@@ -107,7 +136,7 @@ export default function NewRatingNotePage() {
       
       toast({
         title: 'Success!',
-        description: `Rating note for ${companyId} has been initiated.`,
+        description: `Rating note for ${newNote.companyName} has been initiated.`,
       });
       completeStep('initiate-rating-note');
       router.push(`/rating-note/${newNote.id}`);
@@ -121,6 +150,16 @@ export default function NewRatingNotePage() {
       });
     }
   };
+
+  if (isLoading || !request) {
+      return (
+          <div className="space-y-6">
+              <Skeleton className="h-10 w-1/3" />
+              <Skeleton className="h-6 w-1/2" />
+              <Skeleton className="h-96 w-full" />
+          </div>
+      )
+  }
 
   return (
     <div className="space-y-6">
@@ -136,7 +175,7 @@ export default function NewRatingNotePage() {
       <FormProvider {...methods}>
         <form onSubmit={methods.handleSubmit(onSubmit)} className="mt-8">
           <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-6 space-y-8">
-            <Step1Form />
+            <Step1Form companyName={request.companyName} />
             <Step4Form />
           </div>
 

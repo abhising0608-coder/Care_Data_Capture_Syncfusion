@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense } from 'react';
+import { Suspense, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import useSWR from 'swr';
 import { useAuth } from '@/firebase';
@@ -12,7 +12,7 @@ import { pharmaSchema } from '@/lib/schemas/sectorial-schemas/pharma-schema';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Save } from 'lucide-react';
-import { useForm } from 'react-hook-form';
+import { useForm, FormProvider } from 'react-hook-form';
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
 
@@ -33,8 +33,8 @@ export default function OperationalInputFlowPage() {
     const router = useRouter();
     const { user, isLoading: isAuthLoading } = useAuth();
     const { toast } = useToast();
-    const { completeStep, activeCompanyId } = useWorkflow();
-    const formRef = useForm();
+    const { completeStep } = useWorkflow();
+    const formMethods = useForm();
 
     const ratingCycleId = params.ratingCycleId as string;
     const schema = pharmaSchema; // Only using Pharma schema as per requirements
@@ -43,7 +43,6 @@ export default function OperationalInputFlowPage() {
     const { data: operationalInputData, isLoading: isOperationalInputLoading, mutate } = useSWR(ratingCycleId ? `/api/operational-input/${ratingCycleId}` : null, fetcher);
 
     if (!ratingCycleId) {
-        // This should not happen in the workflow, but it's a good guard clause.
         if (typeof window !== 'undefined') {
             router.replace('/dashboard');
         }
@@ -75,11 +74,7 @@ export default function OperationalInputFlowPage() {
                 description: `Operational data has been saved successfully.`,
             });
             
-             if (activeCompanyId) {
-                router.push(`/due-diligence/${activeCompanyId}`);
-            } else {
-                router.push('/dashboard');
-            }
+            router.push(`/due-diligence/${ratingCycleId}`);
             
         } catch (error) {
             console.error("Failed to save data:", error);
@@ -92,36 +87,34 @@ export default function OperationalInputFlowPage() {
     };
     
     return (
-        <div className="space-y-6">
-             <header className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-2xl font-bold tracking-tight text-foreground">Operational Data Input</h1>
-                    <p className="text-muted-foreground">Step 2: Enter sector-specific operational data. Only Pharma is required.</p>
+        <FormProvider {...formMethods}>
+            <form onSubmit={formMethods.handleSubmit(handleSubmit)}>
+                <div className="space-y-6">
+                    <header className="flex items-center justify-between">
+                        <div>
+                            <h1 className="text-2xl font-bold tracking-tight text-foreground">Operational Data Input</h1>
+                            <p className="text-muted-foreground">Step 2: Enter sector-specific operational data. Only Pharma is required.</p>
+                        </div>
+                        <Button type="submit">
+                            <Save className="mr-2 h-4 w-4" />
+                            Save & Mark as Complete
+                        </Button>
+                    </header>
+                    <main>
+                        <Suspense fallback={<FormLoadingSkeleton />}>
+                            {isOperationalInputLoading || isAuthLoading ? (
+                                <FormLoadingSkeleton />
+                            ) : (
+                                <JsonSchemaForm
+                                    schema={schema}
+                                    requestId={ratingCycleId!}
+                                    dataKey={dataKey}
+                                />
+                            )}
+                        </Suspense>
+                    </main>
                 </div>
-                 <Button onClick={formRef.handleSubmit(handleSubmit)}>
-                    <Save className="mr-2 h-4 w-4" />
-                    Save & Mark as Complete
-                </Button>
-            </header>
-            <main>
-                <Suspense fallback={<FormLoadingSkeleton />}>
-                    {isOperationalInputLoading || isAuthLoading ? (
-                        <FormLoadingSkeleton />
-                    ) : (
-                        <JsonSchemaForm
-                            formInstance={formRef}
-                            schema={schema}
-                            schemaType="form"
-                            onSubmit={handleSubmit}
-                            onCancel={() => router.back()}
-                            requestId={ratingCycleId!}
-                            dataKey={dataKey}
-                            isLastStep={false}
-                            submitButtonText="" // Button is now rendered outside
-                        />
-                    )}
-                </Suspense>
-            </main>
-        </div>
+            </form>
+        </FormProvider>
     );
 }

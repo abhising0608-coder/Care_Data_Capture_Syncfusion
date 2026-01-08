@@ -15,9 +15,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { mockCompanies } from '@/lib/mock-data';
+import { Input } from '../ui/input';
 
-// Mock templates as they would be structured from a data source
 const mockTemplates = [
     { id: 'template-001', name: 'Standard Corporate Rating Template' },
     { id: 'template-002', name: 'Bank Rating Template' },
@@ -25,7 +24,7 @@ const mockTemplates = [
 ];
 
 
-export function Step1Form() {
+export function Step1Form({ companyName }: { companyName: string }) {
   const { control } = useFormContext();
 
   return (
@@ -36,20 +35,9 @@ export function Step1Form() {
         render={({ field }) => (
           <FormItem>
             <FormLabel>Company Name</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a company" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {mockCompanies?.map(company => (
-                    <SelectItem key={company.id} value={company.id}>
-                      {company.companyName}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <FormControl>
+                <Input value={companyName} readOnly disabled />
+            </FormControl>
             <FormMessage />
           </FormItem>
         )}

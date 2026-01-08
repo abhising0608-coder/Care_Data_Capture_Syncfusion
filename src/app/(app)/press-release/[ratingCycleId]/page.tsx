@@ -1,7 +1,7 @@
 
 'use client';
 
-import { Suspense, useState } from 'react';
+import { Suspense, useState, useEffect } from 'react';
 import useSWR from 'swr';
 import { useParams, useRouter } from 'next/navigation';
 
@@ -39,30 +39,29 @@ export default function PressReleasePage() {
         
         const isPreviewAction = action === 'preview';
 
-        if (isPreviewAction) {
-             await handleAction('save-pr-draft', payload);
-             setView('preview');
-             return;
-        }
-
         try {
             const res = await fetch(`/api/notes/${ratingCycleId}/review`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
-                    action, 
+                    action: isPreviewAction ? 'save-pr-draft' : action, 
                     actorId: user.uid,
                     ...payload
                 }),
             });
 
             if (!res.ok) throw new Error(`Failed to perform action: ${action}`);
-
-            toast({ title: 'Success', description: 'Press Release has been updated.' });
-            mutate();
-
-            if (['submit-to-gh', 'submit-to-rh', 'submit-to-qc'].includes(action)) {
-                router.push('/dashboard');
+            
+            await mutate(); // Re-fetch the data to get the latest status
+            
+            if (isPreviewAction) {
+                setView('preview');
+                toast({ title: 'Success', description: 'Draft saved. Now in preview mode.' });
+            } else {
+                 toast({ title: 'Success', description: 'Press Release has been updated.' });
+                 if (['send-to-gh', 'send-to-rh', 'send-to-qc'].includes(action)) {
+                    router.push('/dashboard');
+                }
             }
 
         } catch (error) {
@@ -112,7 +111,7 @@ export default function PressReleasePage() {
             }
         }
 
-        return <PressReleaseReview note={note} onAction={handleAction} isReadOnly={true} />;
+        return <PressReleasePreview note={note} onAction={handleAction} onEdit={() => {}} isReadOnly={true} />;
     };
 
     return (

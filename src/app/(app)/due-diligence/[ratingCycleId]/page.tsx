@@ -95,7 +95,7 @@ export default function DueDiligencePage() {
                  {tabsConfig.map(tab => (
                     <TabsContent key={tab.value} value={tab.value}>
                         <div className="mt-4">
-                           <tab.Component companyId={note?.companyId || ratingCycleId} isEmbedded={true} />
+                           <tab.Component companyId={ratingCycleId} isEmbedded={true} />
                         </div>
                     </TabsContent>
                 ))}

@@ -244,7 +244,7 @@ export function PressReleaseFinalForm({ note, onAction }: PressReleaseFinalFormP
                         <Button type="button" variant="outline" onClick={() => handleFormSubmit('save-pr-draft')}>
                             <Save className="mr-2 h-4 w-4" /> Save Draft
                         </Button>
-                        <Button type="button" variant="outline" onClick={() => handleFormSubmit('preview')}>
+                        <Button type="button" onClick={() => handleFormSubmit('preview')}>
                             <Eye className="mr-2 h-4 w-4" /> Save & Preview
                         </Button>
                         <DropdownMenu>

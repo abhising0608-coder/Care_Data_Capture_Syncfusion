@@ -37,6 +37,7 @@ export default function ManageInstrumentPage() {
       title: 'Manage Instrument Complete',
       description: 'Step has been marked as complete.',
     });
+    router.push(`/notes/new/${ratingCycleId}`);
   };
   
   if (isLoading) {

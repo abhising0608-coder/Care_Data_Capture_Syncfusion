@@ -1,6 +1,6 @@
 'use client';
 
-import { useForm, useFieldArray, Controller, useWatch, FormProvider } from 'react-hook-form';
+import { useForm, useFieldArray, Controller, useWatch, FormProvider, useFormContext } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import useSWR from 'swr';
@@ -81,28 +81,16 @@ const generateZodSchema = (schema: any): z.ZodObject<any> => {
 
 interface JsonSchemaFormProps {
   schema: any;
-  onSubmit: (data: any) => void;
-  onCancel: () => void;
   requestId: string;
   dataKey: string;
-  isLastStep?: boolean;
-  submitButtonText?: string;
-  formInstance?: any; // Pass react-hook-form instance
 }
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
 
-export function JsonSchemaForm({ schema, onSubmit, onCancel, requestId, dataKey, isLastStep = false, submitButtonText, formInstance }: JsonSchemaFormProps) {
-  const zodSchema = useMemo(() => generateZodSchema(schema), [schema]);
-  
+export function JsonSchemaForm({ schema, requestId, dataKey }: JsonSchemaFormProps) {
   const { data: existingData, isLoading } = useSWR(`/api/operational-input/${requestId}`, fetcher);
-
-  const localForm = useForm({
-    resolver: zodResolver(zodSchema),
-    defaultValues: {},
-  });
-
-  const form = formInstance || localForm;
+  
+  const form = useFormContext();
 
   useEffect(() => {
     if (existingData && existingData[dataKey]) {
@@ -468,8 +456,7 @@ export function JsonSchemaForm({ schema, onSubmit, onCancel, requestId, dataKey,
         </div>
       </CardHeader>
       <CardContent>
-        <FormProvider {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+        <div className="space-y-8">
             <Accordion type="multiple" value={openAccordions} onValueChange={setOpenAccordions} className="w-full">
               {sectionKeys.map(sectionKey => {
                 const sectionProp = schema.properties[sectionKey];
@@ -500,16 +487,7 @@ export function JsonSchemaForm({ schema, onSubmit, onCancel, requestId, dataKey,
                 )
               })}
             </Accordion>
-            {submitButtonText && (
-               <div className="flex justify-end gap-4">
-                  <Button type="submit">
-                    <Save className="h-4 w-4 mr-2" />
-                    {submitButtonText}
-                  </Button>
-              </div>
-            )}
-          </form>
-        </FormProvider>
+        </div>
       </CardContent>
     </Card>
   );

@@ -126,6 +126,7 @@ export default function CompanyInformationPage() {
                 title: 'Success',
                 description: 'Company information has been saved and step marked as complete.',
             });
+            router.push(`/operational-input/${ratingCycleId}`);
             
         } catch (e: any) {
             console.error(e);
