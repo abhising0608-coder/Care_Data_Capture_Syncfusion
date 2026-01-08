@@ -19,8 +19,9 @@ export const workflowSteps = [
 export function WorkflowStepper() {
   const pathname = usePathname();
   const params = useParams();
-  const { completedSteps } = useWorkflow();
+  const { completedSteps, activeCompanyId } = useWorkflow();
   const ratingCycleId = params.ratingCycleId as string;
+  const noteId = params.noteId as string;
 
   const getStepIdFromPath = () => {
     if (pathname.includes('/company-information')) return 'company-information';
@@ -34,19 +35,20 @@ export function WorkflowStepper() {
   }
 
   const currentStepId = getStepIdFromPath();
+  const currentId = ratingCycleId || noteId || activeCompanyId;
 
   const getStepHref = (stepId: string) => {
-      if (!ratingCycleId) return '#';
+      if (!currentId) return '#';
       if (stepId === 'initiate-rating-note') {
-        return `/notes/new/${ratingCycleId}`;
+        return `/notes/new/${currentId}`;
       }
        if (stepId === 'rating-note') {
-        return `/rating-note/${ratingCycleId}`;
+        return `/rating-note/${currentId}`;
       }
        if (stepId === 'press-release') {
-        return `/press-release/${ratingCycleId}`;
+        return `/press-release/${currentId}`;
       }
-      return `/${stepId}/${ratingCycleId}`;
+      return `/${stepId}/${currentId}`;
   }
 
   return (
