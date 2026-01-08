@@ -23,14 +23,14 @@ const isReviewer = (role?: Role) => role && ['GROUP_HEAD', 'RATING_HEAD_SD', 'QC
 export default function PressReleasePage() {
     const params = useParams();
     const router = useRouter();
-    const noteId = params.noteId as string;
+    const ratingCycleId = params.ratingCycleId as string;
     const { toast } = useToast();
     const { user } = useAuth();
     
     const [view, setView] = useState<'edit' | 'preview'>('edit');
 
     const { data: note, isLoading, mutate } = useSWR<RatingNote>(
-      noteId ? `/api/notes/${noteId}` : null,
+      ratingCycleId ? `/api/notes/${ratingCycleId}` : null,
       fetcher
     );
 
@@ -46,7 +46,7 @@ export default function PressReleasePage() {
         }
 
         try {
-            const res = await fetch(`/api/notes/${noteId}/review`, {
+            const res = await fetch(`/api/notes/${ratingCycleId}/review`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 

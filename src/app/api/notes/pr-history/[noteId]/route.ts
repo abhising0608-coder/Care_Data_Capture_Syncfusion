@@ -1,17 +1,18 @@
+
 import { NextResponse } from 'next/server';
 import { getPressReleaseHistoryByNoteId } from '@/lib/mock-data';
 
 export async function GET(
   request: Request,
-  { params }: { params: { noteId: string } }
+  { params }: { params: { ratingCycleId: string } }
 ) {
-  const { noteId } = params;
+  const { ratingCycleId } = params;
   
-  if (!noteId) {
+  if (!ratingCycleId) {
     return NextResponse.json({ message: 'Note ID is required' }, { status: 400 });
   }
 
-  const history = getPressReleaseHistoryByNoteId(noteId);
+  const history = getPressReleaseHistoryByNoteId(ratingCycleId);
 
   return NextResponse.json(history);
 }

@@ -19,14 +19,14 @@ const fetcher = (url: string) => fetch(url).then(res => res.json());
 export default function QualityControlReviewPage() {
     const params = useParams();
     const router = useRouter();
-    const noteId = params.noteId as string;
+    const ratingCycleId = params.ratingCycleId as string;
     const { toast } = useToast();
     const { user } = useAuth();
     
     const editorRef = useRef<DocumentEditorContainer | null>(null);
 
     const { data: note, isLoading, mutate } = useSWR<RatingNote>(
-      noteId ? `/api/notes/${noteId}` : null,
+      ratingCycleId ? `/api/notes/${ratingCycleId}` : null,
       fetcher
     );
 
@@ -34,7 +34,7 @@ export default function QualityControlReviewPage() {
         if (!note || !user) return;
 
         try {
-            const res = await fetch(`/api/notes/${noteId}/qc-review`, {
+            const res = await fetch(`/api/notes/${ratingCycleId}/qc-review`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 

@@ -5,9 +5,9 @@ import type { NoteStatus, RatingNote } from '@/lib/definitions';
 
 export async function POST(
   request: Request,
-  { params }: { params: { noteId: string } }
+  { params }: { params: { ratingCycleId: string } }
 ) {
-  const { noteId } = params;
+  const { ratingCycleId } = params;
   const { action, actorId, prContent } = await request.json();
 
   if (!action || !actorId) {
@@ -16,7 +16,7 @@ export async function POST(
 
   // Handle simple draft saving
   if (action === 'save-pr-draft') {
-      const updatedNote = updateNote(noteId, { prContent });
+      const updatedNote = updateNote(ratingCycleId, { prContent });
       if (!updatedNote) {
         return NextResponse.json({ message: 'Failed to save draft' }, { status: 404 });
       }
@@ -91,7 +91,7 @@ export async function POST(
       return NextResponse.json({ message: `Invalid action: ${action}` }, { status: 400 });
   }
 
-  const updatedNote = updateNoteStatus(noteId, newStatus, actorId, updates);
+  const updatedNote = updateNoteStatus(ratingCycleId, newStatus, actorId, updates);
 
   if (!updatedNote) {
     return NextResponse.json({ message: 'Failed to update note' }, { status: 404 });

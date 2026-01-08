@@ -5,9 +5,9 @@ import type { NoteStatus } from '@/lib/definitions';
 
 export async function POST(
   request: Request,
-  { params }: { params: { noteId: string } }
+  { params }: { params: { ratingCycleId: string } }
 ) {
-  const { noteId } = params;
+  const { ratingCycleId } = params;
   const { action, actorId } = await request.json();
 
   if (!action || !actorId) {
@@ -27,7 +27,7 @@ export async function POST(
       return NextResponse.json({ message: 'Invalid action' }, { status: 400 });
   }
 
-  const updatedNote = updateNoteStatus(noteId, newStatus, actorId);
+  const updatedNote = updateNoteStatus(ratingCycleId, newStatus, actorId);
 
   if (!updatedNote) {
     return NextResponse.json({ message: 'Failed to update note' }, { status: 404 });
