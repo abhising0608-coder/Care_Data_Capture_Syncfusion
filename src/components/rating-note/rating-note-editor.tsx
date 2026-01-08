@@ -26,9 +26,14 @@ export const RatingNoteEditor = forwardRef<DocumentEditorContainerComponent | nu
 
         useEffect(() => {
             // This effect runs only once on the client-side after the initial render.
-            // It ensures that the Syncfusion component is only rendered in the browser
-            // after its parent container is guaranteed to be in the DOM.
             setIsMounted(true);
+            
+            // Cleanup function to destroy the component instance on unmount
+            return () => {
+                if (editorRef.current) {
+                    editorRef.current.destroy();
+                }
+            };
         }, []);
 
 
@@ -56,12 +61,6 @@ export const RatingNoteEditor = forwardRef<DocumentEditorContainerComponent | nu
                 }
             }
         };
-
-        const onBeforeDestroy = (): void => {
-            if (editorRef.current) {
-                editorRef.current.destroy();
-            }
-        };
         
         return (
             <div className="h-full w-full">
@@ -75,7 +74,6 @@ export const RatingNoteEditor = forwardRef<DocumentEditorContainerComponent | nu
                         height="calc(100vh - 180px)"
                         enableToolbar={true}
                         created={onCreated}
-                        beforeDestroy={onBeforeDestroy}
                         serviceUrl='https://document.syncfusion.com/web-services/docx-editor/api/documenteditor/'
                     />
                 )}
