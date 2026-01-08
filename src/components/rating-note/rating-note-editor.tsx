@@ -1,6 +1,6 @@
 
 'use client';
-import React, { forwardRef, useImperativeHandle, useRef, useEffect } from 'react';
+import React, { forwardRef, useImperativeHandle, useRef } from 'react';
 import {
     DocumentEditorContainerComponent,
     Toolbar,
@@ -20,56 +20,55 @@ export const RatingNoteEditor = forwardRef<DocumentEditorContainerComponent | nu
     ({ isReadOnly, content }, ref) => {
         const editorRef = useRef<DocumentEditorContainerComponent | null>(null);
 
-        // The parent component can still interact with the editor via the ref
+        // This allows parent components to call methods on the editor instance
         useImperativeHandle(ref, () => editorRef.current, []);
 
-        useEffect(() => {
+        // The 'created' prop is the correct lifecycle hook from Syncfusion to initialize the editor.
+        // This runs once after the component has been mounted and is ready.
+        const onCreated = (): void => {
             const editorInstance = editorRef.current;
-            
-            // This timeout ensures that the React component has fully mounted and the DOM
-            // is stable before we initialize the imperative Syncfusion widget. This prevents
-            // race conditions that can lead to improper cleanup on unmount.
-            const timer = setTimeout(() => {
-                if (editorInstance && editorInstance.documentEditor) {
-                    editorInstance.resize();
-                    editorInstance.documentEditor.isReadOnly = isReadOnly || false;
-                    editorInstance.documentEditor.showTrackChanges = true;
+            if (editorInstance && editorInstance.documentEditor) {
+                // Configure the editor properties
+                editorInstance.documentEditor.isReadOnly = isReadOnly || false;
+                editorInstance.documentEditor.showTrackChanges = true;
 
-                    if (content) {
-                        try {
-                            JSON.parse(content);
-                            console.log("Content is valid SFDT: ", content);
-                            editorInstance.documentEditor.open(content);
-                        } catch (e) {
-                            console.error("Invalid SFDT content provided:", e);
-                            // Load an error message into the editor if content is invalid
-                            editorInstance.documentEditor.open(JSON.stringify({ "sfdt": "{\"sections\":[{\"blocks\":[{\"inlines\":[{\"text\":\"Error: Could not load document.\"}]}]}]}" }));
-                        }
-                    } else {
-                        // Load a default placeholder if no content is provided
-                        editorInstance.documentEditor.open(JSON.stringify({ "sfdt": "{\"sections\":[{\"blocks\":[{\"inlines\":[{\"text\":\"Start drafting the rating note here...\"}]}]}]}" }));
+                if (content) {
+                    try {
+                        // Ensure content is valid JSON before attempting to open
+                        JSON.parse(content);
+                        editorInstance.documentEditor.open(content);
+                    } catch (e) {
+                        console.error("Invalid SFDT content provided:", e);
+                        // Load a safe, default error message into the editor
+                        const errorContent = JSON.stringify({ "sfdt": "{\"sections\":[{\"blocks\":[{\"inlines\":[{\"text\":\"Error: Could not load document. The content provided was invalid.\"}]}]}]}" });
+                        editorInstance.documentEditor.open(errorContent);
                     }
-
-                    // Enable track changes after a short delay to ensure the document is fully loaded
-                    setTimeout(() => {
-                        if (editorInstance && editorInstance.documentEditor) {
-                            editorInstance.documentEditor.trackChanges = true;
-                        }
-                    }, 500);
+                } else {
+                    // Load a default placeholder if no content is provided
+                    const defaultContent = JSON.stringify({ "sfdt": "{\"sections\":[{\"blocks\":[{\"inlines\":[{\"text\":\"Start drafting the rating note here...\"}]}]}]}" });
+                    editorInstance.documentEditor.open(defaultContent);
                 }
-            }, 100); // A small delay is sufficient
 
-            // The cleanup function - this is the critical fix.
-            return () => {
-                clearTimeout(timer);
-                if (editorRef.current) {
-                    // destroy() is the official Syncfusion method to clean up the component instance.
-                    // This prevents memory leaks and errors on page navigation.
-                    editorRef.current.destroy();
-                }
-            };
-        }, [content, isReadOnly]); // Rerun effect if content or read-only status changes.
+                // Enable track changes after a short delay to ensure the document is fully loaded
+                setTimeout(() => {
+                    if (editorInstance && editorInstance.documentEditor) {
+                        editorInstance.documentEditor.trackChanges = true;
+                    }
+                }, 500);
 
+                // Ensure the editor fits its container
+                editorInstance.resize();
+            }
+        };
+
+        // The `beforeDestroy` prop is the correct cleanup function.
+        // It's called by the Syncfusion component itself when it's about to be unmounted.
+        const onBeforeDestroy = (): void => {
+            // This is the official Syncfusion method to clean up the component instance, preventing memory leaks.
+            if (editorRef.current) {
+                editorRef.current.destroy();
+            }
+        };
 
         return (
             <div className="h-full w-full">
@@ -80,6 +79,8 @@ export const RatingNoteEditor = forwardRef<DocumentEditorContainerComponent | nu
                     ref={editorRef}
                     height="calc(100vh - 180px)"
                     enableToolbar={true}
+                    created={onCreated}
+                    beforeDestroy={onBeforeDestroy}
                     serviceUrl='https://document.syncfusion.com/web-services/docx-editor/api/documenteditor/'
                 />
             </div>
