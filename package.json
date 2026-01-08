@@ -43,7 +43,7 @@
     "firebase": "^10.12.2",
     "lucide-react": "^0.475.0",
     "mathjs": "^13.0.3",
-    "next": "14.2.3",
+    "next": "14.2.35",
     "pako": "^2.1.0",
     "patch-package": "^8.0.0",
     "react": "^18",
