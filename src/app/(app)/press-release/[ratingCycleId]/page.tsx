@@ -8,7 +8,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { RatingNote, Role } from '@/lib/definitions';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/firebase';
+import { useAuth } from '@/context/auth-context';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PressReleaseFinalForm } from '@/components/rating-note/press-release-final-form';
 import { PressReleasePreview } from '@/components/rating-note/press-release-preview';
@@ -111,8 +111,9 @@ export default function PressReleasePage() {
                 );
             }
         }
-
-        return <PressReleaseReview note={note} onAction={handleAction} isReadOnly={true} />;
+        
+        // Fallback for all other users/states: a read-only preview
+        return <PressReleasePreview note={note} onAction={() => {}} onEdit={() => {}} isReadOnly={true} />;
     };
 
     return (
