@@ -16,7 +16,7 @@ import { DTEmailModal } from './dt-email-modal';
 import type { DTFirm, DTContact, DTFeedbackStatus, CompanyDashboard } from '@/lib/definitions';
 import { useToast } from '@/hooks/use-toast';
 import { getCompaniesByRole, mockCompanies } from '@/lib/mock-data';
-import { useAuth } from '@/firebase';
+import { useAuth } from '@/context/auth-context';
 
 interface DTFeedbackAccordionProps {
     firms: DTFirm[];

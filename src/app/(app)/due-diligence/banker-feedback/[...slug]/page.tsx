@@ -17,7 +17,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Save, Mail, ArrowLeft, Download } from 'lucide-react';
 import { BankerEmailModal } from '@/components/due-diligence/banker-email-modal';
 import type { BankerFirm, BankerContact, QuestionnaireItem, CompanyDashboard } from '@/lib/definitions';
-import { useAuth } from '@/firebase';
+import { useAuth } from '@/context/auth-context';
 import { getCompaniesByRole } from '@/lib/mock-data';
 
 

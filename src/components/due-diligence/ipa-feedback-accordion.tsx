@@ -16,7 +16,7 @@ import type { IPAFirm, IPAContact, FeedbackStatus, CompanyDashboard } from '@/li
 import { useToast } from '@/hooks/use-toast';
 import { IpaEmailModal } from './ipa-email-modal';
 import { getCompaniesByRole } from '@/lib/mock-data';
-import { useAuth } from '@/firebase';
+import { useAuth } from '@/context/auth-context';
 
 interface IPAFeedbackAccordionProps {
     firms: IPAFirm[];

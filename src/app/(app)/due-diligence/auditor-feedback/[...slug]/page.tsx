@@ -17,7 +17,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Save, Mail, ArrowLeft, Download } from 'lucide-react';
 import { AuditorEmailModal } from '@/components/due-diligence/auditor-email-modal';
 import type { AuditorFirm, AuditorContact, QuestionnaireItem, CompanyDashboard } from '@/lib/definitions';
-import { useAuth } from '@/firebase';
+import { useAuth } from '@/context/auth-context';
 import { getCompaniesByRole } from '@/lib/mock-data';
 
 

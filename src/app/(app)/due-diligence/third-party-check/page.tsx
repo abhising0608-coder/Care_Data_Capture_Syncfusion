@@ -9,7 +9,7 @@ import { format } from "date-fns";
 import { Calendar as CalendarIcon, Save, Send, Mail, Check, Trash2, Pencil, RefreshCw, ArrowLeft, X } from "lucide-react";
 import { useRouter } from 'next/navigation';
 
-import { useAuth } from '@/firebase';
+import { useAuth } from '@/context/auth-context';
 import { getCompaniesByRole, mockUsers, mockThirdParties } from '@/lib/mock-data';
 import type { ThirdPartyPersonnel, ThirdPartyMinute, CompanyDashboard, ThirdPartyCheck } from '@/lib/definitions';
 import { useToast } from '@/hooks/use-toast';

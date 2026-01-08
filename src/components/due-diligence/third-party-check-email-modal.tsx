@@ -15,7 +15,7 @@ import { useToast } from '@/hooks/use-toast';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
 import type { CompanyDashboard, ThirdPartyCheck, ThirdParty } from '@/lib/definitions';
-import { useAuth } from '@/firebase';
+import { useAuth } from '@/context/auth-context';
 import { format } from 'date-fns';
 
 const emailSchema = z.object({

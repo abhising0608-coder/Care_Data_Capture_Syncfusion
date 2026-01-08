@@ -16,7 +16,7 @@ import { BankerEmailModal } from './banker-email-modal';
 import type { BankerFirm, BankerContact, FeedbackStatus } from '@/lib/definitions';
 import { useToast } from '@/hooks/use-toast';
 import { getCompaniesByRole } from '@/lib/mock-data';
-import { useAuth } from '@/firebase';
+import { useAuth } from '@/context/auth-context';
 
 interface BankerFeedbackAccordionProps {
     firms: BankerFirm[];

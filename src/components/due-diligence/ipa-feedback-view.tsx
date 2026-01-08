@@ -4,7 +4,7 @@ import { useState } from 'react';
 import useSWR from 'swr';
 import { useRouter } from 'next/navigation';
 
-import { useAuth } from '@/firebase';
+import { useAuth } from '@/context/auth-context';
 import type { IPAFirm } from '@/lib/definitions';
 import { getCompaniesByRole } from '@/lib/mock-data';
 

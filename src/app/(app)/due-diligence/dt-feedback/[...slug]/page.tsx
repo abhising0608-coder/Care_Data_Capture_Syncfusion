@@ -17,7 +17,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Save, Mail, ArrowLeft, Download } from 'lucide-react';
 import { DTEmailModal } from '@/components/due-diligence/dt-email-modal';
 import type { DTFirm, DTContact, QuestionnaireItem, CompanyDashboard } from '@/lib/definitions';
-import { useAuth } from '@/firebase';
+import { useAuth } from '@/context/auth-context';
 import { getCompaniesByRole } from '@/lib/mock-data';
 
 

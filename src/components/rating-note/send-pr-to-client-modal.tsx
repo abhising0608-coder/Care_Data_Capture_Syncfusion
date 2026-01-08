@@ -16,7 +16,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import type { RatingNote, AppUser } from '@/lib/definitions';
-import { useAuth } from '@/firebase';
+import { useAuth } from '@/context/auth-context';
 
 const emailSchema = z.object({
   to: z.string().email("Invalid email").min(1, 'To field is required'),
@@ -176,4 +176,3 @@ export function SendPrToClientModal({ isOpen, onClose, note, analyst }: SendPrTo
       </>
     );
 }
-

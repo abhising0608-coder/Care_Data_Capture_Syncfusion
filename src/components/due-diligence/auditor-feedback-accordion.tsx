@@ -16,7 +16,7 @@ import { AuditorEmailModal } from './auditor-email-modal';
 import type { AuditorFirm, AuditorContact, FeedbackStatus } from '@/lib/definitions';
 import { useToast } from '@/hooks/use-toast';
 import { getCompaniesByRole } from '@/lib/mock-data';
-import { useAuth } from '@/firebase';
+import { useAuth } from '@/context/auth-context';
 
 interface AuditorFeedbackAccordionProps {
     firms: AuditorFirm[];

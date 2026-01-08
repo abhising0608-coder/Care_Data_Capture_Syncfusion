@@ -7,7 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useRouter } from 'next/navigation';
 
-import { useAuth } from '@/firebase';
+import { useAuth } from '@/context/auth-context';
 import type { CompanyDashboard, SiteVisit } from '@/lib/definitions';
 import { getCompaniesByRole } from '@/lib/mock-data';
 import { useToast } from '@/hooks/use-toast';
