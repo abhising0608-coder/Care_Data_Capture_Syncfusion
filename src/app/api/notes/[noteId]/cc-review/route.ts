@@ -21,7 +21,7 @@ export async function POST(
       newStatus = 'Rework Requested (GH)';
       break;
     case 'approve-submit':
-      newStatus = 'CC Approved';
+      newStatus = 'CC Approved' as NoteStatus;
       break;
     default:
       return NextResponse.json({ message: 'Invalid action' }, { status: 400 });

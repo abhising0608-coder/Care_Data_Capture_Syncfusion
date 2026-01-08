@@ -37,50 +37,50 @@ export async function POST(
       newStatus = 'In Review (GH)';
       break;
     case 'approve-gh':
-      newStatus = 'GH Approved';
+      newStatus = 'GH Approved' as NoteStatus;
       break;
     case 'rework-gh':
       newStatus = 'Rework Requested (GH)';
       break;
     
     case 'send-to-rh':
-      newStatus = 'In Review (RH)';
+      newStatus = 'In Review (RH)' as NoteStatus;
       break;
     case 'approve-rh':
-      newStatus = 'RH Approved';
+      newStatus = 'RH Approved' as NoteStatus;
       break;
     case 'rework-rh':
-      newStatus = 'Rework Requested (RH)';
+      newStatus = 'Rework Requested (RH)' as NoteStatus;
       break;
       
     case 'send-to-qc':
       newStatus = 'In Review (QC)';
       break;
     case 'approve-qc':
-      newStatus = 'QC Approved';
+      newStatus = 'QC Approved' as NoteStatus;
       break;
     case 'rework-qc':
-      newStatus = 'Rework Requested (QC)';
+      newStatus = 'Rework Requested (QC)' as NoteStatus;
       break;
       
     case 'send-to-auditor':
-      newStatus = 'In Review (Auditor)';
+      newStatus = 'In Review (Auditor)' as NoteStatus;
       break;
     case 'approve-auditor':
-      newStatus = 'Auditor Approved';
+      newStatus = 'Auditor Approved' as NoteStatus;
       break;
     case 'rework-auditor':
-      newStatus = 'Rework Requested (Auditor)';
+      newStatus = 'Rework Requested (Auditor)' as NoteStatus;
       break;
       
     case 'send-to-editor':
-      newStatus = 'In Review (Editor)';
+      newStatus = 'In Review (Editor)' as NoteStatus;
       break;
     case 'approve-editor':
-      newStatus = 'Editor Approved';
+      newStatus = 'Editor Approved' as NoteStatus;
       break;
     case 'rework-editor':
-      newStatus = 'Rework Requested (Editor)';
+      newStatus = 'Rework Requested (Editor)' as NoteStatus;
       break;
       
     case 'send-to-client':
