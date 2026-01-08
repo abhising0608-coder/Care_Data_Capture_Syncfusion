@@ -25,22 +25,20 @@ export default function RatingNotePage() {
     const { toast } = useToast();
     const { user, role } = useAuth();
     const editorRef = useRef<DocumentEditorContainer | null>(null);
-    const [isLoadingContent, setIsLoadingContent] = useState(true);
+    
+    const [documentContent, setDocumentContent] = useState<string | null>(null);
 
     const { data: note, isLoading: isNoteLoading, mutate } = useSWR<RatingNote>(
         noteId ? `/api/notes/${noteId}` : null,
         fetcher
     );
     
-    const [documentContent, setDocumentContent] = useState<string | null>(null);
-
     useEffect(() => {
         const loadContent = async () => {
             if (note) {
-                if (note.editorContent && note.editorContent.length > 50) {
+                 if (note.editorContent && note.editorContent.length > 50) {
                      setDocumentContent(note.editorContent);
                 } else if (note.ratingNoteData) {
-                    setIsLoadingContent(true);
                     try {
                         const boundSfdt = await getBoundRatingNoteSfdt(note.ratingNoteData);
                         setDocumentContent(boundSfdt);
@@ -51,17 +49,12 @@ export default function RatingNotePage() {
                             title: 'Error Loading Document',
                             description: 'Could not generate the document content from data.',
                         });
-                    } finally {
-                        setIsLoadingContent(false);
                     }
                 }
-                 setIsLoadingContent(false);
             }
         };
 
-        if (note) {
-            loadContent();
-        }
+        loadContent();
     }, [note, toast]);
     
     const handleSave = async (isSubmitting: boolean = false) => {
@@ -131,9 +124,17 @@ export default function RatingNotePage() {
         editorRef.current.documentEditor.save(fileName, format);
     };
 
-    const isLoading = isNoteLoading || isLoadingContent;
+    const canEdit = (userRole: Role | undefined, noteStatus: NoteStatus | undefined) => {
+        if (!userRole || !noteStatus) return false;
+        if (userRole === 'RATING_ANALYST' && noteStatus === 'Draft') {
+            return true;
+        }
+        return false;
+    };
 
-    if (isLoading || !documentContent) {
+    const isReadOnly = !canEdit(user?.role, note?.status as NoteStatus);
+
+    if (isNoteLoading || !note || !documentContent) {
         return (
             <div className="flex h-full w-full flex-col p-4 sm:p-6 lg:p-8">
                 <div className="flex items-center justify-center flex-col h-[calc(100vh-250px)] w-full bg-muted/50 rounded-lg">
@@ -145,25 +146,15 @@ export default function RatingNotePage() {
         )
     }
 
-    const canEdit = (userRole: Role | undefined, noteStatus: NoteStatus) => {
-        if (!userRole) return false;
-        if (userRole === 'RATING_ANALYST' && noteStatus === 'Draft') {
-            return true;
-        }
-        return false;
-    };
-
-    const isReadOnly = !canEdit(user?.role, note.status as NoteStatus);
-
     return (
         <div className="flex h-full w-full flex-col">
             <header className="flex h-auto items-center justify-between gap-4 border-b bg-background p-4 sm:px-0 flex-wrap">
                 <div className="flex-1">
                     <h1 className="text-xl font-semibold text-foreground">
-                        Rating Note: {note?.companyName}
+                        Rating Note: {note.companyName}
                     </h1>
                     <p className="text-muted-foreground text-sm">
-                        {isReadOnly ? `Status: ${note?.status}. This note is locked.` : 'Prepare the final rating note draft.'}
+                        {isReadOnly ? `Status: ${note.status}. This note is locked.` : 'Prepare the final rating note draft.'}
                     </p>
                 </div>
                 <div className="flex items-center gap-2">
@@ -187,7 +178,7 @@ export default function RatingNotePage() {
             </header>
             <main className="flex-1 pt-6">
                 <Suspense fallback={<Skeleton className="h-[calc(100vh-250px)] w-full" />}>
-                    <RatingNoteEditor
+                   <RatingNoteEditor
                         key={note.id + (note.ratingNoteData?.audit.version || 1)}
                         ref={editorRef}
                         isReadOnly={isReadOnly}
@@ -198,3 +189,4 @@ export default function RatingNotePage() {
         </div>
     );
 }
+
