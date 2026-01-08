@@ -52,7 +52,7 @@ import { useToast } from '@/hooks/use-toast';
 import type { CKCRequest } from '@/lib/definitions';
 import { Badge } from '../ui/badge';
 import { Skeleton } from '../ui/skeleton';
-import { useAuth } from '@/firebase';
+import { useAuth } from '@/context/auth-context';
 import { useWorkflow } from '@/context/workflow-context';
 
 type SortConfig = {
@@ -299,9 +299,6 @@ export function AcceptedRequestsList() {
                       <TableCell>{formatTimestamp(req.receiptDateTime)}</TableCell>
                       <TableCell>{req.auditedFY.join(', ')}</TableCell>
                       <TableCell>{req.ckcAnalystName || 'N/A'}</TableCell>
-                      <TableCell>
-                        <Badge variant="secondary">{req.status}</Badge>
-                      </TableCell>
                       <TableCell>
                         <Button
                           variant="ghost"

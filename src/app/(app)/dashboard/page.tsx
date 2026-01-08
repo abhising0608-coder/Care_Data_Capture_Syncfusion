@@ -2,6 +2,7 @@
 
 import dynamic from 'next/dynamic'
 import { Skeleton } from '@/components/ui/skeleton'
+import { AuthProvider } from '@/context/auth-context';
 
 const DashboardClient = dynamic(() => import('@/components/dashboard/dashboard-client'), {
   ssr: false,

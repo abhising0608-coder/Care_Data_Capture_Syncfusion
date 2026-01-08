@@ -25,7 +25,7 @@ import {
   UserCheck,
   Plane,
 } from 'lucide-react';
-import { useAuth } from '@/firebase';
+import { useAuth } from '@/context/auth-context';
 
 const menuItems = [
   {

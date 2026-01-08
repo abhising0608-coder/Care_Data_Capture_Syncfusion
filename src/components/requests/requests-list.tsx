@@ -5,10 +5,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PendingRequestsList } from './pending-requests-list';
 import { AcceptedRequestsList } from './accepted-requests-list';
 import { ClosedRequestsList } from './closed-requests-list';
+import { AuthProvider } from '@/context/auth-context';
 
 export function RequestsList() {
   return (
-    <div>
+    <AuthProvider>
       <Tabs defaultValue="pending" className="space-y-4">
         <div className="flex items-center justify-between">
           <TabsList className="bg-transparent p-0 border-b rounded-none gap-4">
@@ -27,6 +28,6 @@ export function RequestsList() {
           <ClosedRequestsList />
         </TabsContent>
       </Tabs>
-    </div>
+    </AuthProvider>
   );
 }

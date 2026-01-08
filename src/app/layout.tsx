@@ -1,9 +1,7 @@
 'use client';
-import '../syncfusion-license'; // CRITICAL: This must be the first import.
+import '../syncfusion-license';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
-import { FirebaseClientProvider } from '@/firebase';
-
 
 export default function RootLayout({
   children,
@@ -19,10 +17,8 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
       </head>
       <body className="font-body antialiased" style={{fontFamily: "'Inter', sans-serif"}}>
-        <FirebaseClientProvider>
           {children}
           <Toaster />
-        </FirebaseClientProvider>
       </body>
     </html>
   );

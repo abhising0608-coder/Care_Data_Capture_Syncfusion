@@ -24,7 +24,7 @@ export default function RatingNotePage() {
     const router = useRouter();
     const noteId = params.ratingCycleId as string;
     const { toast } = useToast();
-    const { user, role } = useAuth();
+    const { user } = useAuth();
     const editorRef = useRef<DocumentEditorContainer | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     
@@ -55,7 +55,7 @@ export default function RatingNotePage() {
             } else if (note.ratingNoteData) {
                 // Otherwise, bind data to the template
                 console.log("No valid existing content found. Starting new data binding process.");
-                const boundSfdt = await getBoundRatingNoteSfdt(template, note.ratingNoteData);
+                const boundSfdt = await getBoundRatingNoteSfdt(template, note.ratingNoteData!);
                 setDocumentContent(boundSfdt);
             } else {
                  // Fallback for incomplete data

@@ -49,7 +49,7 @@ import {
 import type { CKCRequest } from '@/lib/definitions';
 import { Badge } from '../ui/badge';
 import { Skeleton } from '../ui/skeleton';
-import { useAuth } from '@/firebase';
+import { useAuth } from '@/context/auth-context';
 
 type SortConfig = {
   key: keyof CKCRequest;

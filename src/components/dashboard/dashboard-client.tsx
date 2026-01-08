@@ -52,8 +52,8 @@ import {
 import { Badge } from '@/components/ui/badge';
 import type { RatingNote, NoteStatus, Role } from '@/lib/definitions';
 import { cn } from '@/lib/utils';
-import { useAuth } from '@/firebase';
 import { Skeleton } from '../ui/skeleton';
+import { useAuth } from '@/context/auth-context';
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
@@ -273,6 +273,7 @@ export default function DashboardClient() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Actions</DropdownMenuLabel>
               <DropdownMenuItem onClick={() => handleAction(note)}>
                 {getActionText(user?.role, note)}
               </DropdownMenuItem>

@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import type { CKCRequest, Role } from '@/lib/definitions';
-import { useAuth } from '@/firebase';
+import { useAuth } from '@/context/auth-context';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import Image from 'next/image';
@@ -32,6 +32,8 @@ const roleDisplayNames: Record<Role, string> = {
   CKC_ADMIN: 'CKC Admin',
   RATING_HEAD_SD: 'Rating Head SD',
   SYSTEM: 'System',
+  AUDITOR: 'Auditor',
+  EDITOR: 'Editor',
 };
 
 
@@ -44,8 +46,6 @@ export function AppHeader() {
   const userInitials = user?.displayName?.split(' ').map(n => n[0]).join('') || 'U';
 
   const handleLogout = () => {
-    // In a real app, this would call a Firebase signOut method.
-    // For this prototype, we just redirect to the login page.
     router.push('/login');
   };
 
