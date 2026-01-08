@@ -1,14 +1,14 @@
 
 import type { RatingNoteDataSchema, TableDefinition } from './definitions';
-import template from './rating-note-template.json';
 import pako from 'pako';
 
 /**
- * Decodes, decompresses, and returns the raw SFDT JSON string from the template file.
+ * Decodes, decompresses, and returns the raw SFDT JSON string from a template file.
  * This can be used to directly load the template without any data binding.
+ * @param templateModule The imported JSON module containing the 'sfdt' base64 string.
  */
-export async function getDecompressedSfdt(): Promise<string> {
-    const base64String = (template as any).sfdt;
+export async function getDecompressedSfdt(templateModule: { sfdt: string }): Promise<string> {
+    const base64String = templateModule.sfdt;
     try {
         const binaryString = atob(base64String);
         const len = binaryString.length;
@@ -41,10 +41,10 @@ export async function getDecompressedSfdt(): Promise<string> {
 /**
  * A simple data binding engine to replace placeholders in the SFDT.
  * @param sfdtString The raw SFDT template string.
- * @param data The data bindings object from the master JSON.
+ * @param data The data bindings object.
  * @returns A new SFDT string with placeholders replaced.
  */
-function bindPlaceholders(sfdtString: string, data: any): string {
+export function bindPlaceholders(sfdtString: string, data: any): string {
     let boundSfdt = sfdtString;
     const placeholderRegex = /(?:\{\{|\<\<)([a-zA-Z0-9_.-]+)(?:\}\}|\>\>)/g;
 
@@ -89,10 +89,11 @@ function bindTables(sfdtObject: any, tables: { [key: string]: TableDefinition })
 
 /**
  * Fetches the SFDT template and the master data, then binds them together.
+ * @param sfdtTemplate The imported JSON module for the template.
  * @param ratingNoteData The full master JSON schema for the rating note.
  * @returns The final, data-bound SFDT string ready for the editor.
  */
-export async function getBoundRatingNoteSfdt(ratingNoteData: RatingNoteDataSchema): Promise<string> {
+export async function getBoundRatingNoteSfdt(sfdtTemplate: { sfdt: string }, ratingNoteData: RatingNoteDataSchema): Promise<string> {
     
     if (ratingNoteData.editorContent && ratingNoteData.editorContent.length > 50) {
         console.log("Loading existing editor content.");
@@ -106,7 +107,7 @@ export async function getBoundRatingNoteSfdt(ratingNoteData: RatingNoteDataSchem
     
     console.log("No valid existing content found. Starting new data binding process.");
 
-    const sfdtTemplateString = await getDecompressedSfdt();
+    const sfdtTemplateString = await getDecompressedSfdt(sfdtTemplate);
 
     const combinedDataForBinding = { ...ratingNoteData.dataBindings, workflowContext: ratingNoteData.workflowContext };
     const placeholderBoundSfdtString = bindPlaceholders(sfdtTemplateString, combinedDataForBinding);

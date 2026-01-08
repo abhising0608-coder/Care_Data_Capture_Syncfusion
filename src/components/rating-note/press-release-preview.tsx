@@ -1,4 +1,3 @@
-
 'use client';
 
 import {
@@ -10,10 +9,13 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import type { RatingNote, NoteStatus } from '@/lib/definitions';
-import { ChevronDown, Send, Edit, XCircle, Download } from 'lucide-react';
-import { useState } from 'react';
-import { SendToQCModal } from './send-to-qc-modal';
-import { useToast } from '@/hooks/use-toast';
+import { ChevronDown, Send, Edit, Download, Loader2 } from 'lucide-react';
+import { RatingNoteEditor } from './rating-note-editor';
+import { useEffect, useRef, useState } from 'react';
+import type { DocumentEditorContainer } from '@syncfusion/ej2-documenteditor';
+import { getDecompressedSfdt, bindPlaceholders } from '@/lib/rating-note-service';
+import * as prTemplate from '@/lib/press-release-template.json';
+
 
 type Action = 'send-to-gh' | 'send-to-rh' | 'send-to-qc' | 'send-to-auditor' | 'send-to-editor' | 'send-to-client';
 
@@ -55,8 +57,37 @@ const actionDisplayNames: Record<Action, string> = {
 
 
 export function PressReleasePreview({ note, onAction, onEdit, isReadOnly = false }: PressReleasePreviewProps) {
-  const { toast } = useToast();
   const nextActions = getNextActions(note.status);
+  const editorRef = useRef<DocumentEditorContainer | null>(null);
+  const [documentContent, setDocumentContent] = useState<string | null>(null);
+  const [isLoadingContent, setIsLoadingContent] = useState(true);
+
+  useEffect(() => {
+    const loadContent = async () => {
+        setIsLoadingContent(true);
+        try {
+            const templateString = await getDecompressedSfdt(prTemplate);
+            const prData = note.prContent ? JSON.parse(note.prContent) : {};
+            const boundSfdt = bindPlaceholders(templateString, prData);
+            setDocumentContent(boundSfdt);
+        } catch (error) {
+            console.error("Failed to load PR content:", error);
+            // Set a fallback error document
+            const errorSfdt = JSON.stringify({ "sfdt": "{\"sections\":[{\"blocks\":[{\"inlines\":[{\"text\":\"Error: Could not load press release preview.\"}]}]}]}" });
+            setDocumentContent(errorSfdt);
+        } finally {
+            setIsLoadingContent(false);
+        }
+    };
+    loadContent();
+  }, [note.prContent]);
+
+  const handleExport = (format: 'Docx' | 'Pdf') => {
+      if (editorRef.current) {
+          const fileName = `${note.companyName}_PressRelease_Preview`;
+          editorRef.current.documentEditor.save(fileName, format);
+      }
+  }
 
   return (
     <>
@@ -67,7 +98,7 @@ export function PressReleasePreview({ note, onAction, onEdit, isReadOnly = false
               {note.companyName}
             </h2>
             <p className="text-muted-foreground text-sm">
-                Press Release - Status: <span className="font-medium text-primary">{note.status}</span>
+                Press Release Preview - Status: <span className="font-medium text-primary">{note.status}</span>
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -90,26 +121,29 @@ export function PressReleasePreview({ note, onAction, onEdit, isReadOnly = false
 
               {!isReadOnly && (
                 <Button variant="outline" onClick={onEdit}>
-                    <Edit className="mr-2 h-4 w-4" /> Edit Press Release
+                    <Edit className="mr-2 h-4 w-4" /> Back to Edit
                 </Button>
               )}
-              <Button variant="outline" onClick={() => alert("Placeholder for PDF Download")}>
+              <Button variant="outline" onClick={() => handleExport('Pdf')}>
                   <Download className="mr-2 h-4 w-4" /> Download PDF
               </Button>
           </div>
         </header>
         
-        <Card className="h-[calc(100vh-350px)]">
-          <CardHeader>
-            <CardTitle>PR Document Preview</CardTitle>
-            <CardDescription>This is a placeholder for the generated PDF content.</CardDescription>
-          </CardHeader>
-          <CardContent className="h-full flex items-center justify-center">
-              <div className="text-center text-muted-foreground">
-                  <p className="text-2xl">PDF preview</p>
-              </div>
-          </CardContent>
-        </Card>
+        <div className="h-[calc(100vh-350px)] border rounded-lg">
+            {isLoadingContent || !documentContent ? (
+                 <div className="flex items-center justify-center flex-col h-full w-full bg-muted/50 rounded-lg">
+                    <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
+                    <p className="text-lg font-semibold text-foreground">Generating Preview...</p>
+                </div>
+            ) : (
+                <RatingNoteEditor
+                    ref={editorRef}
+                    isReadOnly={true}
+                    content={documentContent}
+                />
+            )}
+        </div>
       </div>
     </>
   );

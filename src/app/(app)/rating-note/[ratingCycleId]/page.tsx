@@ -12,9 +12,9 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { RatingNoteEditor } from '@/components/rating-note/rating-note-editor';
 import type { RatingNote, RatingNoteDataSchema, Role, NoteStatus } from '@/lib/definitions';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/firebase';
+import { useAuth } from '@/context/auth-context';
 import { getBoundRatingNoteSfdt } from '@/lib/rating-note-service';
-import * as template from '@/lib/Pharma-Rating-Note.json';
+import * as template from '@/lib/rating-note-template.json';
 
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
@@ -28,6 +28,8 @@ export default function RatingNotePage() {
     const editorRef = useRef<DocumentEditorContainer | null>(null);
     
     const [documentContent, setDocumentContent] = useState<string | null>(null);
+    const [isLoadingContent, setIsLoadingContent] = useState(true);
+
 
     const { data: note, isLoading: isNoteLoading, mutate } = useSWR<RatingNote>(
         noteId ? `/api/notes/${noteId}` : null,
@@ -36,14 +38,13 @@ export default function RatingNotePage() {
     
     useEffect(() => {
         const loadContent = async () => {
-            console.log("Starting loadContent function...");
-            
-            try {
-                console.log("Calling getDecompressedSfdt()...");
+            if (!note?.ratingNoteData) return;
 
-                const base64String = (template as any);
-                const decompressedSfdt = JSON.stringify(base64String);
-                setDocumentContent(decompressedSfdt);
+            console.log("Starting loadContent function...");
+            setIsLoadingContent(true);
+            try {
+                const boundSfdt = await getBoundRatingNoteSfdt(template, note.ratingNoteData);
+                setDocumentContent(boundSfdt);
                 console.log("Document content state updated!");
             } catch (error) {
                 console.error("!!! ERROR in loadContent !!!", error);
@@ -55,7 +56,7 @@ export default function RatingNotePage() {
                 });
             } finally {
                 console.log("Setting isLoadingContent to false");
-                
+                setIsLoadingContent(false);
             }
         };
 
@@ -139,7 +140,7 @@ export default function RatingNotePage() {
 
     const isReadOnly = !canEdit(user?.role, note?.status as NoteStatus);
 
-    if (isNoteLoading || !note || !documentContent) {
+    if (isNoteLoading || !note || isLoadingContent || !documentContent) {
         return (
             <div className="flex h-full w-full flex-col p-4 sm:p-6 lg:p-8">
                 <div className="flex items-center justify-center flex-col h-[calc(100vh-250px)] w-full bg-muted/50 rounded-lg">
@@ -194,4 +195,3 @@ export default function RatingNotePage() {
         </div>
     );
 }
-
