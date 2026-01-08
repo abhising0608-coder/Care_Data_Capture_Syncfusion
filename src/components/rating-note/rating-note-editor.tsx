@@ -1,4 +1,3 @@
-
 'use client';
 import React, { forwardRef, useImperativeHandle, useRef } from 'react';
 import {
@@ -56,8 +55,12 @@ export const RatingNoteEditor = forwardRef<DocumentEditorContainerComponent | nu
                     }
                 }, 500);
 
-                // Ensure the editor fits its container
-                editorInstance.resize();
+                // Ensure the editor fits its container, delaying resize slightly.
+                setTimeout(() => {
+                    if (editorRef.current) {
+                        editorRef.current.resize();
+                    }
+                }, 100);
             }
         };
 
