@@ -26,6 +26,7 @@ export default function RatingNotePage() {
     const { toast } = useToast();
     const { user, role } = useAuth();
     const editorRef = useRef<DocumentEditorContainer | null>(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
     
     const [documentContent, setDocumentContent] = useState<string | null>(null);
     const [isLoadingContent, setIsLoadingContent] = useState(true);
@@ -38,34 +39,42 @@ export default function RatingNotePage() {
     
     useEffect(() => {
         const loadContent = async () => {
-            if (!note?.ratingNoteData) return;
+            if (!note) return;
 
-            console.log("Starting loadContent function...");
-            setIsLoadingContent(true);
-            try {
+            // Use existing content if valid
+            if (note.editorContent && note.editorContent.length > 50) {
+                console.log("Loading existing editor content.");
+                try {
+                    JSON.parse(note.editorContent);
+                    setDocumentContent(note.editorContent);
+                } catch (e) {
+                     console.error("Existing editor content is invalid, falling back to template binding.", e);
+                     const boundSfdt = await getBoundRatingNoteSfdt(template, note.ratingNoteData!);
+                     setDocumentContent(boundSfdt);
+                }
+            } else if (note.ratingNoteData) {
+                // Otherwise, bind data to the template
+                console.log("No valid existing content found. Starting new data binding process.");
                 const boundSfdt = await getBoundRatingNoteSfdt(template, note.ratingNoteData);
                 setDocumentContent(boundSfdt);
-                console.log("Document content state updated!");
-            } catch (error) {
-                console.error("!!! ERROR in loadContent !!!", error);
-                console.error("Error details:", JSON.stringify(error, null, 2));
-                toast({
-                    variant: 'destructive',
-                    title: 'Error Loading Document',
-                    description: 'Could not load the document content.',
-                });
-            } finally {
-                console.log("Setting isLoadingContent to false");
-                setIsLoadingContent(false);
+            } else {
+                 // Fallback for incomplete data
+                 console.warn("Note data is incomplete. Loading a default document.");
+                 const defaultContent = JSON.stringify({ "sfdt": "{\"sections\":[{\"blocks\":[{\"inlines\":[{\"text\":\"Start drafting the rating note here...\"}]}]}]}" });
+                 setDocumentContent(defaultContent);
             }
+            setIsLoadingContent(false);
         };
 
-        loadContent();
-    }, [note, toast]);
+        if (note) {
+            loadContent();
+        }
+    }, [note]);
     
     const handleSave = async (isSubmitting: boolean = false) => {
         if (!editorRef.current || !note || !user) return;
 
+        setIsSubmitting(true);
         const action = isSubmitting ? 'submit-to-gh' : 'save-draft';
         
         try {
@@ -99,6 +108,7 @@ export default function RatingNotePage() {
                 if (isSubmitting) {
                     router.push('/dashboard');
                 }
+                 setIsSubmitting(false);
             };
 
             reader.readAsText(documentContentBlob);
@@ -110,6 +120,7 @@ export default function RatingNotePage() {
                 title: 'Error',
                 description: 'Failed to save or submit the rating note.',
             });
+            setIsSubmitting(false);
         }
     };
     
@@ -172,11 +183,12 @@ export default function RatingNotePage() {
                     </Button>
                     {!isReadOnly && (
                         <>
-                            <Button variant="outline" onClick={() => handleSave(false)}>
+                            <Button variant="outline" onClick={() => handleSave(false)} disabled={isSubmitting}>
                                 <Save className="mr-2 h-4 w-4" /> Save Draft
                             </Button>
-                            <Button onClick={handleSubmitToGroupHead}>
-                                <Send className="mr-2 h-4 w-4" /> Submit to Group Head
+                            <Button onClick={handleSubmitToGroupHead} disabled={isSubmitting}>
+                                {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
+                                Submit to Group Head
                             </Button>
                         </>
                     )}
