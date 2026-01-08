@@ -1,3 +1,4 @@
+
 'use client';
 import React, { forwardRef, useImperativeHandle, useRef } from 'react';
 import {
@@ -30,6 +31,7 @@ export const RatingNoteEditor = forwardRef<DocumentEditorContainerComponent | nu
                 // Configure the editor properties
                 editorInstance.documentEditor.isReadOnly = isReadOnly || false;
                 editorInstance.documentEditor.showTrackChanges = true;
+                editorInstance.documentEditor.trackChanges = true;
 
                 if (content) {
                     try {
@@ -47,20 +49,6 @@ export const RatingNoteEditor = forwardRef<DocumentEditorContainerComponent | nu
                     const defaultContent = JSON.stringify({ "sfdt": "{\"sections\":[{\"blocks\":[{\"inlines\":[{\"text\":\"Start drafting the rating note here...\"}]}]}]}" });
                     editorInstance.documentEditor.open(defaultContent);
                 }
-
-                // Enable track changes after a short delay to ensure the document is fully loaded
-                setTimeout(() => {
-                    if (editorInstance && editorInstance.documentEditor) {
-                        editorInstance.documentEditor.trackChanges = true;
-                    }
-                }, 500);
-
-                // Ensure the editor fits its container, delaying resize slightly.
-                setTimeout(() => {
-                    if (editorRef.current) {
-                        editorRef.current.resize();
-                    }
-                }, 100);
             }
         };
 
