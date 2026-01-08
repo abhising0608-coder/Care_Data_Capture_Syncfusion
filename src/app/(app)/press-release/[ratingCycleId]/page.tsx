@@ -1,23 +1,16 @@
 
 'use client';
 
-import { Suspense, useRef, useState, useEffect } from 'react';
+import { Suspense, useState } from 'react';
 import useSWR from 'swr';
 import { useParams, useRouter } from 'next/navigation';
-import { Send, Newspaper, FileText } from 'lucide-react';
-import type { DocumentEditorContainer } from '@syncfusion/ej2-documenteditor';
 
-import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { RatingNoteEditor } from '@/components/rating-note/rating-note-editor';
 import type { RatingNote, Role } from '@/lib/definitions';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/firebase';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { PressReleaseInitiation } from '@/components/rating-note/press-release-initiation';
-import { PressReleasePreparation } from '@/components/rating-note/press-release-preparation';
-import { PressReleaseFinalForm } from '@/components/rating-note/press-release-final-form';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { PressReleaseFinalForm } from '@/components/rating-note/press-release-final-form';
 import { PressReleasePreview } from '@/components/rating-note/press-release-preview';
 import { PressReleasePublication } from '@/components/rating-note/press-release-publication';
 import { PressReleaseHistory } from '@/components/rating-note/press-release-history';
@@ -25,9 +18,7 @@ import { PressReleaseReview } from '@/components/rating-note/press-release-revie
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
 
-// Helper function to check if the user is a reviewer
-const isReviewer = (role: Role) => ['GROUP_HEAD', 'RATING_HEAD_SD', 'QC', 'AUDITOR', 'EDITOR'].includes(role);
-
+const isReviewer = (role?: Role) => role && ['GROUP_HEAD', 'RATING_HEAD_SD', 'QC', 'AUDITOR', 'EDITOR'].includes(role);
 
 export default function PressReleasePage() {
     const params = useParams();
@@ -36,15 +27,23 @@ export default function PressReleasePage() {
     const { toast } = useToast();
     const { user } = useAuth();
     
-    // The main data fetching for the rating note
+    const [view, setView] = useState<'edit' | 'preview'>('edit');
+
     const { data: note, isLoading, mutate } = useSWR<RatingNote>(
       ratingCycleId ? `/api/notes/${ratingCycleId}` : null,
       fetcher
     );
 
-    // This handles all state transitions by calling the backend
     const handleAction = async (action: string, payload?: Record<string, any>) => {
         if (!note || !user) return;
+        
+        const isPreviewAction = action === 'preview';
+
+        if (isPreviewAction) {
+             await handleAction('save-pr-draft', payload);
+             setView('preview');
+             return;
+        }
 
         try {
             const res = await fetch(`/api/notes/${ratingCycleId}/review`, {
@@ -60,9 +59,8 @@ export default function PressReleasePage() {
             if (!res.ok) throw new Error(`Failed to perform action: ${action}`);
 
             toast({ title: 'Success', description: 'Press Release has been updated.' });
-            mutate(); // Re-fetch the data to get the new status
-            
-            // If the action moves the note away from the current user, redirect
+            mutate();
+
             if (['submit-to-gh', 'submit-to-rh', 'submit-to-qc'].includes(action)) {
                 router.push('/dashboard');
             }
@@ -84,28 +82,36 @@ export default function PressReleasePage() {
         )
     }
     
-    // Determine what to render based on the user's role and the note's status
     const renderContent = () => {
         const isCurrentUserReviewer = isReviewer(user.role);
         const isNoteUnderReviewByCurrentUser = isCurrentUserReviewer && note.status.includes('In Review') && note.currentActor === user.role;
 
         if (isNoteUnderReviewByCurrentUser) {
-            // Reviewers see a read-only view with Approve/Rework buttons
             return <PressReleaseReview note={note} onAction={handleAction} />;
         }
         
-        // The RA (owner) sees the editor form
         if (user.role === 'RATING_ANALYST') {
-            return (
-                <PressReleaseFinalForm 
-                    key={note.id + note.status} 
-                    note={note} 
-                    onAction={handleAction} 
-                />
-            );
+            if (view === 'edit') {
+                 return (
+                    <PressReleaseFinalForm 
+                        key={`${note.id}-edit`}
+                        note={note} 
+                        onAction={handleAction} 
+                    />
+                );
+            }
+             if (view === 'preview') {
+                return (
+                    <PressReleasePreview 
+                        key={`${note.id}-preview`}
+                        note={note} 
+                        onAction={handleAction}
+                        onEdit={() => setView('edit')}
+                    />
+                );
+            }
         }
 
-        // Fallback for other roles or states (e.g., read-only view for uninvolved parties)
         return <PressReleaseReview note={note} onAction={handleAction} isReadOnly={true} />;
     };
 

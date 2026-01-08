@@ -19,7 +19,8 @@ type Action = 'send-to-gh' | 'send-to-rh' | 'send-to-qc' | 'send-to-auditor' | '
 
 interface PressReleasePreviewProps {
   note: RatingNote;
-  onAction: (action: Action, payload?: any) => void;
+  onAction: (action: Action | 'edit-pr', payload?: any) => void;
+  onEdit: () => void;
   isReadOnly?: boolean;
 }
 
@@ -53,7 +54,7 @@ const actionDisplayNames: Record<Action, string> = {
 };
 
 
-export function PressReleasePreview({ note, onAction, isReadOnly = false }: PressReleasePreviewProps) {
+export function PressReleasePreview({ note, onAction, onEdit, isReadOnly = false }: PressReleasePreviewProps) {
   const { toast } = useToast();
   const nextActions = getNextActions(note.status);
 
@@ -70,10 +71,10 @@ export function PressReleasePreview({ note, onAction, isReadOnly = false }: Pres
             </p>
           </div>
           <div className="flex items-center gap-2">
-              {nextActions.length > 0 && (
+              {nextActions.length > 0 && !isReadOnly && (
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                        <Button variant="outline">
+                        <Button>
                             Send to <ChevronDown className="ml-2 h-4 w-4" />
                         </Button>
                     </DropdownMenuTrigger>
@@ -88,7 +89,7 @@ export function PressReleasePreview({ note, onAction, isReadOnly = false }: Pres
               )}
 
               {!isReadOnly && (
-                <Button variant="outline" onClick={() => onAction('edit-pr' as any)}>
+                <Button variant="outline" onClick={onEdit}>
                     <Edit className="mr-2 h-4 w-4" /> Edit Press Release
                 </Button>
               )}

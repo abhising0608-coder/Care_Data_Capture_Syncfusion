@@ -1,10 +1,10 @@
 
 'use client';
-import { useForm, FormProvider, useFormContext } from 'react-hook-form';
+import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useState } from 'react';
-import { Info, Save, ChevronDown, Send } from 'lucide-react';
+import { Info, Save, ChevronDown, Send, Eye } from 'lucide-react';
 import useSWR from 'swr';
 import { format } from 'date-fns';
 
@@ -35,7 +35,7 @@ const prSchema = z.object({
 });
 
 type PRFormValues = z.infer<typeof prSchema>;
-type Action = 'send-to-gh' | 'send-to-rh' | 'send-to-qc' | 'send-to-auditor' | 'send-to-editor' | 'send-to-client' | 'save-pr-draft';
+type Action = 'send-to-gh' | 'send-to-rh' | 'send-to-qc' | 'send-to-auditor' | 'send-to-editor' | 'send-to-client' | 'save-pr-draft' | 'preview';
 
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
@@ -73,6 +73,7 @@ const actionDisplayNames: Record<Action, string> = {
     'send-to-auditor': 'Send to Auditor',
     'send-to-editor': 'Send to Editor',
     'send-to-client': 'Send to Client',
+    'preview': 'Save & Preview',
 };
 
 
@@ -242,6 +243,9 @@ export function PressReleaseFinalForm({ note, onAction }: PressReleaseFinalFormP
                      <div className="flex justify-end gap-2">
                         <Button type="button" variant="outline" onClick={() => handleFormSubmit('save-pr-draft')}>
                             <Save className="mr-2 h-4 w-4" /> Save Draft
+                        </Button>
+                        <Button type="button" variant="outline" onClick={() => handleFormSubmit('preview')}>
+                            <Eye className="mr-2 h-4 w-4" /> Save & Preview
                         </Button>
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
