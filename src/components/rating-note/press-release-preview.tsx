@@ -11,9 +11,11 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import type { RatingNote, NoteStatus } from '@/lib/definitions';
 import { ChevronDown, Send, Edit, XCircle, Download } from 'lucide-react';
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import { SendToQCModal } from './send-to-qc-modal';
 import { useToast } from '@/hooks/use-toast';
+import { RatingNoteEditor } from './rating-note-editor';
+import { Skeleton } from '../ui/skeleton';
 
 type Action = 'send-to-gh' | 'send-to-rh' | 'send-to-qc' | 'send-to-auditor' | 'send-to-editor' | 'send-to-client';
 
@@ -99,17 +101,15 @@ export function PressReleasePreview({ note, onAction, onEdit, isReadOnly = false
           </div>
         </header>
         
-        <Card className="h-[calc(100vh-350px)]">
-          <CardHeader>
-            <CardTitle>PR Document Preview</CardTitle>
-            <CardDescription>This is a placeholder for the generated PDF content.</CardDescription>
-          </CardHeader>
-          <CardContent className="h-full flex items-center justify-center">
-              <div className="text-center text-muted-foreground">
-                  <p className="text-2xl">PDF preview</p>
-              </div>
-          </CardContent>
-        </Card>
+        <div className="flex-1 pt-6">
+          <Suspense fallback={<Skeleton className="h-[calc(100vh-250px)] w-full" />}>
+              <RatingNoteEditor 
+                  key={note.id + note.status + '-preview'}
+                  isReadOnly={true}
+                  content={note.editorContent}
+              />
+          </Suspense>
+        </div>
       </div>
     </>
   );
