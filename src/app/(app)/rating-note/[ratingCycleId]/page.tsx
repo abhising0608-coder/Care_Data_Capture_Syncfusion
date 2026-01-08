@@ -14,6 +14,7 @@ import type { RatingNote, RatingNoteDataSchema, Role, NoteStatus } from '@/lib/d
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/firebase';
 import { getBoundRatingNoteSfdt } from '@/lib/rating-note-service';
+import * as template from '@/lib/Pharma-Rating-Note.json';
 
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
@@ -35,22 +36,26 @@ export default function RatingNotePage() {
     
     useEffect(() => {
         const loadContent = async () => {
-            if (note) {
-                 if (note.editorContent && note.editorContent.length > 50) {
-                     setDocumentContent(note.editorContent);
-                } else if (note.ratingNoteData) {
-                    try {
-                        const boundSfdt = await getBoundRatingNoteSfdt(note.ratingNoteData);
-                        setDocumentContent(boundSfdt);
-                    } catch (error) {
-                        console.error("Error binding SFDT:", error);
-                        toast({
-                            variant: 'destructive',
-                            title: 'Error Loading Document',
-                            description: 'Could not generate the document content from data.',
-                        });
-                    }
-                }
+            console.log("Starting loadContent function...");
+            
+            try {
+                console.log("Calling getDecompressedSfdt()...");
+
+                const base64String = (template as any);
+                const decompressedSfdt = JSON.stringify(base64String);
+                setDocumentContent(decompressedSfdt);
+                console.log("Document content state updated!");
+            } catch (error) {
+                console.error("!!! ERROR in loadContent !!!", error);
+                console.error("Error details:", JSON.stringify(error, null, 2));
+                toast({
+                    variant: 'destructive',
+                    title: 'Error Loading Document',
+                    description: 'Could not load the document content.',
+                });
+            } finally {
+                console.log("Setting isLoadingContent to false");
+                
             }
         };
 
