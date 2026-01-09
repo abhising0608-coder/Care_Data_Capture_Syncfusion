@@ -108,7 +108,15 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
   const [claims, setClaims] = useState<AppClaims | null>(null);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
-  const [role, setRole] = useState<Role>('RATING_ANALYST'); // Default role
+
+  const [role, setRole] = useState<Role>(() => {
+    // Initialize state from sessionStorage if available, otherwise default
+    if (typeof window !== 'undefined') {
+        const savedRole = sessionStorage.getItem('userRole') as Role;
+        return savedRole || 'RATING_ANALYST';
+    }
+    return 'RATING_ANALYST';
+  });
 
   useEffect(() => {
     setIsAuthLoading(true);
@@ -120,6 +128,9 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
   }, [role]); // Rerun effect if role changes
 
   const setUserRole = (newRole: Role) => {
+    if (typeof window !== 'undefined') {
+        sessionStorage.setItem('userRole', newRole);
+    }
     setRole(newRole);
   };
   // --- End Auth Logic ---
@@ -183,5 +194,3 @@ export function useMemoFirebase<T>(factory: () => T, deps: DependencyList): T | 
   (memoized as MemoFirebase<T>).__memo = true;
   return memoized;
 }
-
-    
