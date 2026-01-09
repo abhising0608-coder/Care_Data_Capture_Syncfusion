@@ -92,19 +92,6 @@ export function AppSidebar() {
               </SidebarMenuButton>
             </SidebarMenuItem>
           ))}
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                asChild
-                isActive={pathname === '/ckc-requests'}
-                tooltip={{ children: 'CKC', side: 'right' }}
-                className="justify-start"
-              >
-                <a href="/ckc-requests">
-                  <Users className="h-4 w-4" />
-                  <span className="text-sm">CKC</span>
-                </a>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
           {/* Rating Note Submenu */}
            <SidebarMenuItem>
                 <SidebarMenuSub>
