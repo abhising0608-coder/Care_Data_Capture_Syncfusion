@@ -87,10 +87,10 @@ const mockUsers: Record<Role, AppUser> = {
         role: 'RATING_COMMITTEE',
         photoURL: 'https://i.pravatar.cc/150?u=cc'
     },
-    CKC_ANALYST: { uid: 'ckc.analyst', email: 'ckc.analyst@careedge.com', displayName: 'CKC Analyst', role: 'CKC_ANALYST' },
-    CKC_ADMIN: { uid: 'ckc.admin', email: 'ckc.admin@careedge.com', displayName: 'CKC Admin', role: 'CKC_ADMIN' },
-    CKC_CHECKER: { uid: 'ckc.checker', email: 'ckc.checker@careedge.com', displayName: 'CKC Checker', role: 'CKC_CHECKER' },
-    RATING_HEAD_SD: { uid: 'rh.sd', email: 'rh.sd@careedge.com', displayName: 'Rating Head SD', role: 'RATING_HEAD_SD' },
+    CKC_ANALYST: { uid: 'ckc.analyst@careedge.com', email: 'ckc.analyst@careedge.com', displayName: 'CKC Analyst', role: 'CKC_ANALYST' },
+    CKC_ADMIN: { uid: 'ckc.admin@careedge.com', email: 'ckc.admin@careedge.com', displayName: 'CKC Admin', role: 'CKC_ADMIN' },
+    CKC_CHECKER: { uid: 'ckc.checker@careedge.com', email: 'ckc.checker@careedge.com', displayName: 'CKC Checker', role: 'CKC_CHECKER' },
+    RATING_HEAD_SD: { uid: 'rh.sd@careedge.com', email: 'rh.sd@careedge.com', displayName: 'Rating Head SD', role: 'RATING_HEAD_SD' },
     SYSTEM: { uid: 'system', email: 'system@careedge.com', displayName: 'System', role: 'SYSTEM' },
     EDITOR: { uid: 'editor@careedge.com', email: 'editor@careedge.com', displayName: 'Editor', role: 'EDITOR' },
     AUDITOR: { uid: 'auditor@careedge.com', email: 'auditor@careedge.com', displayName: 'Auditor', role: 'AUDITOR' },
@@ -183,3 +183,5 @@ export function useMemoFirebase<T>(factory: () => T, deps: DependencyList): T | 
   (memoized as MemoFirebase<T>).__memo = true;
   return memoized;
 }
+
+    

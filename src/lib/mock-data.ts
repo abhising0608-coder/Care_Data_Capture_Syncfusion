@@ -426,7 +426,7 @@ export const mockUsers: Record<string, AppUser> = {
     },
      'ckc.admin@careedge.com': { uid: 'ckc.admin', email: 'ckc.admin@careedge.com', displayName: 'CKC Admin', role: 'CKC_ADMIN' },
      'ckc.analyst@careedge.com': { uid: 'ckc.analyst', email: 'ckc.analyst@careedge.com', displayName: 'CKC Analyst', role: 'CKC_ANALYST' },
-
+     'ckc.checker@careedge.com': { uid: 'ckc.checker', email: 'ckc.checker@careedge.com', displayName: 'CKC Checker', role: 'CKC_CHECKER' },
 };
 
 export const mockQcUsers = [
@@ -1159,4 +1159,5 @@ export function updateIsinRecord(instrumentId: string, rcmId: string, records: I
     return [];
 }
 
+    
     
