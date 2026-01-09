@@ -44,6 +44,7 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '../ui/skeleton';
 import { useAuth } from '@/firebase';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 
 interface Correction {
     id: string;
@@ -303,10 +304,9 @@ export function CorrectionLogTable() {
                         </Button>
                     </div>
                 </div>
-                <div className="flex justify-end gap-4">
+                 <div className="flex justify-end gap-4 mt-4">
                     {isChecker ? (
                         <>
-                            <Button onClick={() => toast({title: "Placeholder", description: "Send back to maker functionality"})}>Send back to Maker</Button>
                             <Button onClick={() => toast({title: "Placeholder", description: "Mark as complete functionality"})}>Mark as Complete</Button>
                         </>
                     ) : (
