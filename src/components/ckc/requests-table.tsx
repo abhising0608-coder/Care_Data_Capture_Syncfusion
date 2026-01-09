@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import useSWR from 'swr';
+import useSWR, { useSWRConfig } from 'swr';
 import { useRouter } from 'next/navigation';
 import {
   ColumnDef,
@@ -21,7 +21,8 @@ import {
   Search,
   Settings,
   Download,
-  Filter
+  Filter,
+  Check
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -53,6 +54,7 @@ import {
 import { Skeleton } from '../ui/skeleton';
 import type { CKCRequest, RequestStatus } from '@/lib/definitions';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/firebase';
 
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
@@ -67,6 +69,8 @@ interface CKCRequestsTableProps {
 export function CKCRequestsTable({ status, globalFilter, setGlobalFilter }: CKCRequestsTableProps) {
   const router = useRouter();
   const { toast } = useToast();
+  const { user } = useAuth();
+  const { mutate } = useSWRConfig();
   
   const { data: requests, isLoading } = useSWR<CKCRequest[]>(
       status ? `/api/ckc/requests?status=${status}` : null, 
@@ -81,6 +85,30 @@ export function CKCRequestsTable({ status, globalFilter, setGlobalFilter }: CKCR
     });
   const [rowSelection, setRowSelection] = React.useState({});
   
+  const handleAcceptRequest = async (requestId: string) => {
+    if (!user) {
+        toast({ title: 'Error', description: 'You must be logged in to perform this action.', variant: 'destructive' });
+        return;
+    }
+    
+    try {
+        // In a real app, this would be a POST/PUT request to an API endpoint
+        // For this prototype, we'll just simulate success
+        toast({
+            title: 'Request Accepted',
+            description: `Request ${requestId} has been successfully accepted.`
+        });
+        // Optimistically update the UI by removing the item from the list
+        mutate(`/api/ckc/requests?status=PENDING`, (currentData: CKCRequest[] | undefined) => {
+            if (!currentData) return [];
+            return currentData.filter(req => req.id !== requestId);
+        }, false);
+
+    } catch (error) {
+        toast({ title: 'Error', description: 'Failed to accept the request.', variant: 'destructive' });
+    }
+  };
+
 
   const columns: ColumnDef<CKCRequest>[] = [
     {
@@ -110,7 +138,7 @@ export function CKCRequestsTable({ status, globalFilter, setGlobalFilter }: CKCR
               <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
       ),
-      cell: ({ row }) => <Link href={`/ckc/requests/${row.getValue('id')}`} className="text-blue-600 hover:underline">{row.getValue('id')}</Link>,
+      cell: ({ row }) => <Link href={`/operational-input/request/${row.getValue('id')}`} className="text-blue-600 hover:underline">{row.getValue('id')}</Link>,
     },
      {
       accessorKey: 'companyName',
@@ -164,12 +192,21 @@ export function CKCRequestsTable({ status, globalFilter, setGlobalFilter }: CKCR
     {
       id: 'actions',
       header: 'Actions',
-      cell: ({ row }) => (
+      cell: ({ row }) => {
+        if (status === 'PENDING') {
+            return (
+                <Button variant="ghost" className="h-8 w-8 p-0" onClick={() => handleAcceptRequest(row.original.id)}>
+                    <Check className="h-4 w-4 text-green-600" />
+                </Button>
+            );
+        }
+        return (
           <Button variant="ghost" className="h-8 w-8 p-0">
             <span className="sr-only">Open menu</span>
             <MoreHorizontal className="h-4 w-4" />
           </Button>
-      ),
+        );
+      },
     },
   ];
 
