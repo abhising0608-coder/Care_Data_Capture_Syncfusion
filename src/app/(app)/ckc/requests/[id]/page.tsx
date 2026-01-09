@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -7,7 +6,7 @@ import useSWR from 'swr';
 import { useForm, FormProvider, Controller, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Download, Check, X, ShieldQuestion, Send, Edit, Save, ArrowLeft, ArrowRight } from 'lucide-react';
+import { Download, Check, X, ShieldQuestion, Send, Edit, Save, ArrowLeft, ArrowRight, Upload } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -26,6 +25,7 @@ import { WithdrawalModal } from '@/components/ckc/withdrawal-modal';
 import { PastFinancialsTable } from '@/components/ckc/past-financials-table';
 import { MandateDetailsForm } from '@/components/ckc/mandate-details-form';
 import { useAuth } from '@/firebase';
+import { Input } from '@/components/ui/input';
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
 
@@ -180,6 +180,14 @@ export default function CKCRequestDetailsPage() {
             </div>
         );
     }
+    
+    const receivedDocuments = [
+        { title: 'AY-2022.Pdf', size: '8 MB', type: 'PDF Document', date: '20 Nov 2024, 09:42 AM', by: 'Rahul Sharma', category: 'Audited' },
+        { title: 'PY-2023.Pdf', size: '6 MB', type: 'PDF Document', date: '20 Nov 2024, 09:42 AM', by: 'Kiran Kumar', category: 'Provisional' },
+        { title: 'PR-2024.Xlsx', size: '8 MB', type: 'Xlsx Document', date: '20 Nov 2024, 09:42 AM', by: 'Kiran Kumar', category: 'Projection' },
+        { title: 'PR-2025.Xlsx', size: '6 MB', type: 'Xlsx Document', date: '20 Nov 2024, 09:42 AM', by: 'Kiran Kumar', category: 'Projection' },
+    ];
+
 
     return (
         <FormProvider {...form}>
@@ -191,13 +199,13 @@ export default function CKCRequestDetailsPage() {
                         </h1>
                          <p className="text-muted-foreground">{request.companyName}</p>
                     </header>
-                    <Tabs value={activeTab} onValueChange={setActiveTab}>
+                    <Tabs value={activeTab} onValueChange={setActiveTab} defaultValue="mandate-details">
                         <TabsList>
-                            <TabsTrigger value="request-details">Request Details</TabsTrigger>
                             <TabsTrigger value="mandate-details">Mandate Details</TabsTrigger>
-                            <TabsTrigger value="past-financials">Past Financials</TabsTrigger>
+                            <TabsTrigger value="request-details">Request Form</TabsTrigger>
                             <TabsTrigger value="documents">Documents</TabsTrigger>
                             <TabsTrigger value="correction">Correction</TabsTrigger>
+                            <TabsTrigger value="past-financials">Past Financials</TabsTrigger>
                         </TabsList>
                         <TabsContent value="request-details" className="space-y-6">
                              <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
@@ -344,21 +352,64 @@ export default function CKCRequestDetailsPage() {
                            <PastFinancialsTable companyId={request.companyId} />
                         </TabsContent>
                         <TabsContent value="documents">
-                             <Card>
-                                <CardHeader>
-                                    <CardTitle>Documents</CardTitle>
-                                    <CardDescription>Review documents and manage request closure.</CardDescription>
-                                </CardHeader>
-                                <CardContent className="space-y-4">
-                                     <div className="text-center text-muted-foreground p-8">
-                                        (Placeholder for read-only document view and details)
+                           <Card>
+                                <CardContent className="space-y-6 pt-6">
+                                     <div className="flex items-center justify-between">
+                                        <div className="grid grid-cols-3 gap-4">
+                                            <div className="space-y-2">
+                                                <Label>Request Type</Label>
+                                                <Input value="Initial" disabled />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label>Financial Type</Label>
+                                                <Input value="Audited" disabled />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label>Tenure</Label>
+                                                <Input value="FY 24-25" disabled />
+                                            </div>
+                                        </div>
+                                         <Button variant="outline" onClick={() => toast({ title: "Placeholder", description: "Document upload modal to be implemented." })}>
+                                            <Upload className="mr-2 h-4 w-4" />
+                                            Upload Document
+                                        </Button>
                                     </div>
-                                     <div className="flex justify-end gap-2">
+
+                                    <div>
+                                        <h3 className="text-lg font-medium mb-2">Documents Received</h3>
+                                        <div className="rounded-md border">
+                                            <Table>
+                                                <TableHeader>
+                                                    <TableRow>
+                                                        <TableHead>Document Title</TableHead>
+                                                        <TableHead>Size</TableHead>
+                                                        <TableHead>File Type</TableHead>
+                                                        <TableHead>Received Date</TableHead>
+                                                        <TableHead>Uploaded by</TableHead>
+                                                        <TableHead>Document Category</TableHead>
+                                                    </TableRow>
+                                                </TableHeader>
+                                                <TableBody>
+                                                    {receivedDocuments.map(doc => (
+                                                        <TableRow key={doc.title}>
+                                                            <TableCell><Button variant="link" className="p-0 h-auto">{doc.title}</Button></TableCell>
+                                                            <TableCell>{doc.size}</TableCell>
+                                                            <TableCell>{doc.type}</TableCell>
+                                                            <TableCell>{doc.date}</TableCell>
+                                                            <TableCell>{doc.by}</TableCell>
+                                                            <TableCell>{doc.category}</TableCell>
+                                                        </TableRow>
+                                                    ))}
+                                                </TableBody>
+                                            </Table>
+                                        </div>
+                                    </div>
+                                    <div className="flex justify-end gap-2">
                                         <Button type="button" variant="outline" onClick={() => toast({title: "Placeholder", description: "Send back logic to be implemented."})}>Send Back</Button>
                                         <Button type="button" onClick={() => toast({title: "Placeholder", description: "Mark as complete logic to be implemented."})}>Mark as Complete</Button>
                                     </div>
                                 </CardContent>
-                            </Card>
+                           </Card>
                         </TabsContent>
                         <TabsContent value="correction">
                             <Card>
@@ -387,6 +438,4 @@ export default function CKCRequestDetailsPage() {
         </FormProvider>
     );
 }
-    
-
     
