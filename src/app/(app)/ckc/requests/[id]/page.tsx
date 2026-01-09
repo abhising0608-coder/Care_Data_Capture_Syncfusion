@@ -26,6 +26,8 @@ import { PastFinancialsTable } from '@/components/ckc/past-financials-table';
 import { MandateDetailsForm } from '@/components/ckc/mandate-details-form';
 import { useAuth } from '@/firebase';
 import { Input } from '@/components/ui/input';
+import { CorrectionLogTable } from '@/components/ckc/correction-log-table';
+
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
 
@@ -405,21 +407,14 @@ export default function CKCRequestDetailsPage() {
                                         </div>
                                     </div>
                                     <div className="flex justify-end gap-2">
-                                        <Button type="button" onClick={() => toast({title: "Placeholder", description: "Send for checking logic to be implemented."})}>Submit for Checking</Button>
+                                        <Button type="button" onClick={() => toast({title: "Placeholder", description: "Submit for checking logic to be implemented."})}>Submit for Checking</Button>
                                         <Button type="button" onClick={() => toast({title: "Placeholder", description: "Mark as complete logic to be implemented."})}>Mark as Complete</Button>
                                     </div>
                                 </CardContent>
                            </Card>
                         </TabsContent>
-                        <TabsContent value="correction">
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle>Correction</CardTitle>
-                                </CardHeader>
-                                <CardContent className="text-center text-muted-foreground p-8">
-                                    (Placeholder for Correction Log)
-                                </CardContent>
-                            </Card>
+                         <TabsContent value="correction">
+                           <CorrectionLogTable />
                         </TabsContent>
                     </Tabs>
                 </div>
