@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from '@/components/ui/skeleton';
 import { ActivitiesList } from '@/components/portfolio/activities-list';
 import { getNoteById } from '@/lib/mock-data';
+import { CompanyInformationTab } from '@/components/portfolio/company-information-tab';
 
 const tabsConfig = [
     { value: 'company-information', label: 'Company Information' },
@@ -30,7 +31,7 @@ export default function PortfolioActivitiesPage() {
                 <h1 className="text-2xl font-bold tracking-tight text-foreground">{companyName}</h1>
             </header>
 
-            <Tabs defaultValue="activities" className="w-full">
+            <Tabs defaultValue="company-information" className="w-full">
                 <TabsList>
                     {tabsConfig.map(tab => (
                         <TabsTrigger key={tab.value} value={tab.value}>{tab.label}</TabsTrigger>
@@ -39,15 +40,21 @@ export default function PortfolioActivitiesPage() {
 
                 {tabsConfig.map(tab => (
                     <TabsContent key={tab.value} value={tab.value}>
-                        {tab.value === 'activities' ? (
-                             <Suspense fallback={<Skeleton className="h-[400px] w-full" />}>
-                                <ActivitiesList />
-                            </Suspense>
-                        ) : (
-                            <div className="mt-4 flex items-center justify-center h-64 border rounded-lg bg-muted/50">
-                                <p className="text-muted-foreground">Content for {tab.label}</p>
-                            </div>
-                        )}
+                        <div className="mt-4">
+                            {tab.value === 'activities' ? (
+                                <Suspense fallback={<Skeleton className="h-[400px] w-full" />}>
+                                    <ActivitiesList />
+                                </Suspense>
+                            ) : tab.value === 'company-information' ? (
+                                <Suspense fallback={<Skeleton className="h-[600px] w-full" />}>
+                                    <CompanyInformationTab ratingCycleId={ratingCycleId} />
+                                </Suspense>
+                            ) : (
+                                <div className="flex items-center justify-center h-64 border rounded-lg bg-muted/50">
+                                    <p className="text-muted-foreground">Content for {tab.label}</p>
+                                </div>
+                            )}
+                        </div>
                     </TabsContent>
                 ))}
             </Tabs>
