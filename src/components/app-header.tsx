@@ -64,7 +64,7 @@ export function AppHeader() {
         )}
 
         <Button asChild variant="ghost" size="icon" className="rounded-full relative text-muted-foreground">
-          <Link href="/ckc-requests">
+          <Link href="#">
             <Bell className="h-5 w-5" />
             
             <span className="sr-only">Toggle notifications</span>

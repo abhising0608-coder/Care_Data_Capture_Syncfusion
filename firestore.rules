@@ -1,34 +1,24 @@
 /**
  * Core Philosophy:
- * This ruleset enforces a closed collaborator security model for a financial data
- * processing application. Access to any specific "Operational Request" document is
- * strictly limited to the user who created it (`createdBy`) or the analyst it is
-
- * currently assigned to (`assignedTo`). This ensures that sensitive operational
- * data is only visible and modifiable by the parties directly involved.
+ * This ruleset is designed for a rating note application.
+ * It prioritizes securing user-specific and company-specific data.
  *
  * Data Structure:
- * The data structure is flat, consisting of a single top-level collection:
- * /ckc_operational_requests/{requestId}
- * Each document in this collection represents a self-contained operational request.
+ * - /ratingNotes/{noteId}: Each document contains the core data for a rating note.
+ * - /companies/{companyId}: Master list of companies.
+ * - /users/{userId}: User profiles and roles.
+ * - /templates/{templateId}: Master list of note templates.
+ * - /criteria/{criteriaId}: Master list of rating criteria.
  *
  * Key Security Decisions:
- * - No Public Listing: Listing the entire `ckc_operational_requests` collection is
- *   explicitly forbidden. This is a critical security measure to prevent any user
- *   from discovering the existence of all requests in the system. The application
- *   is expected to build targeted queries (e.g., querying for requests where
- *   `assignedTo` matches the current user's ID), which are then securely evaluated
- *   against the per-document `get` rule.
- * - Ownership & Assignment: Authorization is determined by fields within the
- *   document itself, not by user roles or hierarchical data. This makes each
- *   document an independent and secure unit.
- * - Immutable Creator: The `createdBy` field is locked upon document creation and
- *   cannot be changed. This maintains a clear and permanent audit trail of who
- *   initiated each request.
- * - Prototyping Flexibility: These rules strictly enforce WHO can access WHAT, but
- *   do not enforce the specific shape or data types of the request document. This
- *   allows for rapid iteration on the application's data model without needing to
- *   update security rules for every schema change.
+ * - Rating Notes: Only authenticated users can create rating notes. Access to read,
+ *   update, or delete a note would typically be restricted to specific roles
+ *   (e.g., the analyst who created it, their group head, or a QC member).
+ *   (NOTE: Specific get/update/delete rules for notes are not yet implemented
+ *   and should be added as the feature evolves).
+ * - Master Data: All master data collections (companies, templates, criteria) are
+ *   readable by any authenticated user, as this information is generally not
+*   sensitive and is required for creating and viewing notes.
  */
 rules_version = '2';
 service cloud.firestore {
@@ -42,61 +32,13 @@ service cloud.firestore {
     function isSignedIn() {
       return request.auth != null;
     }
-
+    
     /**
-     * Checks if the currently authenticated user is either the creator
-     * or the assigned analyst for an existing operational request document.
-     * Relies on denormalized `createdBy` and `assignedTo` fields on the document.
-     */
-    function isCreatorOrAssignee() {
-      return request.auth.uid == resource.data.createdBy || request.auth.uid == resource.data.assignedTo;
-    }
-
-    /**
-     * Validates that the user creating a new request is setting themselves
+     * Validates that the user creating a new document is setting themselves
      * as the creator. This is a critical check for establishing ownership.
      */
     function hasValidCreationData() {
       return request.resource.data.createdBy == request.auth.uid;
-    }
-
-    /**
-     * Validates that critical, immutable fields (like the creator ID) have
-     * not been changed during an update operation.
-     */
-    function hasValidUpdateData() {
-      return request.resource.data.createdBy == resource.data.createdBy;
-    }
-    
-    /**
-     * @description
-     *   Manages access to CKC Operational Requests. Access is restricted to the
-     *   user who created the request or the analyst it is assigned to.
-     * @path
-     *   /ckc_operational_requests/{requestId}
-     * @allow
-     *   (get) A signed-in user with UID 'user123' can read a request where the
-     *   document's `assignedTo` field is 'user123'.
-     * @allow
-     *   (create) A signed-in user can create a new request document, as long as
-     *   the `createdBy` field in the new data is their own UID.
-     * @deny
-     *   (list) Any user, signed-in or not, is forbidden from listing all
-     *   documents in the collection to protect sensitive information.
-     * @deny
-     *   (update) A user with UID 'user456' cannot update a request where
-     *   `createdBy` is 'user123' and `assignedTo` is 'user789'.
-     * @principle
-     *   Enforces a closed collaborator model using denormalized fields on the
-     *   document itself (`createdBy`, `assignedTo`) for secure and efficient
-     *   authorization checks.
-     */
-    match /ckc_operational_requests/{requestId} {
-      allow get: if isSignedIn() && isCreatorOrAssignee();
-      allow list: if false;
-      allow create: if isSignedIn() && hasValidCreationData();
-      allow update: if isSignedIn() && resource != null && isCreatorOrAssignee() && hasValidUpdateData();
-      allow delete: if isSignedIn() && resource != null && isCreatorOrAssignee();
     }
 
     // Allow authenticated users to read from master data collections
