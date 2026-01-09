@@ -15,6 +15,7 @@
 
 
 
+
 export type Role = 'CKC_ANALYST' | 'CKC_CHECKER' | 'CKC_ADMIN' | 'RATING_ANALYST' | 'GROUP_HEAD' | 'RATING_HEAD_SD' | 'SYSTEM' | 'QC' | 'RATING_COMMITTEE' | 'AUDITOR' | 'EDITOR';
 
 export type RequestStatus = 'PENDING' | 'ACCEPTED' | 'IN_PROGRESS' | 'SUBMITTED_FOR_CHECK' | 'SENT_BACK' | 'APPROVED' | 'CLOSED';
@@ -503,6 +504,27 @@ export interface SiteVisit {
     isMandatory?: boolean;
     status: 'Pending' | 'Completed' | 'Waived';
     waiver?: SiteVisitWaiver;
+}
+
+export interface MandateInstrument {
+    instrumentId: string;
+    category: string;
+    subCategory: string;
+    instrumentName: string;
+    instrumentAmt: number;
+    enhanceReduce: number;
+    totalInstrumentSize: number;
+    agendaType: 'Initial' | 'Surveillance' | 'Withdrawal';
+    isSelected: boolean;
+}
+
+export interface Mandate {
+    mandateId: string;
+    targetDate: string;
+    primaryAnalyst: string;
+    ratingCycle: 'Initial' | 'Surveillance';
+    instruments: MandateInstrument[];
+    isSelected: boolean;
 }
 
 

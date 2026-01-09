@@ -8,6 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { ActivitiesList } from '@/components/portfolio/activities-list';
 import { getNoteById } from '@/lib/mock-data';
 import { CompanyInformationTab } from '@/components/portfolio/company-information-tab';
+import { MandateDetailsTab } from '@/components/portfolio/mandate-details-tab';
 
 const tabsConfig = [
     { value: 'company-information', label: 'Company Information' },
@@ -31,7 +32,7 @@ export default function PortfolioActivitiesPage() {
                 <h1 className="text-2xl font-bold tracking-tight text-foreground">{companyName}</h1>
             </header>
 
-            <Tabs defaultValue="company-information" className="w-full">
+            <Tabs defaultValue="mandate-details" className="w-full">
                 <TabsList>
                     {tabsConfig.map(tab => (
                         <TabsTrigger key={tab.value} value={tab.value}>{tab.label}</TabsTrigger>
@@ -48,6 +49,10 @@ export default function PortfolioActivitiesPage() {
                             ) : tab.value === 'company-information' ? (
                                 <Suspense fallback={<Skeleton className="h-[600px] w-full" />}>
                                     <CompanyInformationTab ratingCycleId={ratingCycleId} />
+                                </Suspense>
+                            ) : tab.value === 'mandate-details' ? (
+                                <Suspense fallback={<Skeleton className="h-[600px] w-full" />}>
+                                    <MandateDetailsTab ratingCycleId={ratingCycleId} />
                                 </Suspense>
                             ) : (
                                 <div className="flex items-center justify-center h-64 border rounded-lg bg-muted/50">

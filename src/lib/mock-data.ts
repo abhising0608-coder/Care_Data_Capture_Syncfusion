@@ -3,7 +3,8 @@
 
 
 
-import type { CKCRequest, AppUser, Role, RequestStatus, CompanyInfo, RatingNote, NoteStatus, RatingNoteDataSchema, DTFirm, DTContact, FeedbackStatus, QuestionnaireItem, IPAFirm, IPAContact, ThirdParty, AuditCommitteeMeeting, SiteVisit, AuditorFirm, AuditorContact, BankerFirm, BankerContact, RatingInstrument, RatingInstrumentCycle, LatestBankDetail, AnnexureVHistory, PressReleaseHistoryEntry, PressReleaseHistory, DMSDocumentHistory, BankerLenderDetail, PortfolioActivity } from './definitions';
+
+import type { CKCRequest, AppUser, Role, RequestStatus, CompanyInfo, RatingNote, NoteStatus, RatingNoteDataSchema, DTFirm, DTContact, FeedbackStatus, QuestionnaireItem, IPAFirm, IPAContact, ThirdParty, AuditCommitteeMeeting, SiteVisit, AuditorFirm, AuditorContact, BankerFirm, BankerContact, RatingInstrument, RatingInstrumentCycle, LatestBankDetail, AnnexureVHistory, PressReleaseHistoryEntry, PressReleaseHistory, DMSDocumentHistory, BankerLenderDetail, PortfolioActivity, Mandate } from './definitions';
 
 
 // --- FSD-based Master JSON Data Structure ---
@@ -338,6 +339,28 @@ export const mockPressReleaseHistoryData: PressReleaseHistoryEntry[] = [
   ]},
   { id: 'PR-2023-05-18', pressReleaseDate: '2023-05-18', mandates: [] },
   { id: 'PR-2022-11-04', pressReleaseDate: '2022-11-04', mandates: [] },
+];
+
+export const mockMandateData: Mandate[] = [
+    {
+        mandateId: '12100/121/1212',
+        targetDate: '2024-09-15',
+        primaryAnalyst: 'Amit Varma',
+        ratingCycle: 'Initial',
+        isSelected: true,
+        instruments: [
+            { instrumentId: '122342/1212', category: 'LT', subCategory: 'Fund Based', instrumentName: 'CC', instrumentAmt: 220000, enhanceReduce: -20000, totalInstrumentSize: 200000, agendaType: 'Surveillance', isSelected: true },
+            { instrumentId: '122342/1212', category: 'ST', subCategory: 'Fund Based', instrumentName: 'LOC', instrumentAmt: 220000, enhanceReduce: -20000, totalInstrumentSize: 200000, agendaType: 'Surveillance', isSelected: true },
+        ]
+    },
+    {
+        mandateId: '12100/121/1213',
+        targetDate: '2024-10-20',
+        primaryAnalyst: 'Amit Varma',
+        ratingCycle: 'Surveillance',
+        isSelected: true,
+        instruments: []
+    }
 ];
 
 
@@ -699,7 +722,7 @@ let ipaFeedbackData: Record<string, IPAFirm[]> = {
                 { id: 'IPAC-001', name: 'Anish Kumar', email: 'anish.k@sdkpr.com', contact: '9876543211', discussionHappened: '', minutesCaptured: 'No', minutesCapturedOn: null, status: null, questionnaire: [], summary: '' },
             ]
         },
-    ],
+     ],
      'COMP-102': [
         {
             id: 'IPAF-002',
@@ -1327,6 +1350,12 @@ export const approveRequest = (id: string, user: AppUser) => {
     }
     
     const approvedRequest = updateRequestStatus(id, 'APPROVED', user);
+    if (approvedRequest?.status === 'CLOSED') {
+      const closedReqIndex = requests.findIndex(r => r.id === approvedRequest.id);
+      if (closedReqIndex > -1) {
+          requests[closedReqIndex] = approvedRequest;
+      }
+    }
     return approvedRequest;
 }
 
