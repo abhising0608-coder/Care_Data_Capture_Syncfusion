@@ -4,9 +4,11 @@ import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CKCRequestsTable } from './requests-table';
 import { Card, CardContent } from '../ui/card';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Search } from 'lucide-react';
 import { Button } from '../ui/button';
 import { ScrollArea, ScrollBar } from '../ui/scroll-area';
+import { Input } from '../ui/input';
+
 
 const summaryCards = [
     { title: "Total Requests", count: 103, color: "text-blue-600" },
@@ -20,6 +22,7 @@ const summaryCards = [
 
 export default function CKCRequestsClient() {
     const [activeTab, setActiveTab] = useState("pending");
+    const [globalFilter, setGlobalFilter] = useState('');
 
     return (
         <div className="space-y-6">
@@ -58,12 +61,24 @@ export default function CKCRequestsClient() {
                     </ScrollArea>
                 </div>
                 
-                <TabsContent value="pending"><CKCRequestsTable status="PENDING" /></TabsContent>
-                <TabsContent value="accepted"><CKCRequestsTable status="ACCEPTED" /></TabsContent>
-                <TabsContent value="rejected"><CKCRequestsTable status="REJECTED" /></TabsContent>
-                <TabsContent value="closed"><CKCRequestsTable status="CLOSED" /></TabsContent>
-                <TabsContent value="withdrawn"><CKCRequestsTable status="WITHDRAWN" /></TabsContent>
-                <TabsContent value="on-hold"><CKCRequestsTable status="ON_HOLD" /></TabsContent>
+                 <div className="py-4">
+                    <div className="relative">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                        <Input
+                            placeholder="Search..."
+                            value={globalFilter}
+                            onChange={(event) => setGlobalFilter(event.target.value)}
+                            className="max-w-sm pl-10"
+                        />
+                    </div>
+                </div>
+
+                <TabsContent value="pending"><CKCRequestsTable status="PENDING" globalFilter={globalFilter} setGlobalFilter={setGlobalFilter} /></TabsContent>
+                <TabsContent value="accepted"><CKCRequestsTable status="ACCEPTED" globalFilter={globalFilter} setGlobalFilter={setGlobalFilter} /></TabsContent>
+                <TabsContent value="rejected"><CKCRequestsTable status="REJECTED" globalFilter={globalFilter} setGlobalFilter={setGlobalFilter} /></TabsContent>
+                <TabsContent value="closed"><CKCRequestsTable status="CLOSED" globalFilter={globalFilter} setGlobalFilter={setGlobalFilter} /></TabsContent>
+                <TabsContent value="withdrawn"><CKCRequestsTable status="WITHDRAWN" globalFilter={globalFilter} setGlobalFilter={setGlobalFilter} /></TabsContent>
+                <TabsContent value="on-hold"><CKCRequestsTable status="ON_HOLD" globalFilter={globalFilter} setGlobalFilter={setGlobalFilter} /></TabsContent>
             </Tabs>
         </div>
     )

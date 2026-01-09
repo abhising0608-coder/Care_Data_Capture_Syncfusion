@@ -58,10 +58,12 @@ const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 interface CKCRequestsTableProps {
   status: RequestStatus | 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'CLOSED' | 'WITHDRAWN' | 'ON_HOLD';
+  globalFilter: string;
+  setGlobalFilter: React.Dispatch<React.SetStateAction<string>>;
 }
 
 
-export function CKCRequestsTable({ status }: CKCRequestsTableProps) {
+export function CKCRequestsTable({ status, globalFilter, setGlobalFilter }: CKCRequestsTableProps) {
   const router = useRouter();
   
   const { data: requests, isLoading } = useSWR<CKCRequest[]>(
@@ -179,11 +181,13 @@ export function CKCRequestsTable({ status }: CKCRequestsTableProps) {
     getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
+    onGlobalFilterChange: setGlobalFilter,
     state: {
       sorting,
       columnFilters,
       columnVisibility,
       rowSelection,
+      globalFilter,
     },
   });
 
@@ -191,21 +195,8 @@ export function CKCRequestsTable({ status }: CKCRequestsTableProps) {
 
   return (
     <div className="w-full">
-        <div className="flex items-center py-4">
-            <div className="relative flex-1">
-                <Input
-                placeholder="Search..."
-                value={(table.getColumn('companyName')?.getFilterValue() as string) ?? ''}
-                onChange={(event) =>
-                    table.getColumn('companyName')?.setFilterValue(event.target.value)
-                }
-                className="max-w-sm pl-10"
-                />
-                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Search className="h-5 w-5 text-muted-foreground" />
-                </div>
-            </div>
-             <div className="flex items-center gap-2">
+        <div className="flex items-center pb-4">
+             <div className="flex items-center gap-2 ml-auto">
                 <Select disabled={isBulkActionDisabled}>
                     <SelectTrigger className="w-[180px]">
                         <SelectValue placeholder="Select Bulk Action" />
