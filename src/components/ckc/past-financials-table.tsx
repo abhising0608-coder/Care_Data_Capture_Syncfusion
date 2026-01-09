@@ -14,7 +14,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table';
-import { ArrowUpDown, Search, UserCheck } from 'lucide-react';
+import { ArrowUpDown, Search, UserCheck, PlusCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
@@ -37,6 +37,10 @@ import { Badge } from '@/components/ui/badge';
 import type { PastFinancialPeriod } from '@/lib/definitions';
 import { Skeleton } from '../ui/skeleton';
 import { GrantRightsModal } from './grant-rights-modal';
+import { CreateBlankPeriodModal } from './create-blank-period-modal';
+import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/firebase';
+
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
 
@@ -53,7 +57,12 @@ export function PastFinancialsTable({ companyId }: PastFinancialsTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   const [rowSelection, setRowSelection] = React.useState({});
-  const [isModalOpen, setIsModalOpen] = React.useState(false);
+  const [isGrantRightsModalOpen, setIsGrantRightsModalOpen] = React.useState(false);
+  const [isBlankPeriodModalOpen, setIsBlankPeriodModalOpen] = React.useState(false);
+  const { toast } = useToast();
+  const { user } = useAuth();
+  const isMaker = user?.role === 'CKC_ANALYST'; // Simplified for prototype
+
 
   const columns: ColumnDef<PastFinancialPeriod>[] = [
     {
@@ -119,6 +128,7 @@ export function PastFinancialsTable({ companyId }: PastFinancialsTableProps) {
         </Badge>
       ),
     },
+     { accessorKey: 'periodCreatedBy', header: 'Period Created by' }
   ];
 
   const table = useReactTable({
@@ -138,13 +148,26 @@ export function PastFinancialsTable({ companyId }: PastFinancialsTableProps) {
     },
   });
   
-  const handleGrantRights = () => setIsModalOpen(true);
+  const handleGrantRights = () => setIsGrantRightsModalOpen(true);
   const handleConfirmGrant = () => {
-    setIsModalOpen(false);
+    setIsGrantRightsModalOpen(false);
     // Logic to grant rights would go here
     console.log("Rights granted for selected rows:", Object.keys(rowSelection));
+    toast({
+        title: 'Rights Granted',
+        description: `Rights have been granted for ${Object.keys(rowSelection).length} selected period(s).`
+    });
     setRowSelection({}); // Clear selection after granting
   };
+
+  const handleCreatePeriods = (periods: any[]) => {
+     console.log("Saving created blank periods:", periods);
+     toast({
+        title: 'Periods Created',
+        description: `${periods.length} blank period(s) have been successfully created.`
+     });
+     setIsBlankPeriodModalOpen(false);
+  }
 
   const { pageIndex, pageSize } = table.getState().pagination;
   const totalRows = table.getFilteredRowModel().rows.length;
@@ -154,8 +177,8 @@ export function PastFinancialsTable({ companyId }: PastFinancialsTableProps) {
   return (
     <>
     <div className="w-full space-y-4">
-      <div className="flex items-center justify-end gap-2">
-         <div className="relative flex-1">
+      <div className="flex items-center justify-between gap-2">
+         <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
             <Input
                 placeholder="Search by period ID..."
@@ -166,9 +189,16 @@ export function PastFinancialsTable({ companyId }: PastFinancialsTableProps) {
                 className="max-w-sm pl-10"
             />
         </div>
-        <Button onClick={handleGrantRights} disabled={Object.keys(rowSelection).length === 0}>
-          <UserCheck className="mr-2 h-4 w-4" /> Grant Rights
-        </Button>
+        <div className="flex items-center gap-2">
+            {isMaker && (
+                <Button onClick={() => setIsBlankPeriodModalOpen(true)}>
+                    <PlusCircle className="mr-2 h-4 w-4" /> Create Blank Period
+                </Button>
+            )}
+            <Button onClick={handleGrantRights} disabled={Object.keys(rowSelection).length === 0}>
+                <UserCheck className="mr-2 h-4 w-4" /> Grant Rights
+            </Button>
+        </div>
       </div>
       <div className="rounded-md border bg-card">
         <Table>
@@ -284,11 +314,15 @@ export function PastFinancialsTable({ companyId }: PastFinancialsTableProps) {
       </div>
     </div>
     <GrantRightsModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        isOpen={isGrantRightsModalOpen}
+        onClose={() => setIsGrantRightsModalOpen(false)}
         onConfirm={handleConfirmGrant}
+     />
+     <CreateBlankPeriodModal
+        isOpen={isBlankPeriodModalOpen}
+        onClose={() => setIsBlankPeriodModalOpen(false)}
+        onSave={handleCreatePeriods}
      />
     </>
   );
 }
-    
