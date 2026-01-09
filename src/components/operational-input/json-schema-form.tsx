@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useForm, useFieldArray, Controller, useWatch, FormProvider } from 'react-hook-form';
@@ -22,6 +21,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Skeleton } from '../ui/skeleton';
 import { PlusCircle, Trash2, Check, RefreshCw, Pencil, X, ChevronsUp, ChevronsDown, Save } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SyncfusionSpreadsheet } from './syncfusion-spreadsheet';
 import { GeographyWiseSalesSpreadsheet } from './geography-wise-sales-spreadsheet';
 
@@ -338,13 +338,13 @@ export function JsonSchemaForm({ schema, onSubmit, onCancel, requestId, dataKey,
     );
   };
   
- const AccordionSectionContent = ({ sectionKey, sectionProp }: { sectionKey: string, sectionProp: any }) => {
+ const renderSectionContent = (sectionKey: string, sectionProp: any) => {
     const uiVariant = sectionProp['x-ui-variant'];
 
     // For sections that are simple objects with properties (like basicDetails)
     if (sectionProp.properties && !uiVariant) {
         return (
-             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 p-4">
                 {Object.keys(sectionProp.properties).map(fieldKey => 
                     renderField(`${sectionKey}.${fieldKey}`, sectionProp.properties[fieldKey], form.control)
                 )}
@@ -427,7 +427,7 @@ export function JsonSchemaForm({ schema, onSubmit, onCancel, requestId, dataKey,
       }
 
       return (
-        <div className="space-y-4">
+        <div className="space-y-4 p-4">
           <div className="w-1/3">
             {sectionProp.properties?.dataAvailability && (
               <FormField
@@ -484,59 +484,52 @@ export function JsonSchemaForm({ schema, onSubmit, onCancel, requestId, dataKey,
   }
   
   const sectionKeys = Object.keys(schema.properties);
-  const [openAccordions, setOpenAccordions] = useState<string[]>(sectionKeys);
-
-  const toggleAll = (state: 'expand' | 'collapse') => {
-    if (state === 'expand') {
-      setOpenAccordions(sectionKeys);
-    } else {
-      setOpenAccordions([]);
-    }
-  }
+  const [activeTab, setActiveTab] = useState(sectionKeys[0] || '');
 
   return (
     <Card>
       <CardHeader>
-        <div className="flex justify-between items-center">
-            <div>
-                <CardTitle>{schema.title}</CardTitle>
-                <CardDescription>{schema.description}</CardDescription>
-            </div>
-            <div className="flex items-center gap-2">
-                <Button type="button" variant="outline" size="sm" onClick={() => toggleAll('expand')}>
-                    <ChevronsDown className="h-4 w-4 mr-2" /> Expand All
-                </Button>
-                <Button type="button" variant="outline" size="sm" onClick={() => toggleAll('collapse')}>
-                    <ChevronsUp className="h-4 w-4 mr-2" /> Collapse All
-                </Button>
-            </div>
-        </div>
+          <div>
+              <CardTitle>{schema.title}</CardTitle>
+              <CardDescription>{schema.description}</CardDescription>
+          </div>
       </CardHeader>
       <CardContent>
         <FormProvider {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-            <Accordion type="multiple" value={openAccordions} onValueChange={setOpenAccordions} className="w-full">
-              {sectionKeys.map(sectionKey => {
-                const sectionProp = schema.properties[sectionKey];
-                
-                return(
-                  <AccordionItem value={sectionKey} key={sectionKey}>
-                    <AccordionTrigger>{sectionProp.title}</AccordionTrigger>
-                    <AccordionContent className="p-4">
-                      {sectionProp.type === 'object' ? (
-                         <AccordionSectionContent sectionKey={sectionKey} sectionProp={sectionProp} />
-                      ) : sectionProp.type === 'array' ? (
-                        renderInlineEditableTable({
-                          sectionKey: sectionKey,
-                          itemProperties: sectionProp.items.properties,
-                          control: form.control,
-                        })
-                      ) : null}
-                    </AccordionContent>
-                  </AccordionItem>
-                )
-              })}
-            </Accordion>
+             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                <TabsList>
+                  {sectionKeys.map(sectionKey => (
+                    <TabsTrigger key={sectionKey} value={sectionKey}>
+                        {schema.properties[sectionKey].title}
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+                {sectionKeys.map(sectionKey => {
+                    const sectionProp = schema.properties[sectionKey];
+                    return (
+                        <TabsContent key={sectionKey} value={sectionKey} className="mt-4">
+                             <Card>
+                                <CardHeader>
+                                    <CardTitle>{sectionProp.title}</CardTitle>
+                                    {sectionProp.description && <CardDescription>{sectionProp.description}</CardDescription>}
+                                </CardHeader>
+                                <CardContent>
+                                    {sectionProp.type === 'object' ? (
+                                        renderSectionContent(sectionKey, sectionProp)
+                                    ) : sectionProp.type === 'array' ? (
+                                        renderInlineEditableTable({
+                                        sectionKey: sectionKey,
+                                        itemProperties: sectionProp.items.properties,
+                                        control: form.control,
+                                        })
+                                    ) : null}
+                                </CardContent>
+                            </Card>
+                        </TabsContent>
+                    )
+                })}
+             </Tabs>
             {submitButtonText && (
                <div className="flex justify-end gap-4">
                   <Button type="submit">

@@ -2,6 +2,7 @@
 import { companyDetailsSchema } from '../company-details-schema';
 import { commonDetailsSchema } from '../common-details-schema';
 import { otherDetailsSchema } from '../other-details-schema';
+import { basicInfoSchema } from '../basic-info-schema';
 
 
 export const pharmaSchema = {
@@ -9,6 +10,10 @@ export const pharmaSchema = {
   "description": "Enter operational data specific to the Pharmaceutical sector.",
   "type": "object",
   "properties": {
+    "basicInfo": {
+      "title": "Basic Info",
+      ...basicInfoSchema
+    },
     "companyDetails": {
       "title": "Company Details",
       ...companyDetailsSchema
