@@ -47,11 +47,6 @@ const topMenuItems = [
     label: 'Portfolio',
     icon: Briefcase,
   },
-  {
-    href: '/ckc-requests',
-    label: 'CKC',
-    icon: FolderOpen,
-  },
 ];
 
 const ratingNoteSubItems = [
@@ -83,41 +78,18 @@ export function AppSidebar() {
       <SidebarContent>
         <SidebarMenu>
           {topMenuItems.map((item) => (
-            <SidebarMenuItem key={item.href || item.id}>
-                {item.subItems ? (
-                     <SidebarMenuSub>
-                        <SidebarMenuButton
-                            isActive={pathname.startsWith(`/${item.id}`)}
-                            tooltip={{ children: item.label, side: 'right' }}
-                            className="justify-start"
-                            >
-                            <item.icon className="h-4 w-4" />
-                            <span className="text-sm">{item.label}</span>
-                        </SidebarMenuButton>
-                        <SidebarMenuSubContent>
-                            {item.subItems.map(subItem => (
-                                <SidebarMenuSubButton key={subItem.href} asChild isActive={pathname === subItem.href}>
-                                     <a href={subItem.href} className="flex items-center gap-2">
-                                        {subItem.icon && <subItem.icon className="h-4 w-4" />}
-                                        <span>{subItem.label}</span>
-                                     </a>
-                                </SidebarMenuSubButton>
-                            ))}
-                        </SidebarMenuSubContent>
-                    </SidebarMenuSub>
-                ) : (
-                    <SidebarMenuButton
-                        asChild
-                        isActive={pathname === item.href}
-                        tooltip={{ children: item.label, side: 'right' }}
-                        className="justify-start"
-                    >
-                        <a href={item.href!}>
-                        <item.icon className="h-4 w-4" />
-                        <span className="text-sm">{item.label}</span>
-                        </a>
-                    </SidebarMenuButton>
-                 )}
+            <SidebarMenuItem key={item.href}>
+              <SidebarMenuButton
+                asChild
+                isActive={pathname === item.href}
+                tooltip={{ children: item.label, side: 'right' }}
+                className="justify-start"
+              >
+                <a href={item.href!}>
+                  <item.icon className="h-4 w-4" />
+                  <span className="text-sm">{item.label}</span>
+                </a>
+              </SidebarMenuButton>
             </SidebarMenuItem>
           ))}
           {/* Rating Note Submenu */}
