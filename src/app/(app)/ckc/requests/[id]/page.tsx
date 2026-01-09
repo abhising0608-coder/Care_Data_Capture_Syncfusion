@@ -6,7 +6,7 @@ import useSWR from 'swr';
 import { useForm, FormProvider, Controller, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Download, Check, X, ShieldQuestion, Send } from 'lucide-react';
+import { Download, Check, X, ShieldQuestion, Send, Edit, Save, ArrowLeft, ArrowRight } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -63,6 +63,7 @@ export default function CKCRequestDetailsPage() {
 
     const [isRejectionModalOpen, setIsRejectionModalOpen] = useState(false);
     const [isWithdrawalModalOpen, setIsWithdrawalModalOpen] = useState(false);
+    const [activeTab, setActiveTab] = useState('request-details');
 
     const { data: request, isLoading, error } = useSWR<CKCRequest>(
         requestId ? `/api/ckc/requests/${requestId}` : null,
@@ -97,6 +98,15 @@ export default function CKCRequestDetailsPage() {
         toast({
             title: 'Request Approved',
             description: `Request ${request?.id} has been approved and moved to the accepted queue.`,
+        });
+        router.push('/ckc/requests');
+    };
+
+    const handleSubmit = (data: RequestDetailsFormValues) => {
+        console.log("Submitting form:", data);
+        toast({
+            title: 'Request Submitted',
+            description: `Request ${request?.id} has been submitted successfully.`,
         });
         router.push('/ckc/requests');
     };
@@ -146,184 +156,218 @@ export default function CKCRequestDetailsPage() {
         return <div className="p-6 text-destructive">Failed to load request details.</div>
     }
 
+    const renderFooterButtons = () => {
+        if (isAdmin) {
+             return (
+                <div className="flex justify-end gap-2 mt-6">
+                    <Button type="button" onClick={form.handleSubmit(handleSubmit)}>
+                        <Save className="mr-2 h-4 w-4" /> Submit
+                    </Button>
+                    <Button type="button" variant="outline" onClick={() => router.back()}>
+                        <X className="mr-2 h-4 w-4" /> Close
+                    </Button>
+                </div>
+             );
+        }
+
+        // Analyst View
+        return (
+            <div className="flex justify-end gap-2 mt-6">
+                <Button type="button" onClick={handleAccept}>Accept</Button>
+                <Button type="button" variant="destructive" onClick={() => setIsRejectionModalOpen(true)}>Reject</Button>
+                <Button type="button" variant="outline" onClick={handleHold}>Hold</Button>
+            </div>
+        );
+    }
+
     return (
         <FormProvider {...form}>
-            <form onSubmit={form.handleSubmit(handleApprove)}>
+            <form>
                  <div className="space-y-6">
                     <header>
-                        <h1 className="text-2xl font-bold tracking-tight text-foreground">Request Details</h1>
+                        <h1 className="text-2xl font-bold tracking-tight text-foreground">
+                            {isAdmin ? 'Request Form' : 'Request Details'}
+                        </h1>
                          <p className="text-muted-foreground">{request.companyName}</p>
                     </header>
-                    <Tabs defaultValue="request-details" className="w-full">
+                    <Tabs value={activeTab} onValueChange={setActiveTab}>
                         <TabsList>
                             <TabsTrigger value="request-details">Request Details</TabsTrigger>
+                            <TabsTrigger value="mandate-details">Mandate Details</TabsTrigger>
                             <TabsTrigger value="past-financials">Past Financials</TabsTrigger>
+                            <TabsTrigger value="documents">Documents</TabsTrigger>
+                            <TabsTrigger value="correction">Correction</TabsTrigger>
                         </TabsList>
                         <TabsContent value="request-details" className="space-y-6">
                              <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-                                {/* Left Column */}
-                                <div className="space-y-6">
-                                    <Card>
-                                        <CardHeader>
-                                            <CardTitle>{request.companyName}</CardTitle>
-                                        </CardHeader>
-                                        <CardContent className="p-0">
-                                                <InfoRow label="Company ID" value={request.companyId} />
-                                                <InfoRow label="Dealing Analyst" value={request.analystName || 'N/A'} />
-                                                <InfoRow label="Group Head" value={request.groupHead || 'N/A'} />
-                                                <InfoRow label="Initiated By" value={request.createdBy} />
-                                                <InfoRow label="Name of HO / RO" value={request.hoRoName || 'N/A'} />
-                                                <InfoRow label="Rating Cycle" value={request.cycle} />
-                                                <InfoRow label="Result Type" value={request.resultType} />
-                                                <InfoRow label="MCA Data" value={'No'} />
-                                                <InfoRow label="Remarks" value="Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae. Proin tincidunt leo nec est sollicitudin, at porta erat pulvinar." />
-                                        </CardContent>
-                                    </Card>
-                                     {isAdmin && (
-                                         <Card>
-                                            <CardHeader>
-                                                <CardTitle>Assign Case</CardTitle>
-                                            </CardHeader>
-                                            <CardContent className="space-y-6">
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
-                                                    <FormField
-                                                        control={form.control}
-                                                        name="makerId"
-                                                        render={({ field }) => (
-                                                            <FormItem className="grid grid-cols-3 items-center">
-                                                                <Label>Maker</Label>
-                                                                <div className="col-span-2">
-                                                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                                                        <SelectTrigger><SelectValue placeholder="Select Maker" /></SelectTrigger>
-                                                                        <SelectContent>
-                                                                            {makers.map(m => <SelectItem key={m.uid} value={m.uid}>{m.displayName}</SelectItem>)}
-                                                                        </SelectContent>
-                                                                    </Select>
-                                                                </div>
-                                                            </FormItem>
-                                                        )}
-                                                    />
-                                                    <FormField
-                                                        control={form.control}
-                                                        name="checkerId"
-                                                        render={({ field }) => (
-                                                            <FormItem className="grid grid-cols-3 items-center">
-                                                                <Label>Checker</Label>
-                                                                <div className="col-span-2">
-                                                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                                                        <SelectTrigger><SelectValue placeholder="Select Checker" /></SelectTrigger>
-                                                                        <SelectContent>
-                                                                        {checkers.map(c => <SelectItem key={c.uid} value={c.uid}>{c.displayName}</SelectItem>)}
-                                                                        </SelectContent>
-                                                                    </Select>
-                                                                </div>
-                                                            </FormItem>
-                                                        )}
-                                                    />
-                                                    <Controller
-                                                        control={form.control}
-                                                        name="allowEditingPreviousYear"
-                                                        render={({ field }) => (
-                                                            <RadioGroup
-                                                                onValueChange={field.onChange}
-                                                                value={field.value}
-                                                                className="flex items-center space-x-4 col-span-2"
-                                                            >
-                                                                <Label>Allow Editing Previous year</Label>
-                                                                <div className="flex items-center space-x-2">
-                                                                    <RadioGroupItem value="Yes" id="yes" />
-                                                                    <Label htmlFor="yes">Yes</Label>
-                                                                </div>
-                                                                <div className="flex items-center space-x-2">
-                                                                    <RadioGroupItem value="No" id="no" />
-                                                                    <Label htmlFor="no">No</Label>
-                                                                </div>
-                                                            </RadioGroup>
-                                                        )}
-                                                    />
-                                                </div>
-                                                
-                                            </CardContent>
-                                        </Card>
-                                     )}
-                                </div>
-                                 {/* Right Column */}
-                                 <div>
-                                     <Card>
-                                        <CardHeader>
-                                            <CardTitle>Documents</CardTitle>
-                                        </CardHeader>
-                                        <CardContent>
-                                            <Table>
-                                                <TableHeader>
-                                                    <TableRow>
-                                                        <TableHead>Document Type</TableHead>
-                                                        <TableHead>Selected Years</TableHead>
-                                                        <TableHead>Documents</TableHead>
-                                                        {isAdmin && <TableHead className="w-[100px]">Is Valid</TableHead>}
-                                                    </TableRow>
-                                                </TableHeader>
-                                                <TableBody>
-                                                    {fields.map((doc, index) => (
-                                                        <TableRow key={doc.id}>
-                                                            <TableCell>{doc.docType}</TableCell>
-                                                            <TableCell>{doc.year}</TableCell>
+                                <Card>
+                                    <CardHeader>
+                                        <CardTitle>{request.companyName}</CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="p-0">
+                                            <InfoRow label="Company ID" value={request.companyId} />
+                                            <InfoRow label="Dealing Analyst" value={request.analystName || 'N/A'} />
+                                            <InfoRow label="Group Head" value={request.groupHead || 'N/A'} />
+                                            <InfoRow label="Initiated By" value={request.createdBy} />
+                                            <InfoRow label="Name of HO / RO" value={request.hoRoName || 'N/A'} />
+                                            <InfoRow label="Rating Cycle" value={request.cycle} />
+                                            <InfoRow label="Result Type" value={request.resultType} />
+                                            <InfoRow label="MCA Data" value={'No'} />
+                                            <InfoRow label="Remarks" value="Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae. Proin tincidunt leo nec est sollicitudin, at porta erat pulvinar." />
+                                    </CardContent>
+                                </Card>
+                                <Card>
+                                    <CardHeader>
+                                        <CardTitle>Documents</CardTitle>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <Table>
+                                            <TableHeader>
+                                                <TableRow>
+                                                    <TableHead>Document Type</TableHead>
+                                                    <TableHead>Selected Years</TableHead>
+                                                    <TableHead>Documents</TableHead>
+                                                    {isAdmin && <TableHead className="w-[100px]">Is Valid</TableHead>}
+                                                </TableRow>
+                                            </TableHeader>
+                                            <TableBody>
+                                                {fields.map((doc, index) => (
+                                                    <TableRow key={doc.id}>
+                                                        <TableCell>{doc.docType}</TableCell>
+                                                        <TableCell>{doc.year}</TableCell>
+                                                        <TableCell>
+                                                            <Button variant="link" className="p-0 h-auto">
+                                                                <Download className="mr-2 h-4 w-4" />
+                                                                {doc.fileName}
+                                                            </Button>
+                                                        </TableCell>
+                                                        {isAdmin && (
                                                             <TableCell>
-                                                                <Button variant="link" className="p-0 h-auto">
-                                                                    <Download className="mr-2 h-4 w-4" />
-                                                                    {doc.fileName}
-                                                                </Button>
+                                                                <Controller
+                                                                    control={form.control}
+                                                                    name={`documents.${index}.valid`}
+                                                                    render={({ field }) => (
+                                                                        <Select onValueChange={field.onChange} value={field.value}>
+                                                                            <SelectTrigger>
+                                                                                <SelectValue />
+                                                                            </SelectTrigger>
+                                                                            <SelectContent>
+                                                                                <SelectItem value="Yes">Yes</SelectItem>
+                                                                                <SelectItem value="No">No</SelectItem>
+                                                                            </SelectContent>
+                                                                        </Select>
+                                                                    )}
+                                                                />
                                                             </TableCell>
-                                                            {isAdmin && (
-                                                                <TableCell>
-                                                                    <Controller
-                                                                        control={form.control}
-                                                                        name={`documents.${index}.valid`}
-                                                                        render={({ field }) => (
-                                                                            <Select onValueChange={field.onChange} value={field.value}>
-                                                                                <SelectTrigger>
-                                                                                    <SelectValue />
-                                                                                </SelectTrigger>
-                                                                                <SelectContent>
-                                                                                    <SelectItem value="Yes">Yes</SelectItem>
-                                                                                    <SelectItem value="No">No</SelectItem>
-                                                                                </SelectContent>
-                                                                            </Select>
-                                                                        )}
-                                                                    />
-                                                                </TableCell>
-                                                            )}
-                                                        </TableRow>
-                                                    ))}
-                                                </TableBody>
-                                            </Table>
-                                        </CardContent>
-                                    </Card>
-                                 </div>
+                                                        )}
+                                                    </TableRow>
+                                                ))}
+                                            </TableBody>
+                                        </Table>
+                                    </CardContent>
+                                </Card>
                              </div>
-                            <div className="flex justify-end gap-2 mt-6">
-                               {isAdmin ? (
-                                   <>
-                                        <Button type="submit">
-                                            <Check className="mr-2 h-4 w-4" /> Approve
-                                        </Button>
-                                        <Button type="button" variant="destructive" onClick={() => setIsRejectionModalOpen(true)}>
-                                            <X className="mr-2 h-4 w-4" /> Reject
-                                        </Button>
-                                        <Button type="button" variant="outline" onClick={() => setIsWithdrawalModalOpen(true)}>Withdraw</Button>
-                                        <Button type="button" variant="outline" onClick={() => router.back()}>Close</Button>
-                                   </>
-                               ) : (
-                                    <>
-                                        <Button type="button" onClick={handleAccept}>Accept</Button>
-                                        <Button type="button" variant="outline" onClick={() => setIsRejectionModalOpen(true)}>Reject</Button>
-                                        <Button type="button" variant="outline" onClick={handleHold}>Hold</Button>
-                                    </>
-                               )}
-                            </div>
+                             {isAdmin && (
+                                <Card>
+                                <CardHeader>
+                                    <CardTitle>Assign Case</CardTitle>
+                                </CardHeader>
+                                <CardContent className="space-y-6">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+                                        <FormField
+                                            control={form.control}
+                                            name="makerId"
+                                            render={({ field }) => (
+                                                <FormItem className="grid grid-cols-3 items-center">
+                                                    <Label>Maker</Label>
+                                                    <div className="col-span-2">
+                                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                                            <SelectTrigger><SelectValue placeholder="Select Maker" /></SelectTrigger>
+                                                            <SelectContent>
+                                                                {makers.map(m => <SelectItem key={m.uid} value={m.uid}>{m.displayName}</SelectItem>)}
+                                                            </SelectContent>
+                                                        </Select>
+                                                    </div>
+                                                </FormItem>
+                                            )}
+                                        />
+                                        <FormField
+                                            control={form.control}
+                                            name="checkerId"
+                                            render={({ field }) => (
+                                                <FormItem className="grid grid-cols-3 items-center">
+                                                    <Label>Checker</Label>
+                                                    <div className="col-span-2">
+                                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                                            <SelectTrigger><SelectValue placeholder="Select Checker" /></SelectTrigger>
+                                                            <SelectContent>
+                                                            {checkers.map(c => <SelectItem key={c.uid} value={c.uid}>{c.displayName}</SelectItem>)}
+                                                            </SelectContent>
+                                                        </Select>
+                                                    </div>
+                                                </FormItem>
+                                            )}
+                                        />
+                                        <Controller
+                                            control={form.control}
+                                            name="allowEditingPreviousYear"
+                                            render={({ field }) => (
+                                                <RadioGroup
+                                                    onValueChange={field.onChange}
+                                                    value={field.value}
+                                                    className="flex items-center space-x-4 col-span-2"
+                                                >
+                                                    <Label>Allow Editing Previous year</Label>
+                                                    <div className="flex items-center space-x-2">
+                                                        <RadioGroupItem value="Yes" id="yes" />
+                                                        <Label htmlFor="yes">Yes</Label>
+                                                    </div>
+                                                    <div className="flex items-center space-x-2">
+                                                        <RadioGroupItem value="No" id="no" />
+                                                        <Label htmlFor="no">No</Label>
+                                                    </div>
+                                                </RadioGroup>
+                                            )}
+                                        />
+                                    </div>
+                                    
+                                </CardContent>
+                            </Card>
+                            )}
+                            {renderFooterButtons()}
                         </TabsContent>
+                         <TabsContent value="mandate-details">
+                            <MandateDetailsForm requestId={requestId} />
+                         </TabsContent>
                          <TabsContent value="past-financials">
                            <PastFinancialsTable companyId={request.companyId} />
+                        </TabsContent>
+                        <TabsContent value="documents">
+                             <Card>
+                                <CardHeader>
+                                    <CardTitle>Documents</CardTitle>
+                                    <CardDescription>Review documents and manage request closure.</CardDescription>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                     <div className="text-center text-muted-foreground p-8">
+                                        (Placeholder for read-only document view and details)
+                                    </div>
+                                     <div className="flex justify-end gap-2">
+                                        <Button type="button" variant="outline" onClick={() => toast({title: "Placeholder", description: "Send back logic to be implemented."})}>Send Back</Button>
+                                        <Button type="button" onClick={() => toast({title: "Placeholder", description: "Mark as complete logic to be implemented."})}>Mark as Complete</Button>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        </TabsContent>
+                        <TabsContent value="correction">
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Correction</CardTitle>
+                                </CardHeader>
+                                <CardContent className="text-center text-muted-foreground p-8">
+                                    (Placeholder for Correction Log)
+                                </CardContent>
+                            </Card>
                         </TabsContent>
                     </Tabs>
                 </div>
@@ -342,6 +386,4 @@ export default function CKCRequestDetailsPage() {
         </FormProvider>
     );
 }
-    
-
     
