@@ -142,6 +142,10 @@ export function OperationalRequestsTable({ status, globalFilter, setGlobalFilter
         header: 'Audited FY'
     },
     {
+        accessorKey: 'analystName',
+        header: 'CKC Analyst Name'
+    },
+    {
       id: 'actions',
       header: 'Actions',
       cell: ({ row }) => {
@@ -152,10 +156,24 @@ export function OperationalRequestsTable({ status, globalFilter, setGlobalFilter
                 </Button>
             );
         }
+        if (status === 'ACCEPTED') {
+            return (
+                <Button variant="outline" size="sm" onClick={() => router.push(`/operational-input/${row.original.id}`)}>
+                    Initiate
+                </Button>
+            )
+        }
         return null;
       },
     },
-  ], [status, toast]);
+  ], [status, toast, router]);
+
+  React.useEffect(() => {
+    setColumnVisibility({
+        'analystName': status === 'ACCEPTED'
+    });
+  }, [status]);
+
 
   const table = useReactTable({
     data: requests || [],
