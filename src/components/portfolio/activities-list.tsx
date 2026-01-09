@@ -20,12 +20,12 @@ const fetcher = (url: string) => fetch(url).then(res => res.json());
 const statusVariant = (status: ActivityStatus) => {
     switch (status) {
         case 'Completed':
-            return 'success';
+            return 'default';
         case 'In Progress':
-            return 'warning';
+            return 'secondary';
         case 'Not Initiated':
         default:
-            return 'secondary';
+            return 'outline';
     }
 }
 
@@ -46,6 +46,11 @@ const ActivityRow = ({ activity }: { activity: PortfolioActivity }) => (
             {activity.action && (
                 <Button variant={actionVariant(activity.action)} size="sm">
                     {activity.action}
+                </Button>
+            )}
+            {activity.status === 'Completed' && !activity.action && (
+                <Button variant="default" size="sm">
+                    Completed
                 </Button>
             )}
         </div>

@@ -2,6 +2,7 @@
 
 
 
+
 import type { CKCRequest, AppUser, Role, RequestStatus, CompanyInfo, RatingNote, NoteStatus, RatingNoteDataSchema, DTFirm, DTContact, FeedbackStatus, QuestionnaireItem, IPAFirm, IPAContact, ThirdParty, AuditCommitteeMeeting, SiteVisit, AuditorFirm, AuditorContact, BankerFirm, BankerContact, RatingInstrument, RatingInstrumentCycle, LatestBankDetail, AnnexureVHistory, PressReleaseHistoryEntry, PressReleaseHistory, DMSDocumentHistory, BankerLenderDetail, PortfolioActivity } from './definitions';
 
 
@@ -111,8 +112,13 @@ export const mockPortfolioActivities: { preCommittee: PortfolioActivity[], postC
     { id: 'act-06', name: 'Send note to Committee', status: 'Not Initiated', action: null },
   ],
   postCommittee: [
-    { id: 'act-07', name: 'Rating Committee Minutes', status: 'Not Initiated', action: 'Initiate' },
-    { id: 'act-08', name: 'Press Release', status: 'Not Initiated', action: 'Initiate' },
+    { id: 'act-07', name: 'Rating Committee Minutes', status: 'Completed', action: null },
+    { id: 'act-08', name: 'Provisional Communication/ Acceptance Letter', status: 'Completed', action: null },
+    { id: 'act-09', name: 'Rating Letter', status: 'Completed', action: null },
+    { id: 'act-10', name: 'Press Release', status: 'Completed', action: null },
+    { id: 'act-11', name: 'Rating Rationale', status: 'Completed', action: null },
+    { id: 'act-12', name: 'DMS', status: 'Completed', action: null },
+    { id: 'act-13', name: 'Verify and Mark Case as Complete', status: 'Completed', action: null },
   ]
 };
 
@@ -1198,10 +1204,6 @@ export const getRequests = (status?: string, id?: string) => {
   let filteredRequests = requests;
   if (status) {
     const statuses = Array.isArray(status) ? status : status.split(',');
-    if(statuses.includes('CLOSED')) {
-        return requests.filter(r => r.status === 'CLOSED');
-    }
-
     filteredRequests = filteredRequests.filter(r => statuses.includes(r.status));
   }
   if (id) {
@@ -1260,7 +1262,8 @@ const updateRequestStatus = (id: string, newStatus: RequestStatus, actor: AppUse
             request.currentOwnerId = request.assignedCheckerId;
             request.currentOwnerRole = 'CKC_CHECKER';
             request.checkingCompletedDateTime = new Date().toISOString();
-            break;
+            // Automatically move to CLOSED after approval
+            return updateRequestStatus(id, 'CLOSED', { uid: 'system', role: 'SYSTEM' });
         case 'CLOSED':
              request.currentOwnerId = null;
              request.currentOwnerRole = 'SYSTEM';
@@ -1324,13 +1327,7 @@ export const approveRequest = (id: string, user: AppUser) => {
     }
     
     const approvedRequest = updateRequestStatus(id, 'APPROVED', user);
-    if(approvedRequest) {
-        // Automatically move to CLOSED after approval
-        const systemUser: AppUser = { uid: 'system', role: 'SYSTEM', displayName: 'System' };
-        requests = requests.map(r => r.id === id ? {...r, status: 'CLOSED'} : r);
-        return getRequestById(id);
-    }
-    return null;
+    return approvedRequest;
 }
 
 
