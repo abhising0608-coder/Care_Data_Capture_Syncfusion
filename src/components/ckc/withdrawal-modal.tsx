@@ -38,12 +38,11 @@ export function WithdrawalModal({ isOpen, onClose, onSubmit }: WithdrawalModalPr
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Withdraw Request</DialogTitle>
-           <DialogDescription>Provide a reason for withdrawing this request.</DialogDescription>
+          <DialogTitle>Withdraw Reason</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit(handleFormSubmit)}>
           <div className="grid gap-4 py-4">
-            <Label htmlFor="reason">Reason for Withdrawal</Label>
+            <Label htmlFor="reason">Reason for Withdraw Case</Label>
             <Textarea
               id="reason"
               placeholder="Enter withdrawal reason here..."
@@ -53,13 +52,11 @@ export function WithdrawalModal({ isOpen, onClose, onSubmit }: WithdrawalModalPr
             {errors.reason && <p className="text-sm text-destructive">{errors.reason.message}</p>}
           </div>
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
             <Button type="submit">Submit</Button>
+            <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
           </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>
   );
 }
-
-    
