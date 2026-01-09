@@ -1,4 +1,5 @@
 
+
 export type Role = 'CKC_ANALYST' | 'CKC_CHECKER' | 'CKC_ADMIN' | 'RATING_ANALYST' | 'GROUP_HEAD' | 'RATING_HEAD_SD' | 'SYSTEM' | 'QC' | 'RATING_COMMITTEE' | 'AUDITOR' | 'EDITOR';
 
 export type RequestStatus = 'PENDING' | 'ACCEPTED' | 'IN_PROGRESS' | 'SUBMITTED_FOR_CHECK' | 'SENT_BACK' | 'APPROVED' | 'CLOSED' | 'REJECTED' | 'WITHDRAWN' | 'ON_HOLD';
@@ -33,6 +34,14 @@ export type DiscussionStatus = 'Draft' | 'Shared with GH' | 'Completed';
 
 export type ActivityStatus = 'Not Initiated' | 'In Progress' | 'Completed';
 
+export interface CKCRequestDocument {
+  id: string;
+  docType: 'Audited FY' | 'Provisional FY' | 'Projection';
+  year: string;
+  fileName: string;
+  valid: 'Yes' | 'No';
+}
+
 export interface CKCRequest {
   id: string;
   companyId: string;
@@ -43,6 +52,9 @@ export interface CKCRequest {
   receivedDate: string;
   auditedFY: string;
   status: RequestStatus;
+  resultType: 'Standalone' | 'Consolidated';
+  createdBy?: string;
+  groupHead?: string;
   rejectionDate?: string;
   rejectionComments?: string;
   withdrawalDate?: string;
@@ -54,6 +66,7 @@ export interface CKCRequest {
   hoRoName?: string;
   analystName?: string;
   closedDate?: string;
+  documents: CKCRequestDocument[];
 }
 
 export type StatusHistory = {
