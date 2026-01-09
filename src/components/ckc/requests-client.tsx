@@ -10,7 +10,7 @@ import { ScrollArea, ScrollBar } from '../ui/scroll-area';
 import { Input } from '../ui/input';
 
 
-const summaryCards = [
+const pendingSummaryCards = [
     { title: "Total Requests", count: 103, color: "text-blue-600" },
     { title: "Manufacturing", count: 28, color: "text-orange-600" },
     { title: "Bank", count: 75, color: "text-green-600" },
@@ -20,9 +20,37 @@ const summaryCards = [
     { title: "Broker", count: 12, color: "text-yellow-600" },
 ];
 
+const acceptedSummaryCards = [
+    { title: "Not Allotted", count: 12, color: "text-gray-500" },
+    { title: "WIP", count: 35, color: "text-blue-600" },
+    { title: "Checking Pending", count: 18, color: "text-yellow-600" },
+    { title: "CWIP", count: 8, color: "text-orange-600" },
+    { title: "In-Review", count: 30, color: "text-purple-600" },
+];
+
+const closedSummaryCards = [
+    { title: "Total Closed Requests", count: 103, color: "text-blue-600" },
+    { title: "Manufacturing", count: 28, color: "text-orange-600" },
+    { title: "Bank", count: 75, color: "text-green-600" },
+    { title: "NBFC", count: 30, color: "text-purple-600" },
+    { title: "HFC", count: 20, color: "text-teal-600" },
+];
+
+
 export default function CKCRequestsClient() {
     const [activeTab, setActiveTab] = useState("pending");
     const [globalFilter, setGlobalFilter] = useState('');
+    
+    const getSummaryCards = () => {
+        switch (activeTab) {
+            case 'pending': return pendingSummaryCards;
+            case 'accepted': return acceptedSummaryCards;
+            case 'closed': return closedSummaryCards;
+            default: return [];
+        }
+    }
+    
+    const summaryCards = getSummaryCards();
 
     return (
         <div className="space-y-6">
@@ -41,24 +69,26 @@ export default function CKCRequestsClient() {
                 </TabsList>
 
                 <div className="pt-6">
-                    <ScrollArea className="w-full whitespace-nowrap">
-                        <div className="flex w-max space-x-4 pb-4">
-                            {summaryCards.map(card => (
-                                <Card key={card.title} className="w-52">
-                                    <CardContent className="p-4">
-                                        <p className="text-sm text-muted-foreground">{card.title}</p>
-                                        <p className={`text-3xl font-bold ${card.color}`}>{card.count}</p>
-                                    </CardContent>
-                                </Card>
-                            ))}
-                            <div className="flex items-center">
-                                 <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full bg-muted">
-                                    <ArrowRight className="h-5 w-5" />
-                                </Button>
+                    {summaryCards.length > 0 && (
+                        <ScrollArea className="w-full whitespace-nowrap">
+                            <div className="flex w-max space-x-4 pb-4">
+                                {summaryCards.map(card => (
+                                    <Card key={card.title} className="w-52">
+                                        <CardContent className="p-4">
+                                            <p className="text-sm text-muted-foreground">{card.title}</p>
+                                            <p className={`text-3xl font-bold ${card.color}`}>{card.count}</p>
+                                        </CardContent>
+                                    </Card>
+                                ))}
+                                <div className="flex items-center">
+                                    <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full bg-muted">
+                                        <ArrowRight className="h-5 w-5" />
+                                    </Button>
+                                </div>
                             </div>
-                        </div>
-                        <ScrollBar orientation="horizontal" />
-                    </ScrollArea>
+                            <ScrollBar orientation="horizontal" />
+                        </ScrollArea>
+                    )}
                 </div>
                 
                  <div className="py-4">

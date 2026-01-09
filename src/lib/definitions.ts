@@ -48,6 +48,10 @@ export interface CKCRequest {
   withdrawalReason?: string;
   onHoldBy?: string;
   onHoldReason?: string;
+  subStatus?: 'Not Allotted' | 'WIP' | 'Checking Pending' | 'CWIP' | 'In-Review' | 'Closed';
+  hoRoName?: string;
+  analystName?: string;
+  closedDate?: string;
 }
 
 export type StatusHistory = {
@@ -611,5 +615,3 @@ export interface RatingNoteDataSchema {
   audit: Audit;
   editorContent?: string; // To store the latest SFDT
 }
-
-    

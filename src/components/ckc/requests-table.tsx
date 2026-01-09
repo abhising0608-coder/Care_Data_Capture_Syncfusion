@@ -85,6 +85,9 @@ export function CKCRequestsTable({ status, globalFilter, setGlobalFilter }: CKCR
       'companyId': false,
       'status': status !== 'ACCEPTED',
       'rejectionComments': status !== 'REJECTED',
+      'hoRoName': status !== 'CLOSED',
+      'closedDate': status !== 'CLOSED',
+      'analystName': status !== 'ACCEPTED'
     });
   const [rowSelection, setRowSelection] = React.useState({});
   
@@ -188,17 +191,30 @@ export function CKCRequestsTable({ status, globalFilter, setGlobalFilter }: CKCR
         </Button>
       ),
     },
+     {
+      accessorKey: 'hoRoName',
+      header: 'HO / RO Name'
+    },
     {
         accessorKey: 'receivedDate',
         header: 'Received Date'
     },
     {
+        accessorKey: 'closedDate',
+        header: 'Closed Date'
+    },
+    {
         accessorKey: 'auditedFY',
         header: 'Audited FY'
     },
+     {
+        accessorKey: 'analystName',
+        header: 'Analyst Name'
+    },
     {
       accessorKey: 'status',
-      header: 'Status'
+      header: 'Status',
+      accessorFn: (row) => row.status === 'ACCEPTED' ? row.subStatus : row.status,
     },
     {
       accessorKey: 'rejectionComments',
@@ -264,6 +280,18 @@ export function CKCRequestsTable({ status, globalFilter, setGlobalFilter }: CKCR
       globalFilter,
     },
   });
+
+  React.useEffect(() => {
+    setColumnVisibility(prev => ({
+        ...prev,
+        'status': status !== 'ACCEPTED',
+        'rejectionComments': status !== 'REJECTED',
+        'hoRoName': status !== 'CLOSED',
+        'closedDate': status !== 'CLOSED',
+        'analystName': status !== 'ACCEPTED'
+    }));
+  }, [status]);
+
 
   const isBulkActionDisabled = Object.keys(rowSelection).length <= 1 || table.getIsAllPageRowsSelected();
   
@@ -427,6 +455,3 @@ export function CKCRequestsTable({ status, globalFilter, setGlobalFilter }: CKCR
     </div>
   );
 }
-    
-    
-    

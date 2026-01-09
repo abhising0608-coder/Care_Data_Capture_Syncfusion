@@ -286,13 +286,13 @@ let ratingInstruments: Record<string, RatingInstrument[]> = {
 let ckcRequests: CKCRequest[] = [
     { id: 'CE0001511', companyId: '21898', companyName: 'Shriram Transport Finance Company Ltd', finInputSector: 'Manufacturing', listed: 'Yes', cycle: 'Initial', receivedDate: '2024-05-10', auditedFY: '2023', status: 'PENDING' },
     { id: 'CE0001512', companyId: '21804', companyName: 'Reliance Industries Ltd', finInputSector: 'Manufacturing', listed: 'Yes', cycle: 'Initial', receivedDate: '2024-05-10', auditedFY: '2023', status: 'PENDING' },
-    { id: 'CE0001513', companyId: '11897', companyName: 'HDFC Bank Ltd', finInputSector: 'Bank', listed: 'Yes', cycle: 'Surveillance', receivedDate: '2024-05-11', auditedFY: '2023', status: 'ACCEPTED' },
+    { id: 'CE0001513', companyId: '11897', companyName: 'HDFC Bank Ltd', finInputSector: 'Bank', listed: 'Yes', cycle: 'Surveillance', receivedDate: '2024-05-11', auditedFY: '2023', status: 'ACCEPTED', subStatus: 'Not Allotted', analystName: 'John Doe' },
     { id: 'CE0001529', companyId: '218998', companyName: 'Bharti Airtel Ltd', finInputSector: 'Manufacturing', listed: 'Yes', cycle: 'Surveillance', receivedDate: '2024-05-12', auditedFY: '2023', status: 'PENDING' },
     { id: 'CE0001543', companyId: '296742', companyName: 'Shriram Finance Ltd', finInputSector: 'NBFC', listed: 'Yes', cycle: 'Initial', receivedDate: '2024-05-13', auditedFY: '2023', status: 'REJECTED', rejectionDate: '2024-05-14', rejectionComments: 'Incomplete documentation' },
-    { id: 'CE0001501', companyId: '09873', companyName: 'Bajaj Housing Finance Ltd', finInputSector: 'HFC', listed: 'Yes', cycle: 'Surveillance', receivedDate: '2024-05-14', auditedFY: '2023', status: 'CLOSED' },
+    { id: 'CE0001501', companyId: '09873', companyName: 'Bajaj Housing Finance Ltd', finInputSector: 'HFC', listed: 'Yes', cycle: 'Surveillance', receivedDate: '2024-05-14', auditedFY: '2023', status: 'CLOSED', closedDate: '2024-06-01', hoRoName: 'Subash Rao' },
     { id: 'CE0001555', companyId: '12564', companyName: 'LIC Housing Finance', finInputSector: 'HFC', listed: 'Yes', cycle: 'Initial', receivedDate: '2024-05-15', auditedFY: '2023', status: 'WITHDRAWN', withdrawalDate: '2024-05-16', withdrawalReason: 'Client request' },
     { id: 'CE0001567', companyId: '34567', companyName: 'Adani Enterprises', finInputSector: 'Manufacturing', listed: 'Yes', cycle: 'Surveillance', receivedDate: '2024-05-16', auditedFY: '2023', status: 'ON_HOLD', onHoldBy: 'CKC Admin', onHoldReason: 'Awaiting further clarification' },
-     { id: 'CE0001580', companyId: '45678', companyName: 'ICICI Bank', finInputSector: 'Bank', listed: 'Yes', cycle: 'Initial', receivedDate: '2024-05-18', auditedFY: '2023', status: 'ACCEPTED' },
+     { id: 'CE0001580', companyId: '45678', companyName: 'ICICI Bank', finInputSector: 'Bank', listed: 'Yes', cycle: 'Initial', receivedDate: '2024-05-18', auditedFY: '2023', status: 'ACCEPTED', subStatus: 'WIP', analystName: 'Jane Smith' },
 ];
 
 
