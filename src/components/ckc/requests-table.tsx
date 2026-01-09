@@ -187,7 +187,7 @@ export function CKCRequestsTable({ status }: CKCRequestsTableProps) {
     },
   });
 
-  const isBulkActionDisabled = Object.keys(rowSelection).length <= 1;
+  const isBulkActionDisabled = Object.keys(rowSelection).length <= 1 || table.getIsAllPageRowsSelected();
 
   return (
     <div className="w-full">
@@ -344,3 +344,4 @@ export function CKCRequestsTable({ status }: CKCRequestsTableProps) {
     </div>
   );
 }
+    
