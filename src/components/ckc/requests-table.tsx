@@ -210,6 +210,11 @@ export function CKCRequestsTable({ status, globalFilter, setGlobalFilter }: CKCR
     });
   }
 
+  const { pageIndex, pageSize } = table.getState().pagination;
+  const totalRows = table.getFilteredRowModel().rows.length;
+  const startingRow = totalRows > 0 ? pageIndex * pageSize + 1 : 0;
+  const endingRow = totalRows > 0 ? Math.min((pageIndex + 1) * pageSize, totalRows) : 0;
+
   return (
     <div className="w-full">
         <div className="flex items-center pb-4">
@@ -299,54 +304,53 @@ export function CKCRequestsTable({ status, globalFilter, setGlobalFilter }: CKCR
           </TableBody>
         </Table>
       </div>
-      <div className="flex items-center justify-between space-x-2 py-4">
+       <div className="flex items-center justify-between space-x-2 py-4">
         <div className="text-sm text-muted-foreground">
-          {table.getFilteredSelectedRowModel().rows.length} of{' '}
-          {table.getFilteredRowModel().rows.length} row(s) selected.
+          Showing {startingRow} - {endingRow} of {totalRows} entries
         </div>
-        <div className="flex items-center space-x-6 lg:space-x-8">
-            <div className="flex items-center space-x-2">
-                <p className="text-sm font-medium">Rows per page</p>
-                <Select
-                    value={`${table.getState().pagination.pageSize}`}
-                    onValueChange={(value) => {
-                        table.setPageSize(Number(value))
-                    }}
-                    >
-                    <SelectTrigger className="h-8 w-[70px]">
-                        <SelectValue placeholder={table.getState().pagination.pageSize} />
-                    </SelectTrigger>
-                    <SelectContent side="top">
-                        {[10, 20, 30, 40, 50].map((pageSize) => (
-                        <SelectItem key={pageSize} value={`${pageSize}`}>
-                            {pageSize}
-                        </SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
-            </div>
-            <div className="flex w-[100px] items-center justify-center text-sm font-medium">
-                Page {table.getState().pagination.pageIndex + 1} of{' '}
-                {table.getPageCount()}
-            </div>
-            <div className="flex items-center space-x-2">
-                <Button
+        <div className="flex items-center space-x-2">
+            <span className="text-sm">Show</span>
+             <Select
+                value={`${table.getState().pagination.pageSize}`}
+                onValueChange={(value) => {
+                    table.setPageSize(Number(value))
+                }}
+                >
+                <SelectTrigger className="h-8 w-[70px]">
+                    <SelectValue placeholder={table.getState().pagination.pageSize} />
+                </SelectTrigger>
+                <SelectContent side="top">
+                    {[10, 20, 30, 40, 50].map((pageSize) => (
+                    <SelectItem key={pageSize} value={`${pageSize}`}>
+                        {pageSize}
+                    </SelectItem>
+                    ))}
+                </SelectContent>
+            </Select>
+            <span className="text-sm">results</span>
+        </div>
+        <div className="flex items-center space-x-2">
+             <Button
                 variant="outline"
                 size="sm"
                 onClick={() => table.previousPage()}
                 disabled={!table.getCanPreviousPage()}
                 >
                 Previous
-                </Button>
-                <Button
-                variant="outline"
-                size="sm"
-                onClick={() => table.nextPage()}
-                disabled={!table.getCanNextPage()}
-                >
-                Next
-                </Button>
-            </div>
+            </Button>
+             {Array.from({ length: table.getPageCount() }, (_, i) => i + 1).map(page => (
+                <Button key={page} variant={table.getState().pagination.pageIndex + 1 === page ? 'default' : 'outline'} size="sm" onClick={() => table.setPageIndex(page - 1)}>{page}</Button>
+            )).slice(0, 3)}
+            {table.getPageCount() > 3 && <span>...</span>}
+            {table.getPageCount() > 3 && <Button variant='outline' size="sm" onClick={() => table.setPageIndex(table.getPageCount() - 1)}>{table.getPageCount()}</Button>}
+            <Button
+            variant="outline"
+            size="sm"
+            onClick={() => table.nextPage()}
+            disabled={!table.getCanNextPage()}
+            >
+            Next
+            </Button>
         </div>
       </div>
     </div>
