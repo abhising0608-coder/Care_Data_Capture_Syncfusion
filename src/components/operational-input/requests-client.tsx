@@ -8,6 +8,7 @@ import { ArrowRight, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
+import { RequestDetailsModal } from './request-details-modal';
 
 const summaryCards = [
     { title: "Card 1", count: 103, color: "text-blue-600" },
@@ -21,6 +22,15 @@ const summaryCards = [
 export default function OperationalRequestsClient() {
     const [activeTab, setActiveTab] = useState("pending");
     const [globalFilter, setGlobalFilter] = useState('');
+    const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
+
+    const handleViewDetails = (requestId: string) => {
+        setSelectedRequestId(requestId);
+    };
+
+    const handleCloseModal = () => {
+        setSelectedRequestId(null);
+    }
 
     return (
         <div className="space-y-6">
@@ -68,10 +78,17 @@ export default function OperationalRequestsClient() {
                     </div>
                 </div>
 
-                <TabsContent value="pending"><OperationalRequestsTable status="PENDING" globalFilter={globalFilter} setGlobalFilter={setGlobalFilter} /></TabsContent>
-                <TabsContent value="accepted"><OperationalRequestsTable status="ACCEPTED" globalFilter={globalFilter} setGlobalFilter={setGlobalFilter} /></TabsContent>
-                <TabsContent value="closed"><OperationalRequestsTable status="CLOSED" globalFilter={globalFilter} setGlobalFilter={setGlobalFilter} /></TabsContent>
+                <TabsContent value="pending"><OperationalRequestsTable status="PENDING" globalFilter={globalFilter} setGlobalFilter={setGlobalFilter} onViewDetails={handleViewDetails} /></TabsContent>
+                <TabsContent value="accepted"><OperationalRequestsTable status="ACCEPTED" globalFilter={globalFilter} setGlobalFilter={setGlobalFilter} onViewDetails={handleViewDetails} /></TabsContent>
+                <TabsContent value="closed"><OperationalRequestsTable status="CLOSED" globalFilter={globalFilter} setGlobalFilter={setGlobalFilter} onViewDetails={handleViewDetails} /></TabsContent>
             </Tabs>
+             {selectedRequestId && (
+                <RequestDetailsModal 
+                    requestId={selectedRequestId} 
+                    isOpen={!!selectedRequestId} 
+                    onClose={handleCloseModal} 
+                />
+            )}
         </div>
     )
 }

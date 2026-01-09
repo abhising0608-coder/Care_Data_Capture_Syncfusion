@@ -63,9 +63,10 @@ interface OperationalRequestsTableProps {
   status: RequestStatus | 'PENDING' | 'ACCEPTED' | 'CLOSED';
   globalFilter: string;
   setGlobalFilter: React.Dispatch<React.SetStateAction<string>>;
+  onViewDetails: (requestId: string) => void;
 }
 
-export function OperationalRequestsTable({ status, globalFilter, setGlobalFilter }: OperationalRequestsTableProps) {
+export function OperationalRequestsTable({ status, globalFilter, setGlobalFilter, onViewDetails }: OperationalRequestsTableProps) {
   const router = useRouter();
   const { toast } = useToast();
   const { user } = useAuth();
@@ -99,7 +100,7 @@ export function OperationalRequestsTable({ status, globalFilter, setGlobalFilter
               <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
       ),
-      cell: ({ row }) => <Link href={`/operational-input/${row.getValue('id')}`} className="text-blue-600 hover:underline">{row.getValue('id')}</Link>,
+      cell: ({ row }) => <Button variant="link" onClick={() => onViewDetails(row.getValue('id'))} className="p-0 h-auto">{row.getValue('id')}</Button>,
     },
      {
       accessorKey: 'companyName',
@@ -109,7 +110,7 @@ export function OperationalRequestsTable({ status, globalFilter, setGlobalFilter
               <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
       ),
-      cell: ({ row }) => <Link href={`/operational-input/${row.original.id}`} className="capitalize text-blue-600 hover:underline">{row.getValue('companyName')}</Link>,
+      cell: ({ row }) => <Button variant="link" onClick={() => onViewDetails(row.original.id)} className="p-0 h-auto capitalize">{row.getValue('companyName')}</Button>,
     },
      {
       accessorKey: 'companyId',
@@ -166,7 +167,7 @@ export function OperationalRequestsTable({ status, globalFilter, setGlobalFilter
         return null;
       },
     },
-  ], [status, toast, router]);
+  ], [status, toast, router, onViewDetails]);
 
   React.useEffect(() => {
     setColumnVisibility({
