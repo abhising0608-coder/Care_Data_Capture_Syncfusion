@@ -6,7 +6,7 @@ import useSWR from 'swr';
 import { useForm, FormProvider, Controller, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Download, Check, X } from 'lucide-react';
+import { Download, Check, X, ShieldQuestion, Send } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -17,13 +17,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Form, FormField, FormItem } from '@/components/ui/form';
-import type { CKCRequest, CKCRequestDocument } from '@/lib/definitions';
+import type { CKCRequest, CKCRequestDocument, Role } from '@/lib/definitions';
 import { useToast } from '@/hooks/use-toast';
 import { mockUsers } from '@/lib/mock-data';
 import { RejectionModal } from '@/components/ckc/rejection-modal';
 import { WithdrawalModal } from '@/components/ckc/withdrawal-modal';
 import { PastFinancialsTable } from '@/components/ckc/past-financials-table';
 import { MandateDetailsForm } from '@/components/ckc/mandate-details-form';
+import { useAuth } from '@/firebase';
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
 
@@ -56,6 +57,9 @@ export default function CKCRequestDetailsPage() {
     const router = useRouter();
     const { toast } = useToast();
     const requestId = params.id as string;
+    const { user, isLoading: isAuthLoading } = useAuth();
+    const userRole = user?.role;
+    const isAdmin = userRole === 'CKC_ADMIN';
 
     const [isRejectionModalOpen, setIsRejectionModalOpen] = useState(false);
     const [isWithdrawalModalOpen, setIsWithdrawalModalOpen] = useState(false);
@@ -96,6 +100,15 @@ export default function CKCRequestDetailsPage() {
         });
         router.push('/ckc/requests');
     };
+    
+     const handleAccept = () => {
+        console.log("Accepted request:", request?.id);
+        toast({
+            title: 'Request Accepted',
+            description: `Request ${request?.id} has been moved to your accepted queue.`,
+        });
+        router.push('/ckc/requests');
+    };
 
     const handleReject = (comments: string) => {
         console.log("Rejecting with comments:", comments);
@@ -107,6 +120,13 @@ export default function CKCRequestDetailsPage() {
         setIsRejectionModalOpen(false);
         router.push('/ckc/requests');
     };
+    
+    const handleHold = () => {
+        toast({
+            title: 'On Hold',
+            description: `Request ${request?.id} has been put on hold.`,
+        });
+    }
 
     const handleWithdraw = (reason: string) => {
         console.log("Withdrawing with reason:", reason);
@@ -118,7 +138,7 @@ export default function CKCRequestDetailsPage() {
         router.push('/ckc/requests');
     }
     
-    if (isLoading || !request) {
+    if (isLoading || isAuthLoading || !request) {
         return <div className="p-6"><Skeleton className="h-[70vh] w-full" /></div>
     }
 
@@ -131,16 +151,13 @@ export default function CKCRequestDetailsPage() {
             <form onSubmit={form.handleSubmit(handleApprove)}>
                  <div className="space-y-6">
                     <header>
-                        <h1 className="text-2xl font-bold tracking-tight text-foreground">Request Form</h1>
+                        <h1 className="text-2xl font-bold tracking-tight text-foreground">Request Details</h1>
                          <p className="text-muted-foreground">{request.companyName}</p>
                     </header>
                     <Tabs defaultValue="request-details" className="w-full">
                         <TabsList>
-                            <TabsTrigger value="mandate-details">Mandate Details</TabsTrigger>
-                            <TabsTrigger value="request-details">Request Form</TabsTrigger>
-                            <TabsTrigger value="documents">Documents</TabsTrigger>
-                            <TabsTrigger value="correction">Correction</TabsTrigger>
-                             <TabsTrigger value="past-financials">Past Financials</TabsTrigger>
+                            <TabsTrigger value="request-details">Request Details</TabsTrigger>
+                            <TabsTrigger value="past-financials">Past Financials</TabsTrigger>
                         </TabsList>
                         <TabsContent value="request-details" className="space-y-6">
                              <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
@@ -152,80 +169,83 @@ export default function CKCRequestDetailsPage() {
                                         </CardHeader>
                                         <CardContent className="p-0">
                                                 <InfoRow label="Company ID" value={request.companyId} />
-                                                <InfoRow label="Rating Analyst" value={request.analystName || 'N/A'} />
+                                                <InfoRow label="Dealing Analyst" value={request.analystName || 'N/A'} />
                                                 <InfoRow label="Group Head" value={request.groupHead || 'N/A'} />
+                                                <InfoRow label="Initiated By" value={request.createdBy} />
                                                 <InfoRow label="Name of HO / RO" value={request.hoRoName || 'N/A'} />
                                                 <InfoRow label="Rating Cycle" value={request.cycle} />
-                                                <InfoRow label="Initiator Name" value={request.createdBy} />
-                                                <InfoRow label="Document Status" value="Prefilled" />
-                                                <InfoRow label="Comments" value="Nam semper, velit non interdum tristique, risus lectus lacinia ligula, id ultrices arcu nisl vitae elit. Duis a turpis nibh." />
+                                                <InfoRow label="Result Type" value={request.resultType} />
+                                                <InfoRow label="MCA Data" value={'No'} />
+                                                <InfoRow label="Remarks" value="Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae. Proin tincidunt leo nec est sollicitudin, at porta erat pulvinar." />
                                         </CardContent>
                                     </Card>
-                                     <Card>
-                                        <CardHeader>
-                                            <CardTitle>Assign Case</CardTitle>
-                                        </CardHeader>
-                                        <CardContent className="space-y-6">
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
-                                                <FormField
-                                                    control={form.control}
-                                                    name="makerId"
-                                                    render={({ field }) => (
-                                                        <FormItem className="grid grid-cols-3 items-center">
-                                                            <Label>Maker</Label>
-                                                            <div className="col-span-2">
-                                                                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                                                    <SelectTrigger><SelectValue placeholder="Select Maker" /></SelectTrigger>
-                                                                    <SelectContent>
-                                                                        {makers.map(m => <SelectItem key={m.uid} value={m.uid}>{m.displayName}</SelectItem>)}
-                                                                    </SelectContent>
-                                                                </Select>
-                                                            </div>
-                                                        </FormItem>
-                                                    )}
-                                                />
-                                                <FormField
-                                                    control={form.control}
-                                                    name="checkerId"
-                                                    render={({ field }) => (
-                                                        <FormItem className="grid grid-cols-3 items-center">
-                                                            <Label>Checker</Label>
-                                                            <div className="col-span-2">
-                                                                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                                                    <SelectTrigger><SelectValue placeholder="Select Checker" /></SelectTrigger>
-                                                                    <SelectContent>
-                                                                    {checkers.map(c => <SelectItem key={c.uid} value={c.uid}>{c.displayName}</SelectItem>)}
-                                                                    </SelectContent>
-                                                                </Select>
-                                                            </div>
-                                                        </FormItem>
-                                                    )}
-                                                />
-                                                <Controller
-                                                    control={form.control}
-                                                    name="allowEditingPreviousYear"
-                                                    render={({ field }) => (
-                                                        <RadioGroup
-                                                            onValueChange={field.onChange}
-                                                            value={field.value}
-                                                            className="flex items-center space-x-4 col-span-2"
-                                                        >
-                                                            <Label>Allow Editing Previous year</Label>
-                                                            <div className="flex items-center space-x-2">
-                                                                <RadioGroupItem value="Yes" id="yes" />
-                                                                <Label htmlFor="yes">Yes</Label>
-                                                            </div>
-                                                            <div className="flex items-center space-x-2">
-                                                                <RadioGroupItem value="No" id="no" />
-                                                                <Label htmlFor="no">No</Label>
-                                                            </div>
-                                                        </RadioGroup>
-                                                    )}
-                                                />
-                                            </div>
-                                            
-                                        </CardContent>
-                                    </Card>
+                                     {isAdmin && (
+                                         <Card>
+                                            <CardHeader>
+                                                <CardTitle>Assign Case</CardTitle>
+                                            </CardHeader>
+                                            <CardContent className="space-y-6">
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+                                                    <FormField
+                                                        control={form.control}
+                                                        name="makerId"
+                                                        render={({ field }) => (
+                                                            <FormItem className="grid grid-cols-3 items-center">
+                                                                <Label>Maker</Label>
+                                                                <div className="col-span-2">
+                                                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                                                        <SelectTrigger><SelectValue placeholder="Select Maker" /></SelectTrigger>
+                                                                        <SelectContent>
+                                                                            {makers.map(m => <SelectItem key={m.uid} value={m.uid}>{m.displayName}</SelectItem>)}
+                                                                        </SelectContent>
+                                                                    </Select>
+                                                                </div>
+                                                            </FormItem>
+                                                        )}
+                                                    />
+                                                    <FormField
+                                                        control={form.control}
+                                                        name="checkerId"
+                                                        render={({ field }) => (
+                                                            <FormItem className="grid grid-cols-3 items-center">
+                                                                <Label>Checker</Label>
+                                                                <div className="col-span-2">
+                                                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                                                        <SelectTrigger><SelectValue placeholder="Select Checker" /></SelectTrigger>
+                                                                        <SelectContent>
+                                                                        {checkers.map(c => <SelectItem key={c.uid} value={c.uid}>{c.displayName}</SelectItem>)}
+                                                                        </SelectContent>
+                                                                    </Select>
+                                                                </div>
+                                                            </FormItem>
+                                                        )}
+                                                    />
+                                                    <Controller
+                                                        control={form.control}
+                                                        name="allowEditingPreviousYear"
+                                                        render={({ field }) => (
+                                                            <RadioGroup
+                                                                onValueChange={field.onChange}
+                                                                value={field.value}
+                                                                className="flex items-center space-x-4 col-span-2"
+                                                            >
+                                                                <Label>Allow Editing Previous year</Label>
+                                                                <div className="flex items-center space-x-2">
+                                                                    <RadioGroupItem value="Yes" id="yes" />
+                                                                    <Label htmlFor="yes">Yes</Label>
+                                                                </div>
+                                                                <div className="flex items-center space-x-2">
+                                                                    <RadioGroupItem value="No" id="no" />
+                                                                    <Label htmlFor="no">No</Label>
+                                                                </div>
+                                                            </RadioGroup>
+                                                        )}
+                                                    />
+                                                </div>
+                                                
+                                            </CardContent>
+                                        </Card>
+                                     )}
                                 </div>
                                  {/* Right Column */}
                                  <div>
@@ -240,7 +260,7 @@ export default function CKCRequestDetailsPage() {
                                                         <TableHead>Document Type</TableHead>
                                                         <TableHead>Selected Years</TableHead>
                                                         <TableHead>Documents</TableHead>
-                                                        <TableHead className="w-[100px]">Is Valid</TableHead>
+                                                        {isAdmin && <TableHead className="w-[100px]">Is Valid</TableHead>}
                                                     </TableRow>
                                                 </TableHeader>
                                                 <TableBody>
@@ -254,23 +274,25 @@ export default function CKCRequestDetailsPage() {
                                                                     {doc.fileName}
                                                                 </Button>
                                                             </TableCell>
-                                                            <TableCell>
-                                                                <Controller
-                                                                    control={form.control}
-                                                                    name={`documents.${index}.valid`}
-                                                                    render={({ field }) => (
-                                                                        <Select onValueChange={field.onChange} value={field.value}>
-                                                                            <SelectTrigger>
-                                                                                <SelectValue />
-                                                                            </SelectTrigger>
-                                                                            <SelectContent>
-                                                                                <SelectItem value="Yes">Yes</SelectItem>
-                                                                                <SelectItem value="No">No</SelectItem>
-                                                                            </SelectContent>
-                                                                        </Select>
-                                                                    )}
-                                                                />
-                                                            </TableCell>
+                                                            {isAdmin && (
+                                                                <TableCell>
+                                                                    <Controller
+                                                                        control={form.control}
+                                                                        name={`documents.${index}.valid`}
+                                                                        render={({ field }) => (
+                                                                            <Select onValueChange={field.onChange} value={field.value}>
+                                                                                <SelectTrigger>
+                                                                                    <SelectValue />
+                                                                                </SelectTrigger>
+                                                                                <SelectContent>
+                                                                                    <SelectItem value="Yes">Yes</SelectItem>
+                                                                                    <SelectItem value="No">No</SelectItem>
+                                                                                </SelectContent>
+                                                                            </Select>
+                                                                        )}
+                                                                    />
+                                                                </TableCell>
+                                                            )}
                                                         </TableRow>
                                                     ))}
                                                 </TableBody>
@@ -280,35 +302,28 @@ export default function CKCRequestDetailsPage() {
                                  </div>
                              </div>
                             <div className="flex justify-end gap-2 mt-6">
-                                <Button type="submit">
-                                    <Check className="mr-2 h-4 w-4" /> Approve
-                                </Button>
-                                <Button type="button" variant="destructive" onClick={() => setIsRejectionModalOpen(true)}>
-                                    <X className="mr-2 h-4 w-4" /> Reject
-                                </Button>
-                                <Button type="button" variant="outline" onClick={() => setIsWithdrawalModalOpen(true)}>Withdraw</Button>
-                                <Button type="button" variant="outline" onClick={() => router.back()}>Close</Button>
+                               {isAdmin ? (
+                                   <>
+                                        <Button type="submit">
+                                            <Check className="mr-2 h-4 w-4" /> Approve
+                                        </Button>
+                                        <Button type="button" variant="destructive" onClick={() => setIsRejectionModalOpen(true)}>
+                                            <X className="mr-2 h-4 w-4" /> Reject
+                                        </Button>
+                                        <Button type="button" variant="outline" onClick={() => setIsWithdrawalModalOpen(true)}>Withdraw</Button>
+                                        <Button type="button" variant="outline" onClick={() => router.back()}>Close</Button>
+                                   </>
+                               ) : (
+                                    <>
+                                        <Button type="button" onClick={handleAccept}>Accept</Button>
+                                        <Button type="button" variant="outline" onClick={() => setIsRejectionModalOpen(true)}>Reject</Button>
+                                        <Button type="button" variant="outline" onClick={handleHold}>Hold</Button>
+                                    </>
+                               )}
                             </div>
-                        </TabsContent>
-                        <TabsContent value="mandate-details">
-                            <MandateDetailsForm requestId={requestId} />
                         </TabsContent>
                          <TabsContent value="past-financials">
                            <PastFinancialsTable companyId={request.companyId} />
-                        </TabsContent>
-                         <TabsContent value="documents">
-                             <Card>
-                                <CardContent className="p-6 text-center text-muted-foreground">
-                                    A list of all documents will be displayed here.
-                                </CardContent>
-                            </Card>
-                        </TabsContent>
-                         <TabsContent value="correction">
-                            <Card>
-                                <CardContent className="p-6 text-center text-muted-foreground">
-                                    Correction details will be displayed here.
-                                </CardContent>
-                            </Card>
                         </TabsContent>
                     </Tabs>
                 </div>

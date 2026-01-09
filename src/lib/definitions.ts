@@ -82,6 +82,31 @@ export interface PastFinancialPeriod {
   status: 'Active' | 'In-active';
 }
 
+export interface CkcMandateDetails {
+    mandateInfo: {
+        mandateId: string;
+        mandateType: string;
+        mandateDate: string;
+        receivedDate: string;
+        regionBranch: string;
+        bdName: string;
+        ratingGhName: string;
+        vertical: string;
+    };
+    companyInfo: {
+        address: string;
+        city: string;
+        zipcode: string;
+        state: string;
+        country: string;
+        instrument: string;
+        instrumentSize: string;
+        industry: string;
+        subIndustry: string;
+        sector: string;
+    };
+}
+
 
 export type StatusHistory = {
   status: NoteStatus | RequestStatus;
@@ -321,6 +346,8 @@ export interface DTContact {
     questionnaire?: QuestionnaireItem[];
     summary?: string;
 }
+
+export type DTFeedbackStatus = FeedbackStatus;
 
 export interface DTFirm {
     id: string;
