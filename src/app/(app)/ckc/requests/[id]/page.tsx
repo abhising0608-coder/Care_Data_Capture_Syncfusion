@@ -21,6 +21,7 @@ import type { CKCRequest, CKCRequestDocument } from '@/lib/definitions';
 import { useToast } from '@/hooks/use-toast';
 import { mockUsers } from '@/lib/mock-data';
 import { PastFinancialsTable } from '@/components/ckc/past-financials-table';
+import { MandateDetailsForm } from '@/components/ckc/mandate-details-form';
 
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
@@ -106,16 +107,16 @@ export default function CKCRequestDetailsPage() {
             <form onSubmit={form.handleSubmit(handleSubmit)}>
                  <div className="space-y-6">
                     <header>
-                        <h1 className="text-2xl font-bold tracking-tight text-foreground">Request Details</h1>
+                        <h1 className="text-2xl font-bold tracking-tight text-foreground">Request Form</h1>
                          <p className="text-muted-foreground">{request.companyName}</p>
                     </header>
                     <Tabs defaultValue="request-details" className="w-full">
                         <TabsList>
-                            <TabsTrigger value="request-details">Request Details</TabsTrigger>
-                            <TabsTrigger value="past-financials">Past Financials</TabsTrigger>
                             <TabsTrigger value="mandate-details">Mandate Details</TabsTrigger>
+                            <TabsTrigger value="request-details">Request Form</TabsTrigger>
                             <TabsTrigger value="documents">Documents</TabsTrigger>
                             <TabsTrigger value="correction">Correction</TabsTrigger>
+                             <TabsTrigger value="past-financials">Past Financials</TabsTrigger>
                         </TabsList>
                         <TabsContent value="request-details" className="space-y-6">
                              <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
@@ -260,15 +261,11 @@ export default function CKCRequestDetailsPage() {
                                 <Button type="button" variant="outline" onClick={() => router.back()}>Close</Button>
                             </div>
                         </TabsContent>
+                        <TabsContent value="mandate-details">
+                            <MandateDetailsForm requestId={requestId} />
+                        </TabsContent>
                          <TabsContent value="past-financials">
                            <PastFinancialsTable companyId={request.companyId} />
-                        </TabsContent>
-                        <TabsContent value="mandate-details">
-                            <Card>
-                                <CardContent className="p-6 text-center text-muted-foreground">
-                                    Mandate details will be displayed here.
-                                </CardContent>
-                            </Card>
                         </TabsContent>
                          <TabsContent value="documents">
                             <Card>
