@@ -405,7 +405,7 @@ export default function CKCRequestDetailsPage() {
                                         </div>
                                     </div>
                                     <div className="flex justify-end gap-2">
-                                        <Button type="button" variant="outline" onClick={() => toast({title: "Placeholder", description: "Send back logic to be implemented."})}>Send Back</Button>
+                                        <Button type="button" onClick={() => toast({title: "Placeholder", description: "Send for checking logic to be implemented."})}>Submit for Checking</Button>
                                         <Button type="button" onClick={() => toast({title: "Placeholder", description: "Mark as complete logic to be implemented."})}>Mark as Complete</Button>
                                     </div>
                                 </CardContent>
