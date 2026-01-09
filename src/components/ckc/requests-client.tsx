@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -8,6 +9,7 @@ import { ArrowRight, Search } from 'lucide-react';
 import { Button } from '../ui/button';
 import { ScrollArea, ScrollBar } from '../ui/scroll-area';
 import { Input } from '../ui/input';
+import { useAuth } from '@/firebase';
 
 
 const pendingSummaryCards = [
@@ -40,17 +42,20 @@ const closedSummaryCards = [
 export default function CKCRequestsClient() {
     const [activeTab, setActiveTab] = useState("pending");
     const [globalFilter, setGlobalFilter] = useState('');
+    const { user } = useAuth();
     
     const getSummaryCards = () => {
         switch (activeTab) {
             case 'pending': return pendingSummaryCards;
             case 'accepted': return acceptedSummaryCards;
             case 'closed': return closedSummaryCards;
+            case 'on-hold': return []; // No cards for On-Hold
             default: return [];
         }
     }
     
     const summaryCards = getSummaryCards();
+    const isAdmin = user?.role === 'CKC_ADMIN';
 
     return (
         <div className="space-y-6">
@@ -65,7 +70,7 @@ export default function CKCRequestsClient() {
                     <TabsTrigger value="rejected">Rejected (32)</TabsTrigger>
                     <TabsTrigger value="closed">Closed (309)</TabsTrigger>
                     <TabsTrigger value="withdrawn">Withdrawn (29)</TabsTrigger>
-                    <TabsTrigger value="on-hold">On Hold (12)</TabsTrigger>
+                    {isAdmin && <TabsTrigger value="on-hold">On Hold (12)</TabsTrigger>}
                 </TabsList>
 
                 <div className="pt-6">
@@ -108,8 +113,10 @@ export default function CKCRequestsClient() {
                 <TabsContent value="rejected"><CKCRequestsTable status="REJECTED" globalFilter={globalFilter} setGlobalFilter={setGlobalFilter} /></TabsContent>
                 <TabsContent value="closed"><CKCRequestsTable status="CLOSED" globalFilter={globalFilter} setGlobalFilter={setGlobalFilter} /></TabsContent>
                 <TabsContent value="withdrawn"><CKCRequestsTable status="WITHDRAWN" globalFilter={globalFilter} setGlobalFilter={setGlobalFilter} /></TabsContent>
-                <TabsContent value="on-hold"><CKCRequestsTable status="ON_HOLD" globalFilter={globalFilter} setGlobalFilter={setGlobalFilter} /></TabsContent>
+                {isAdmin && <TabsContent value="on-hold"><CKCRequestsTable status="ON_HOLD" globalFilter={globalFilter} setGlobalFilter={setGlobalFilter} /></TabsContent>}
             </Tabs>
         </div>
     )
 }
+
+    

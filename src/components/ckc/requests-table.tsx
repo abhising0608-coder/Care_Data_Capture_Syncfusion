@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -85,9 +86,13 @@ export function CKCRequestsTable({ status, globalFilter, setGlobalFilter }: CKCR
       'companyId': false,
       'status': status !== 'ACCEPTED',
       'rejectionComments': status !== 'REJECTED',
-      'hoRoName': status !== 'CLOSED',
+      'hoRoName': status !== 'CLOSED' && status !== 'ON_HOLD',
       'closedDate': status !== 'CLOSED',
-      'analystName': status !== 'ACCEPTED'
+      'analystName': status !== 'ACCEPTED' && status !== 'ON_HOLD',
+      'withdrawalDate': status !== 'WITHDRAWN',
+      'withdrawalReason': status !== 'WITHDRAWN',
+      'onHoldDate': status !== 'ON_HOLD',
+      'onHoldBy': status !== 'ON_HOLD',
     });
   const [rowSelection, setRowSelection] = React.useState({});
   
@@ -221,6 +226,22 @@ export function CKCRequestsTable({ status, globalFilter, setGlobalFilter }: CKCR
       header: 'Rejection Comments'
     },
     {
+        accessorKey: 'withdrawalDate',
+        header: 'Withdrawal Date'
+    },
+    {
+        accessorKey: 'withdrawalReason',
+        header: 'Withdrawal Reason'
+    },
+     {
+        accessorKey: 'onHoldDate',
+        header: 'On Hold Date'
+    },
+    {
+        accessorKey: 'onHoldBy',
+        header: 'On Hold By'
+    },
+    {
       id: 'actions',
       header: 'Actions',
       cell: ({ row }) => {
@@ -286,9 +307,13 @@ export function CKCRequestsTable({ status, globalFilter, setGlobalFilter }: CKCR
         ...prev,
         'status': status !== 'ACCEPTED',
         'rejectionComments': status !== 'REJECTED',
-        'hoRoName': status !== 'CLOSED',
+        'hoRoName': status !== 'CLOSED' && status !== 'ON_HOLD',
         'closedDate': status !== 'CLOSED',
-        'analystName': status !== 'ACCEPTED'
+        'analystName': status !== 'ACCEPTED' && status !== 'ON_HOLD',
+        'withdrawalDate': status !== 'WITHDRAWN',
+        'withdrawalReason': status !== 'WITHDRAWN',
+        'onHoldDate': status !== 'ON_HOLD',
+        'onHoldBy': status !== 'ON_HOLD',
     }));
   }, [status]);
 
@@ -455,3 +480,5 @@ export function CKCRequestsTable({ status, globalFilter, setGlobalFilter }: CKCR
     </div>
   );
 }
+
+    

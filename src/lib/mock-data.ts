@@ -1,4 +1,5 @@
 
+
 import type { AppUser, Role, RequestStatus, CKCRequest, CompanyInfo, RatingNote, NoteStatus, RatingNoteDataSchema, DTFirm, DTContact, FeedbackStatus, QuestionnaireItem, IPAFirm, IPAContact, ThirdParty, AuditCommitteeMeeting, SiteVisit, AuditorFirm, AuditorContact, BankerFirm, BankerContact, RatingInstrument, RatingInstrumentCycle, LatestBankDetail, AnnexureVHistory, PressReleaseHistoryEntry, PressReleaseHistory, DMSDocumentHistory, BankerLenderDetail, PortfolioActivity, Mandate } from './definitions';
 
 
@@ -291,7 +292,8 @@ let ckcRequests: CKCRequest[] = [
     { id: 'CE0001543', companyId: '296742', companyName: 'Shriram Finance Ltd', finInputSector: 'NBFC', listed: 'Yes', cycle: 'Initial', receivedDate: '2024-05-13', auditedFY: '2023', status: 'REJECTED', rejectionDate: '2024-05-14', rejectionComments: 'Incomplete documentation' },
     { id: 'CE0001501', companyId: '09873', companyName: 'Bajaj Housing Finance Ltd', finInputSector: 'HFC', listed: 'Yes', cycle: 'Surveillance', receivedDate: '2024-05-14', auditedFY: '2023', status: 'CLOSED', closedDate: '2024-06-01', hoRoName: 'Subash Rao' },
     { id: 'CE0001555', companyId: '12564', companyName: 'LIC Housing Finance', finInputSector: 'HFC', listed: 'Yes', cycle: 'Initial', receivedDate: '2024-05-15', auditedFY: '2023', status: 'WITHDRAWN', withdrawalDate: '2024-05-16', withdrawalReason: 'Client request' },
-    { id: 'CE0001567', companyId: '34567', companyName: 'Adani Enterprises', finInputSector: 'Manufacturing', listed: 'Yes', cycle: 'Surveillance', receivedDate: '2024-05-16', auditedFY: '2023', status: 'ON_HOLD', onHoldBy: 'CKC Admin', onHoldReason: 'Awaiting further clarification' },
+    { id: 'CE0001567', companyId: '34567', companyName: 'Adani Enterprises', finInputSector: 'Manufacturing', listed: 'Yes', cycle: 'Surveillance', receivedDate: '2024-05-16', auditedFY: '2023', status: 'ON_HOLD', onHoldBy: 'CKC Admin', onHoldReason: 'Awaiting further clarification', onHoldDate: '2024-05-17', hoRoName: 'Anand S', analystName: 'Varun S' },
+    { id: 'CE0001568', companyId: '34568', companyName: 'Tata Steel', finInputSector: 'Manufacturing', listed: 'Yes', cycle: 'Initial', receivedDate: '2024-05-16', auditedFY: '2023', status: 'ON_HOLD', onHoldBy: 'CKC Admin', onHoldReason: 'Management discussion pending', onHoldDate: '2024-05-18', hoRoName: 'Rahul M', analystName: 'Prakash J' },
      { id: 'CE0001580', companyId: '45678', companyName: 'ICICI Bank', finInputSector: 'Bank', listed: 'Yes', cycle: 'Initial', receivedDate: '2024-05-18', auditedFY: '2023', status: 'ACCEPTED', subStatus: 'WIP', analystName: 'Jane Smith' },
 ];
 
@@ -1146,3 +1148,5 @@ export function updateIsinRecord(instrumentId: string, rcmId: string, records: I
     }
     return [];
 }
+
+    

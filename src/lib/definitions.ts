@@ -1,3 +1,4 @@
+
 export type Role = 'CKC_ANALYST' | 'CKC_CHECKER' | 'CKC_ADMIN' | 'RATING_ANALYST' | 'GROUP_HEAD' | 'RATING_HEAD_SD' | 'SYSTEM' | 'QC' | 'RATING_COMMITTEE' | 'AUDITOR' | 'EDITOR';
 
 export type RequestStatus = 'PENDING' | 'ACCEPTED' | 'IN_PROGRESS' | 'SUBMITTED_FOR_CHECK' | 'SENT_BACK' | 'APPROVED' | 'CLOSED' | 'REJECTED' | 'WITHDRAWN' | 'ON_HOLD';
@@ -46,6 +47,7 @@ export interface CKCRequest {
   rejectionComments?: string;
   withdrawalDate?: string;
   withdrawalReason?: string;
+  onHoldDate?: string;
   onHoldBy?: string;
   onHoldReason?: string;
   subStatus?: 'Not Allotted' | 'WIP' | 'Checking Pending' | 'CWIP' | 'In-Review' | 'Closed';
@@ -615,3 +617,5 @@ export interface RatingNoteDataSchema {
   audit: Audit;
   editorContent?: string; // To store the latest SFDT
 }
+
+    
