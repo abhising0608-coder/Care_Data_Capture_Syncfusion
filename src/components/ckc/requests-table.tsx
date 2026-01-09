@@ -247,6 +247,8 @@ export function CKCRequestsTable({ status, globalFilter, setGlobalFilter }: CKCR
       cell: ({ row }) => {
         const isAdmin = user?.role === 'CKC_ADMIN';
         const isAnalyst = user?.role === 'CKC_ANALYST';
+        // This is a mock distinction. In a real app, you'd have a clearer way to differentiate.
+        const isChecker = row.original.subStatus === 'Checking Pending'; 
 
         if (status === 'PENDING' && isAnalyst) {
             return (
@@ -279,13 +281,19 @@ export function CKCRequestsTable({ status, globalFilter, setGlobalFilter }: CKCR
                                 <DropdownMenuItem onClick={() => toast({title: "Placeholder", description:"Withdraw Request"})}>Withdraw Request</DropdownMenuItem>
                             </>
                         )}
-                        {isAnalyst && (
+                        {isAnalyst && !isChecker && (
                              <>
-                                <DropdownMenuItem onClick={() => router.push(`/financial-input/${row.original.id}`)}>Initiate Manual Entry</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => router.push(`/financial-input?requestId=${row.original.id}`)}>Initiate Manual Entry</DropdownMenuItem>
                                 <DropdownMenuItem onClick={() => toast({title: "Placeholder", description:"Initiate via OCR"})}>Initiate via OCR</DropdownMenuItem>
                                 <DropdownMenuItem onClick={() => toast({title: "Placeholder", description:"Initiate XBRL"})}>Initiate XBRL</DropdownMenuItem>
                                 <DropdownMenuItem onClick={() => toast({title: "Placeholder", description:"Reject Request"})}>Reject Request</DropdownMenuItem>
                                 <DropdownMenuItem onClick={() => toast({title: "Placeholder", description:"On-Hold Request"})}>On-Hold Request</DropdownMenuItem>
+                            </>
+                        )}
+                        {isChecker && (
+                             <>
+                                <DropdownMenuItem onClick={() => toast({title: "Placeholder", description:"Initiate Financial Data Review"})}>Initiate Financial Data Review</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => toast({title: "Placeholder", description:"Reject Request"})}>Reject Request</DropdownMenuItem>
                             </>
                         )}
                     </DropdownMenuContent>
@@ -335,8 +343,6 @@ export function CKCRequestsTable({ status, globalFilter, setGlobalFilter }: CKCR
 
 
   const isBulkActionDisabled = Object.keys(rowSelection).length < 1;
-  const isAdmin = user?.role === 'CKC_ADMIN';
-  const isAnalyst = user?.role === 'CKC_ANALYST';
   
   const getBulkActions = (role: Role | undefined, currentStatus: typeof status) => {
     if (!role) return [];
