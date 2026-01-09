@@ -18,9 +18,10 @@
 
 
 
+
 export type Role = 'CKC_ANALYST' | 'CKC_CHECKER' | 'CKC_ADMIN' | 'RATING_ANALYST' | 'GROUP_HEAD' | 'RATING_HEAD_SD' | 'SYSTEM' | 'QC' | 'RATING_COMMITTEE' | 'AUDITOR' | 'EDITOR';
 
-export type RequestStatus = 'PENDING' | 'ACCEPTED' | 'IN_PROGRESS' | 'SUBMITTED_FOR_CHECK' | 'SENT_BACK' | 'APPROVED' | 'CLOSED';
+export type RequestStatus = 'PENDING' | 'ACCEPTED' | 'IN_PROGRESS' | 'SUBMITTED_FOR_CHECK' | 'SENT_BACK' | 'APPROVED' | 'CLOSED' | 'REJECTED' | 'WITHDRAWN' | 'ON_HOLD';
 
 // More granular statuses for the entire rating note workflow
 export type NoteStatus = 
@@ -52,6 +53,23 @@ export type DiscussionStatus = 'Draft' | 'Shared with GH' | 'Completed';
 
 export type ActivityStatus = 'Not Initiated' | 'In Progress' | 'Completed';
 
+export interface CKCRequest {
+  id: string;
+  companyId: string;
+  companyName: string;
+  finInputSector: 'Manufacturing' | 'Bank' | 'NBFC' | 'HFC';
+  listed: 'Yes' | 'No';
+  cycle: 'Initial' | 'Surveillance';
+  receivedDate: string;
+  auditedFY: string;
+  status: RequestStatus;
+  rejectionDate?: string;
+  rejectionComments?: string;
+  withdrawalDate?: string;
+  withdrawalReason?: string;
+  onHoldBy?: string;
+  onHoldReason?: string;
+}
 
 export type StatusHistory = {
   status: NoteStatus | RequestStatus;

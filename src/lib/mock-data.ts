@@ -1,11 +1,5 @@
 
-
-
-
-
-
-
-import type { AppUser, Role, RequestStatus, CompanyInfo, RatingNote, NoteStatus, RatingNoteDataSchema, DTFirm, DTContact, FeedbackStatus, QuestionnaireItem, IPAFirm, IPAContact, ThirdParty, AuditCommitteeMeeting, SiteVisit, AuditorFirm, AuditorContact, BankerFirm, BankerContact, RatingInstrument, RatingInstrumentCycle, LatestBankDetail, AnnexureVHistory, PressReleaseHistoryEntry, PressReleaseHistory, DMSDocumentHistory, BankerLenderDetail, PortfolioActivity, Mandate } from './definitions';
+import type { AppUser, Role, RequestStatus, CKCRequest, CompanyInfo, RatingNote, NoteStatus, RatingNoteDataSchema, DTFirm, DTContact, FeedbackStatus, QuestionnaireItem, IPAFirm, IPAContact, ThirdParty, AuditCommitteeMeeting, SiteVisit, AuditorFirm, AuditorContact, BankerFirm, BankerContact, RatingInstrument, RatingInstrumentCycle, LatestBankDetail, AnnexureVHistory, PressReleaseHistoryEntry, PressReleaseHistory, DMSDocumentHistory, BankerLenderDetail, PortfolioActivity, Mandate } from './definitions';
 
 
 // --- FSD-based Master JSON Data Structure ---
@@ -288,6 +282,19 @@ let ratingInstruments: Record<string, RatingInstrument[]> = {
     }))
   ]
 };
+
+let ckcRequests: CKCRequest[] = [
+    { id: 'CE0001511', companyId: '21898', companyName: 'Shriram Transport Finance Company Ltd', finInputSector: 'Manufacturing', listed: 'Yes', cycle: 'Initial', receivedDate: '2024-05-10', auditedFY: '2023', status: 'PENDING' },
+    { id: 'CE0001512', companyId: '21804', companyName: 'Reliance Industries Ltd', finInputSector: 'Manufacturing', listed: 'Yes', cycle: 'Initial', receivedDate: '2024-05-10', auditedFY: '2023', status: 'PENDING' },
+    { id: 'CE0001513', companyId: '11897', companyName: 'HDFC Bank Ltd', finInputSector: 'Bank', listed: 'Yes', cycle: 'Surveillance', receivedDate: '2024-05-11', auditedFY: '2023', status: 'ACCEPTED' },
+    { id: 'CE0001529', companyId: '218998', companyName: 'Bharti Airtel Ltd', finInputSector: 'Manufacturing', listed: 'Yes', cycle: 'Surveillance', receivedDate: '2024-05-12', auditedFY: '2023', status: 'PENDING' },
+    { id: 'CE0001543', companyId: '296742', companyName: 'Shriram Finance Ltd', finInputSector: 'NBFC', listed: 'Yes', cycle: 'Initial', receivedDate: '2024-05-13', auditedFY: '2023', status: 'REJECTED', rejectionDate: '2024-05-14', rejectionComments: 'Incomplete documentation' },
+    { id: 'CE0001501', companyId: '09873', companyName: 'Bajaj Housing Finance Ltd', finInputSector: 'HFC', listed: 'Yes', cycle: 'Surveillance', receivedDate: '2024-05-14', auditedFY: '2023', status: 'CLOSED' },
+    { id: 'CE0001555', companyId: '12564', companyName: 'LIC Housing Finance', finInputSector: 'HFC', listed: 'Yes', cycle: 'Initial', receivedDate: '2024-05-15', auditedFY: '2023', status: 'WITHDRAWN', withdrawalDate: '2024-05-16', withdrawalReason: 'Client request' },
+    { id: 'CE0001567', companyId: '34567', companyName: 'Adani Enterprises', finInputSector: 'Manufacturing', listed: 'Yes', cycle: 'Surveillance', receivedDate: '2024-05-16', auditedFY: '2023', status: 'ON_HOLD', onHoldBy: 'CKC Admin', onHoldReason: 'Awaiting further clarification' },
+     { id: 'CE0001580', companyId: '45678', companyName: 'ICICI Bank', finInputSector: 'Bank', listed: 'Yes', cycle: 'Initial', receivedDate: '2024-05-18', auditedFY: '2023', status: 'ACCEPTED' },
+];
+
 
 export const mockDMSDocumentHistoryData: DMSDocumentHistory[] = [
     { documentName: 'Banker Interaction', dmsStatus: 'Pending', dmsProcessType: 'Revalidation', dmsUploadedOn: '2010-09-24 11:02 AM', dmsUploadedBy: '-', reason: '-', mandateId: '2014-2015/20/21796' },
@@ -576,6 +583,20 @@ let companyInfoData: Record<string, CompanyInfo> = {
 };
 
 // --- New Rating Note Data Functions ---
+
+export const getCkcRequests = (params: { status?: RequestStatus | null; id?: string | null }): CKCRequest[] => {
+  let filteredRequests = ckcRequests;
+
+  if (params.id) {
+    return filteredRequests.filter(req => req.id === params.id);
+  }
+
+  if (params.status) {
+    return filteredRequests.filter(req => req.status === params.status);
+  }
+
+  return filteredRequests;
+};
 
 export const getCompaniesByRole = (user: AppUser | null) => {
     if (!user) return [];
@@ -929,7 +950,7 @@ export const updateBankerLenderDetails = (instrumentId: string, rcmId: string, d
 
 export const getLatestBankDetailsByCompanyId = (companyId: string): LatestBankDetail[] => {
   return mockLatestBankDetails || [];
-};
+}
 
 export const createNote = (body: Partial<RatingNote>): RatingNote => {
     const company = mockCompanies.find(c => c.id === body.companyId);
