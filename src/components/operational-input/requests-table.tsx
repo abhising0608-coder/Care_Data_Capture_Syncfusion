@@ -170,7 +170,8 @@ export function OperationalRequestsTable({ status, globalFilter, setGlobalFilter
 
   React.useEffect(() => {
     setColumnVisibility({
-        'analystName': status === 'ACCEPTED'
+        'analystName': status === 'ACCEPTED',
+        'actions': status !== 'CLOSED',
     });
   }, [status]);
 
