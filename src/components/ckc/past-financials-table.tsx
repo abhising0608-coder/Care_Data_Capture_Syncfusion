@@ -176,7 +176,7 @@ export function PastFinancialsTable({ companyId }: PastFinancialsTableProps) {
 
   return (
     <>
-    <div className="w-full space-y-4">
+    <div className="w-full space-y-4 pt-6">
       <div className="flex items-center justify-between gap-2">
          <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
@@ -191,7 +191,7 @@ export function PastFinancialsTable({ companyId }: PastFinancialsTableProps) {
         </div>
         <div className="flex items-center gap-2">
             {isMaker && (
-                <Button onClick={() => setIsBlankPeriodModalOpen(true)}>
+                <Button variant="outline" onClick={() => setIsBlankPeriodModalOpen(true)}>
                     <PlusCircle className="mr-2 h-4 w-4" /> Create Blank Period
                 </Button>
             )}
