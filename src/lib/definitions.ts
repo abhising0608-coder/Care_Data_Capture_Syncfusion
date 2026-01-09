@@ -21,7 +21,6 @@ export type NoteStatus =
   | 'Auditor Approved'
   | 'In Review (Editor)'
   | 'Rework Requested (Editor)'
-  | 'Editor Approved'
   | 'PR Generation Pending' // Legacy status from initial note flow
   | 'Sent to Client'
   | 'Completed';
@@ -630,5 +629,3 @@ export interface RatingNoteDataSchema {
   audit: Audit;
   editorContent?: string; // To store the latest SFDT
 }
-
-    

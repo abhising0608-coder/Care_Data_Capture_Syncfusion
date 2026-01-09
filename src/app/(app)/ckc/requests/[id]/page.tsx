@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import useSWR from 'swr';
 import { useForm, FormProvider, Controller, useFieldArray } from 'react-hook-form';
@@ -19,6 +20,8 @@ import { Form, FormField, FormItem } from '@/components/ui/form';
 import type { CKCRequest, CKCRequestDocument } from '@/lib/definitions';
 import { useToast } from '@/hooks/use-toast';
 import { mockUsers } from '@/lib/mock-data';
+import { RejectionModal } from '@/components/ckc/rejection-modal';
+
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
 
@@ -51,6 +54,7 @@ export default function CKCRequestDetailsPage() {
     const router = useRouter();
     const { toast } = useToast();
     const requestId = params.id as string;
+    const [isRejectionModalOpen, setIsRejectionModalOpen] = useState(false);
 
     const { data: request, isLoading, error } = useSWR<CKCRequest>(
         requestId ? `/api/ckc/requests/${requestId}` : null,
@@ -88,6 +92,17 @@ export default function CKCRequestDetailsPage() {
         });
         router.push('/ckc/requests');
     };
+
+    const handleReject = (comments: string) => {
+        console.log("Rejecting with comments:", comments);
+         toast({
+            title: 'Request Rejected',
+            description: `Request ${request?.id} has been rejected.`,
+            variant: 'destructive'
+        });
+        setIsRejectionModalOpen(false);
+        router.push('/ckc/requests');
+    }
     
     if (isLoading || !request) {
         return <div className="p-6"><Skeleton className="h-[70vh] w-full" /></div>
@@ -99,6 +114,11 @@ export default function CKCRequestDetailsPage() {
 
     return (
         <FormProvider {...form}>
+             <RejectionModal 
+                isOpen={isRejectionModalOpen}
+                onClose={() => setIsRejectionModalOpen(false)}
+                onSubmit={handleReject}
+            />
             <form onSubmit={form.handleSubmit(handleApprove)}>
                  <div className="space-y-6">
                     <header>
@@ -254,7 +274,7 @@ export default function CKCRequestDetailsPage() {
                     </Tabs>
                     <div className="flex justify-end gap-2 mt-6">
                         <Button type="submit">Approve</Button>
-                        <Button type="button" variant="outline">Reject</Button>
+                        <Button type="button" variant="outline" onClick={() => setIsRejectionModalOpen(true)}>Reject</Button>
                         <Button type="button" variant="outline">Withdraw</Button>
                     </div>
                 </div>
@@ -262,4 +282,3 @@ export default function CKCRequestDetailsPage() {
         </FormProvider>
     );
 }
-    
