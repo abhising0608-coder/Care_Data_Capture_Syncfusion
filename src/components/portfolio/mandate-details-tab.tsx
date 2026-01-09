@@ -18,7 +18,6 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { mockMandateData } from '@/lib/mock-data';
 import type { Mandate } from '@/lib/definitions';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
@@ -40,7 +39,7 @@ export function MandateDetailsTab({ ratingCycleId }: MandateDetailsTabProps) {
   const { toast } = useToast();
   const router = useRouter();
   // In a real app, you would fetch mandate data based on ratingCycleId
-  const { data: mandates, isLoading } = useSWR<Mandate[]>('mandates', () => Promise.resolve(mockMandateData));
+  const { data: mandates, isLoading } = useSWR<Mandate[]>('/api/mandates', fetcher);
 
   const form = useForm<z.infer<typeof mandateSchema>>({
     resolver: zodResolver(mandateSchema),
@@ -182,6 +181,21 @@ export function MandateDetailsTab({ ratingCycleId }: MandateDetailsTabProps) {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
+                             <TableRow>
+                                <TableCell><Checkbox /></TableCell>
+                                <TableCell><Input readOnly/></TableCell>
+                                <TableCell><Select><SelectTrigger /></Select></TableCell>
+                                <TableCell><Select><SelectTrigger /></Select></TableCell>
+                                <TableCell><Select><SelectTrigger /></Select></TableCell>
+                                <TableCell><Input type="number" /></TableCell>
+                                <TableCell><Input type="number" /></TableCell>
+                                <TableCell><Input readOnly /></TableCell>
+                                <TableCell><Select><SelectTrigger><SelectValue placeholder="Surveillance" /></SelectTrigger></Select></TableCell>
+                                <TableCell className="flex gap-1">
+                                    <Button variant="ghost" size="icon"><Check className="h-4 w-4 text-green-500" /></Button>
+                                    <Button variant="ghost" size="icon"><RefreshCw className="h-4 w-4 text-blue-500" /></Button>
+                                </TableCell>
+                             </TableRow>
                              {mandate.instruments.map((inst) => (
                                 <TableRow key={inst.instrumentId}>
                                     <TableCell><Checkbox defaultChecked={inst.isSelected} /></TableCell>
@@ -194,8 +208,6 @@ export function MandateDetailsTab({ ratingCycleId }: MandateDetailsTabProps) {
                                     <TableCell>{inst.totalInstrumentSize}</TableCell>
                                     <TableCell><Select defaultValue={inst.agendaType}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="Surveillance">Surveillance</SelectItem></SelectContent></Select></TableCell>
                                      <TableCell className="flex gap-1">
-                                        <Button variant="ghost" size="icon"><Check className="h-4 w-4 text-green-500" /></Button>
-                                        <Button variant="ghost" size="icon"><RefreshCw className="h-4 w-4 text-blue-500" /></Button>
                                         <Button variant="ghost" size="icon"><Edit className="h-4 w-4 text-yellow-500" /></Button>
                                     </TableCell>
                                 </TableRow>

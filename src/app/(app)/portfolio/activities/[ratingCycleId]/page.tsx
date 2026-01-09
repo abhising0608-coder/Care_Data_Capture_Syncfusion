@@ -39,29 +39,38 @@ export default function PortfolioActivitiesPage() {
                     ))}
                 </TabsList>
 
-                {tabsConfig.map(tab => (
-                    <TabsContent key={tab.value} value={tab.value}>
+                
+                    <TabsContent value="company-information">
                         <div className="mt-4">
-                            {tab.value === 'activities' ? (
-                                <Suspense fallback={<Skeleton className="h-[400px] w-full" />}>
-                                    <ActivitiesList />
-                                </Suspense>
-                            ) : tab.value === 'company-information' ? (
-                                <Suspense fallback={<Skeleton className="h-[600px] w-full" />}>
-                                    <CompanyInformationTab ratingCycleId={ratingCycleId} />
-                                </Suspense>
-                            ) : tab.value === 'mandate-details' ? (
-                                <Suspense fallback={<Skeleton className="h-[600px] w-full" />}>
-                                    <MandateDetailsTab ratingCycleId={ratingCycleId} />
-                                </Suspense>
-                            ) : (
-                                <div className="flex items-center justify-center h-64 border rounded-lg bg-muted/50">
-                                    <p className="text-muted-foreground">Content for {tab.label}</p>
-                                </div>
-                            )}
+                            <Suspense fallback={<Skeleton className="h-[600px] w-full" />}>
+                                <CompanyInformationTab ratingCycleId={ratingCycleId} />
+                            </Suspense>
                         </div>
                     </TabsContent>
-                ))}
+                    <TabsContent value="mandate-details">
+                         <div className="mt-4">
+                            <Suspense fallback={<Skeleton className="h-[600px] w-full" />}>
+                                <MandateDetailsTab ratingCycleId={ratingCycleId} />
+                            </Suspense>
+                        </div>
+                    </TabsContent>
+                     <TabsContent value="information-request">
+                        <div className="flex items-center justify-center h-64 border rounded-lg bg-muted/50 mt-4">
+                            <p className="text-muted-foreground">Content for Information Request</p>
+                        </div>
+                    </TabsContent>
+                    <TabsContent value="document-review">
+                        <div className="flex items-center justify-center h-64 border rounded-lg bg-muted/50 mt-4">
+                            <p className="text-muted-foreground">Content for Document Review</p>
+                        </div>
+                    </TabsContent>
+                    <TabsContent value="activities">
+                        <div className="mt-4">
+                            <Suspense fallback={<Skeleton className="h-[400px] w-full" />}>
+                                <ActivitiesList />
+                            </Suspense>
+                        </div>
+                    </TabsContent>
             </Tabs>
         </div>
     );

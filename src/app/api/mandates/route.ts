@@ -1,3 +1,4 @@
+
 import { NextResponse } from 'next/server';
 import { mockMandateData } from '@/lib/mock-data';
 import type { Mandate } from '@/lib/definitions';
