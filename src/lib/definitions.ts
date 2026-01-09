@@ -17,6 +17,7 @@
 
 
 
+
 export type Role = 'CKC_ANALYST' | 'CKC_CHECKER' | 'CKC_ADMIN' | 'RATING_ANALYST' | 'GROUP_HEAD' | 'RATING_HEAD_SD' | 'SYSTEM' | 'QC' | 'RATING_COMMITTEE' | 'AUDITOR' | 'EDITOR';
 
 export type RequestStatus = 'PENDING' | 'ACCEPTED' | 'IN_PROGRESS' | 'SUBMITTED_FOR_CHECK' | 'SENT_BACK' | 'APPROVED' | 'CLOSED';
@@ -211,44 +212,6 @@ export type RatingInstrument = {
   cycleHistory: RatingInstrumentCycle[];
   isinRecords?: ISINRecord[];
   bankerLenderDetails?: Record<string, BankerLenderDetail[]>;
-};
-
-export type CKCRequest = {
-  id: string; // Corresponds to document ID
-  requestId: string; // The original request ID from the source system
-  companyId: string;
-  companyName: string;
-  financialInputSector: string;
-  listed: 'Yes' | 'No';
-  rating: string;
-  hoRoName: string;
-  dealingAnalyst: string;
-  groupHead: string;
-  assignedTo: string | null;
-  checker: string;
-  status: RequestStatus;
-  cycle: 'Initial' | 'Surveillance';
-  auditedFY: string[];
-  provisionalFY: string[];
-  projectionFY: [];
-  remarks: string;
-  receiptDateTime: string | Date;
-  receiptResponseDateTime: string | Date | null;
-  entryAllottedDateTime: string | Date | null;
-  entryCompletedDateTime: string | Date | null;
-  checkingAllottedDateTime: string | Date | null;
-  checkingCompletedDateTime: string | Date | null;
-  sentBackFlag: boolean;
-  createdBy: string;
-  overallStatus: string;
-  itemType: string;
-  path: string;
-  resultType: 'Standalone' | 'Consolidated';
-  ckcAnalystName?: string;
-  currentOwnerId: string | null;
-  currentOwnerRole: Role | null;
-  assignedCheckerId: string | null;
-  statusHistory: StatusHistory[];
 };
 
 export type CompanyMaster = {
@@ -651,4 +614,3 @@ export interface RatingNoteDataSchema {
   audit: Audit;
   editorContent?: string; // To store the latest SFDT
 }
-
