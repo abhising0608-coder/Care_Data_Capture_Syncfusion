@@ -6,13 +6,13 @@ import useSWR from 'swr';
 import { useAuth } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { useWorkflow } from '@/context/workflow-context';
+import { useForm } from 'react-hook-form';
 
 import { JsonSchemaForm } from '@/components/operational-input/json-schema-form';
 import { pharmaSchema } from '@/lib/schemas/sectorial-schemas/pharma-schema';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Save } from 'lucide-react';
-import { useForm } from 'react-hook-form';
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
 
@@ -33,7 +33,7 @@ export default function OperationalInputFlowPage() {
     const router = useRouter();
     const { user, isLoading: isAuthLoading } = useAuth();
     const { toast } = useToast();
-    const { completeStep, activeCompanyId } = useWorkflow();
+    const { completeStep } = useWorkflow();
     const formRef = useForm();
 
     const ratingCycleId = params.ratingCycleId as string;
@@ -75,11 +75,7 @@ export default function OperationalInputFlowPage() {
                 description: `Operational data has been saved successfully.`,
             });
             
-             if (activeCompanyId) {
-                router.push(`/due-diligence/${activeCompanyId}`);
-            } else {
-                router.push('/dashboard');
-            }
+            router.push(`/due-diligence/${ratingCycleId}`);
             
         } catch (error) {
             console.error("Failed to save data:", error);

@@ -159,7 +159,7 @@ export function OperationalRequestsTable({ status, globalFilter, setGlobalFilter
         }
         if (status === 'ACCEPTED') {
             return (
-                <Button variant="outline" size="sm" onClick={() => router.push(`/operational-input/${row.original.id}`)}>
+                <Button variant="outline" size="sm" onClick={() => router.push(`/operational-input/initiate?requestId=${row.original.id}`)}>
                     Initiate
                 </Button>
             )
@@ -171,6 +171,7 @@ export function OperationalRequestsTable({ status, globalFilter, setGlobalFilter
 
   React.useEffect(() => {
     setColumnVisibility({
+        'companyId': false,
         'analystName': status === 'ACCEPTED',
         'actions': status !== 'CLOSED',
     });

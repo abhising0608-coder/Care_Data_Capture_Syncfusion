@@ -147,7 +147,7 @@ export function AppSidebar() {
             <SidebarMenuItem>
               <SidebarMenuSub>
                 <SidebarMenuButton
-                  isActive={pathname.startsWith('/ckc') || pathname.startsWith('/financial-input') || pathname.startsWith('/operational-input')}
+                  isActive={pathname.startsWith('/ckc') || pathname.startsWith('/financial-input') || pathname.startsWith('/operational-input/initiate')}
                   tooltip={{ children: 'CKC', side: 'right' }}
                   className="justify-start"
                 >
@@ -193,6 +193,20 @@ export function AppSidebar() {
               </SidebarMenuSub>
             </SidebarMenuItem>
           )}
+
+           <SidebarMenuItem>
+              <SidebarMenuButton
+                asChild
+                isActive={pathname.startsWith('/operational-input/requests')}
+                tooltip={{ children: 'Operational Input', side: 'right' }}
+                className="justify-start"
+              >
+                <a href="/operational-input/requests">
+                  <FileUp className="h-4 w-4" />
+                  <span className="text-sm">Operational Input</span>
+                </a>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
 
           {/* Rating Note Submenu */}
            <SidebarMenuItem>

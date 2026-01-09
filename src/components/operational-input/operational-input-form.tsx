@@ -60,7 +60,7 @@ export function OperationalInputForm() {
   const clientUuid = useId();
 
   const { data: requestData, isLoading: isRequestLoading } = useSWR<CKCRequest[]>(
-    requestIdFromQuery ? `/api/requests?id=${requestIdFromQuery}` : null,
+    requestIdFromQuery ? `/api/ckc/requests?id=${requestIdFromQuery}` : null,
     fetcher
   );
 
@@ -127,7 +127,7 @@ export function OperationalInputForm() {
             description: 'Redirecting to the Basic Info screen...',
         });
         
-        router.push(`/operational-input/${entryId}/basic-info`);
+        router.push(`/operational-input/${entryId}`);
 
     } catch (error) {
         console.error("Error saving initiation data:", error);

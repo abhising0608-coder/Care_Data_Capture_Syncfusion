@@ -25,7 +25,7 @@ interface RequestDetailsModalProps {
 const fetcher = (url: string) => fetch(url).then(res => res.json());
 
 const InfoRow = ({ label, value }: { label: string; value?: React.ReactNode }) => (
-    <div className="grid grid-cols-[150px_1fr] items-start p-3 border-b last:border-b-0 bg-blue-50/20 first:rounded-t-lg last:rounded-b-lg">
+    <div className="grid grid-cols-[150px_1fr] items-start p-3 border-b last:border-b-0">
         <span className="text-sm text-muted-foreground">{label}</span>
         <span className="text-sm font-medium">{value || <span className="italic text-gray-400">Not Prefilled</span>}</span>
     </div>
@@ -62,10 +62,10 @@ export function RequestDetailsModal({ requestId, isOpen, onClose }: RequestDetai
                 <LoadingSkeleton />
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
-                    <Card className="bg-blue-50/10 border-blue-200">
+                    <Card>
                         <CardContent className="p-0">
-                             <div className="p-3 bg-blue-100 rounded-t-lg">
-                                <h3 className="font-semibold text-blue-800">{request.companyName}</h3>
+                             <div className="p-3 bg-muted/50 rounded-t-lg">
+                                <h3 className="font-semibold">{request.companyName}</h3>
                             </div>
                             <InfoRow label="Company ID" value={request.companyId} />
                             <InfoRow label="Rating Analyst" value={request.analystName} />
