@@ -412,6 +412,9 @@ export const mockUsers: Record<string, AppUser> = {
         role: 'GROUP_HEAD',
         photoURL: 'https://i.pravatar.cc/150?u=gh'
     },
+     'ckc.admin@careedge.com': { uid: 'ckc.admin', email: 'ckc.admin@careedge.com', displayName: 'CKC Admin', role: 'CKC_ADMIN' },
+     'ckc.analyst@careedge.com': { uid: 'ckc.analyst', email: 'ckc.analyst@careedge.com', displayName: 'CKC Analyst', role: 'CKC_ANALYST' },
+
 };
 
 export const mockQcUsers = [

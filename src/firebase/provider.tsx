@@ -88,10 +88,12 @@ const mockUsers: Record<Role, AppUser> = {
         photoURL: 'https://i.pravatar.cc/150?u=cc'
     },
     CKC_ANALYST: { uid: 'ckc.analyst', email: 'ckc.analyst@careedge.com', displayName: 'CKC Analyst', role: 'CKC_ANALYST' },
-    CKC_CHECKER: { uid: 'ckc.checker', email: 'ckc.checker@careedge.com', displayName: 'CKC Checker', role: 'CKC_CHECKER' },
     CKC_ADMIN: { uid: 'ckc.admin', email: 'ckc.admin@careedge.com', displayName: 'CKC Admin', role: 'CKC_ADMIN' },
+    CKC_CHECKER: { uid: 'ckc.checker', email: 'ckc.checker@careedge.com', displayName: 'CKC Checker', role: 'CKC_CHECKER' },
     RATING_HEAD_SD: { uid: 'rh.sd', email: 'rh.sd@careedge.com', displayName: 'Rating Head SD', role: 'RATING_HEAD_SD' },
     SYSTEM: { uid: 'system', email: 'system@careedge.com', displayName: 'System', role: 'SYSTEM' },
+    EDITOR: { uid: 'editor@careedge.com', email: 'editor@careedge.com', displayName: 'Editor', role: 'EDITOR' },
+    AUDITOR: { uid: 'auditor@careedge.com', email: 'auditor@careedge.com', displayName: 'Auditor', role: 'AUDITOR' },
 };
 
 

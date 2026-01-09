@@ -32,7 +32,9 @@ const roleUserMap: Record<string, Role> = {
     'analyst@careedge.com': 'RATING_ANALYST',
     'group.head@careedge.com': 'GROUP_HEAD',
     'qc@careedge.com': 'QC',
-    'cc@careedge.com': 'RATING_COMMITTEE'
+    'cc@careedge.com': 'RATING_COMMITTEE',
+    'ckc.analyst@careedge.com': 'CKC_ANALYST',
+    'ckc.admin@careedge.com': 'CKC_ADMIN'
 };
 
 
@@ -59,6 +61,8 @@ export default function LoginPage() {
           'group.head@careedge.com': 'password',
           'qc@careedge.com': 'password',
           'cc@careedge.com': 'password',
+          'ckc.analyst@careedge.com': 'password',
+          'ckc.admin@careedge.com': 'password'
       };
 
       const userEmail = data.email.toLowerCase();
@@ -72,7 +76,7 @@ export default function LoginPage() {
 
             toast({
               title: 'Login Successful',
-              description: `Redirecting to the company listing page as ${role.replace('_', ' ')}.`,
+              description: `Redirecting to the dashboard as ${role.replace(/_/g, ' ')}.`,
             });
             router.push('/dashboard');
         } else {
