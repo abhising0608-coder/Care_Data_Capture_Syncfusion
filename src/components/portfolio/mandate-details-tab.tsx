@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -61,18 +62,69 @@ export function MandateDetailsTab({ ratingCycleId }: MandateDetailsTabProps) {
   return (
     <FormProvider {...form}>
       <form className="space-y-6">
-        <div className="p-4 border rounded-lg grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <FormField name="financialYear" render={({ field }) => (
-            <FormItem><FormLabel>Financial Year</FormLabel><Select onValueChange={field.onChange} value={field.value}><SelectTrigger><SelectValue placeholder="- Select Financial Year -" /></SelectTrigger><SelectContent><SelectItem value="2023-2024">2023-2024</SelectItem></SelectContent></Select></FormItem>
+        <div className="p-4 border rounded-lg grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <FormField name="financialYear" control={form.control} render={({ field }) => (
+            <FormItem>
+                <FormLabel>Financial Year</FormLabel>
+                <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                        <SelectTrigger><SelectValue placeholder="- Select Financial Year -" /></SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                        <SelectItem value="2023-2024">2023-2024</SelectItem>
+                        <SelectItem value="2024-2025">2024-2025</SelectItem>
+                    </SelectContent>
+                </Select>
+            </FormItem>
           )} />
-          <FormField name="financialResult" render={({ field }) => (
-            <FormItem><FormLabel>Financial Result</FormLabel><Select onValueChange={field.onChange} value={field.value}><SelectTrigger><SelectValue placeholder="- Select -" /></SelectTrigger><SelectContent><SelectItem value="provisional">Provisional</SelectItem></SelectContent></Select></FormItem>
+          <FormField name="financialResult" control={form.control} render={({ field }) => (
+            <FormItem>
+                <FormLabel>Financial Result</FormLabel>
+                <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                        <SelectTrigger><SelectValue placeholder="- Select -" /></SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                        <SelectItem value="provisional">Provisional</SelectItem>
+                        <SelectItem value="audited">Audited</SelectItem>
+                        <SelectItem value="abridged">Abridged</SelectItem>
+                        <SelectItem value="project_stage">Project stage</SelectItem>
+                        <SelectItem value="not_required">Not required</SelectItem>
+                    </SelectContent>
+                </Select>
+            </FormItem>
           )} />
-          <FormField name="quarterlyResult" render={({ field }) => (
-            <FormItem><FormLabel>Quarterly Result</FormLabel><Select onValueChange={field.onChange} value={field.value}><SelectTrigger><SelectValue placeholder="- Select -" /></SelectTrigger><SelectContent><SelectItem value="q1">Q1FY</SelectItem></SelectContent></Select></FormItem>
+          <FormField name="quarterlyResult" control={form.control} render={({ field }) => (
+            <FormItem>
+                <FormLabel>Quarterly Result</FormLabel>
+                <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                        <SelectTrigger><SelectValue placeholder="- Select -" /></SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                        <SelectItem value="q1">Q1FY-Q1FY</SelectItem>
+                        <SelectItem value="h1">H1FY-H1FY</SelectItem>
+                        <SelectItem value="9m">9MFY-9MFY</SelectItem>
+                        <SelectItem value="not_required">Not required</SelectItem>
+                    </SelectContent>
+                </Select>
+            </FormItem>
           )} />
-          <FormField name="yearEndDate" render={({ field }) => (
-            <FormItem className="flex flex-col"><FormLabel>Year End Date</FormLabel><Popover><PopoverTrigger asChild><Button variant="outline" className={cn("font-normal", !field.value && "text-muted-foreground")}><CalendarIcon className="mr-2 h-4 w-4" />{field.value ? format(field.value, 'dd-MM-yyyy') : '- DD-MM-YYYY -'}</Button></PopoverTrigger><PopoverContent className="w-auto p-0"><Calendar mode="single" selected={field.value} onSelect={field.onChange} /></PopoverContent></Popover></FormItem>
+          <FormField name="yearEndDate" control={form.control} render={({ field }) => (
+            <FormItem className="flex flex-col">
+                <FormLabel>Year End Date</FormLabel>
+                <Popover>
+                    <PopoverTrigger asChild>
+                        <FormControl>
+                            <Button variant="outline" className={cn("font-normal", !field.value && "text-muted-foreground")}>
+                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                {field.value ? format(field.value, 'dd-MM-yyyy') : '- DD-MM-YYYY -'}
+                            </Button>
+                        </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={field.value} onSelect={field.onChange} /></PopoverContent>
+                </Popover>
+            </FormItem>
           )} />
         </div>
 
