@@ -644,5 +644,3 @@ export interface RatingNoteDataSchema {
   audit: Audit;
   editorContent?: string; // To store the latest SFDT
 }
-
-    
