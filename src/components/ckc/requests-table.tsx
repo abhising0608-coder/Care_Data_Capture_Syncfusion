@@ -22,7 +22,8 @@ import {
   Settings,
   Download,
   Filter,
-  Check
+  Check,
+  Pencil
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -82,6 +83,8 @@ export function CKCRequestsTable({ status, globalFilter, setGlobalFilter }: CKCR
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({
       'companyId': false,
+      'status': status !== 'ACCEPTED',
+      'rejectionComments': status !== 'REJECTED',
     });
   const [rowSelection, setRowSelection] = React.useState({});
   
@@ -92,13 +95,10 @@ export function CKCRequestsTable({ status, globalFilter, setGlobalFilter }: CKCR
     }
     
     try {
-        // In a real app, this would be a POST/PUT request to an API endpoint
-        // For this prototype, we'll just simulate success
         toast({
             title: 'Request Accepted',
             description: `Request ${requestId} has been successfully accepted.`
         });
-        // Optimistically update the UI by removing the item from the list
         mutate(`/api/ckc/requests?status=PENDING`, (currentData: CKCRequest[] | undefined) => {
             if (!currentData) return [];
             return currentData.filter(req => req.id !== requestId);
@@ -109,8 +109,15 @@ export function CKCRequestsTable({ status, globalFilter, setGlobalFilter }: CKCR
     }
   };
 
+  const handleEditRequest = (requestId: string) => {
+    toast({
+        title: "Edit Action",
+        description: `Placeholder to edit rejected request: ${requestId}`,
+    });
+  }
 
-  const columns: ColumnDef<CKCRequest>[] = [
+
+  const columns: ColumnDef<CKCRequest>[] = React.useMemo(() => [
     {
       id: 'select',
       header: ({ table }) => (
@@ -138,7 +145,7 @@ export function CKCRequestsTable({ status, globalFilter, setGlobalFilter }: CKCR
               <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
       ),
-      cell: ({ row }) => <Link href={`/operational-input/request/${row.getValue('id')}`} className="text-blue-600 hover:underline">{row.getValue('id')}</Link>,
+      cell: ({ row }) => <Link href={`/operational-input/initiate?requestId=${row.getValue('id')}`} className="text-blue-600 hover:underline">{row.getValue('id')}</Link>,
     },
      {
       accessorKey: 'companyName',
@@ -190,6 +197,14 @@ export function CKCRequestsTable({ status, globalFilter, setGlobalFilter }: CKCR
         header: 'Audited FY'
     },
     {
+      accessorKey: 'status',
+      header: 'Status'
+    },
+    {
+      accessorKey: 'rejectionComments',
+      header: 'Rejection Comments'
+    },
+    {
       id: 'actions',
       header: 'Actions',
       cell: ({ row }) => {
@@ -200,15 +215,34 @@ export function CKCRequestsTable({ status, globalFilter, setGlobalFilter }: CKCR
                 </Button>
             );
         }
-        return (
-          <Button variant="ghost" className="h-8 w-8 p-0">
-            <span className="sr-only">Open menu</span>
-            <MoreHorizontal className="h-4 w-4" />
-          </Button>
-        );
+         if (status === 'REJECTED') {
+            return (
+                 <Button variant="ghost" className="h-8 w-8 p-0" onClick={() => handleEditRequest(row.original.id)}>
+                    <Pencil className="h-4 w-4 text-blue-600" />
+                </Button>
+            )
+        }
+         if (status === 'ACCEPTED') {
+             return (
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" className="h-8 w-8 p-0" disabled={row.getIsSelected()}>
+                            <span className="sr-only">Open menu</span>
+                            <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => toast({title: "Placeholder", description:"Assign to Maker & Checker"})}>Assign to Maker & Checker</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => toast({title: "Placeholder", description:"Reject Request"})}>Reject Request</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => toast({title: "Placeholder", description:"Withdraw Request"})}>Withdraw Request</DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
+             )
+         }
+        return null;
       },
     },
-  ];
+  ], [status]);
 
   const table = useReactTable({
     data: requests || [],
@@ -393,5 +427,6 @@ export function CKCRequestsTable({ status, globalFilter, setGlobalFilter }: CKCR
     </div>
   );
 }
+    
     
     
