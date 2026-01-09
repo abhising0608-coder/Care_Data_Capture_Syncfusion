@@ -6,7 +6,7 @@ import useSWR from 'swr';
 import { useForm, FormProvider, Controller, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Download } from 'lucide-react';
+import { Download, Check, X } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -20,9 +20,10 @@ import { Form, FormField, FormItem } from '@/components/ui/form';
 import type { CKCRequest, CKCRequestDocument } from '@/lib/definitions';
 import { useToast } from '@/hooks/use-toast';
 import { mockUsers } from '@/lib/mock-data';
+import { RejectionModal } from '@/components/ckc/rejection-modal';
+import { WithdrawalModal } from '@/components/ckc/withdrawal-modal';
 import { PastFinancialsTable } from '@/components/ckc/past-financials-table';
 import { MandateDetailsForm } from '@/components/ckc/mandate-details-form';
-
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
 
@@ -56,6 +57,9 @@ export default function CKCRequestDetailsPage() {
     const { toast } = useToast();
     const requestId = params.id as string;
 
+    const [isRejectionModalOpen, setIsRejectionModalOpen] = useState(false);
+    const [isWithdrawalModalOpen, setIsWithdrawalModalOpen] = useState(false);
+
     const { data: request, isLoading, error } = useSWR<CKCRequest>(
         requestId ? `/api/ckc/requests/${requestId}` : null,
         fetcher
@@ -84,15 +88,35 @@ export default function CKCRequestDetailsPage() {
     const makers = mockUsers ? Object.values(mockUsers).filter(u => u.role === 'CKC_ANALYST') : [];
     const checkers = mockUsers ? Object.values(mockUsers).filter(u => u.role === 'CKC_CHECKER') : [];
 
-    const handleSubmit = (data: RequestDetailsFormValues) => {
-        console.log("Submitted with data:", data);
+    const handleApprove = (data: RequestDetailsFormValues) => {
+        console.log("Approved with data:", data);
         toast({
-            title: 'Request Assigned',
-            description: `Request ${request?.id} has been assigned.`,
+            title: 'Request Approved',
+            description: `Request ${request?.id} has been approved and moved to the accepted queue.`,
         });
         router.push('/ckc/requests');
     };
 
+    const handleReject = (comments: string) => {
+        console.log("Rejecting with comments:", comments);
+        toast({
+            variant: 'destructive',
+            title: 'Request Rejected',
+            description: `Request ${request?.id} has been rejected.`,
+        });
+        setIsRejectionModalOpen(false);
+        router.push('/ckc/requests');
+    };
+
+    const handleWithdraw = (reason: string) => {
+        console.log("Withdrawing with reason:", reason);
+        toast({
+            title: 'Request Withdrawn',
+            description: `Request ${request?.id} has been withdrawn.`,
+        });
+        setIsWithdrawalModalOpen(false);
+        router.push('/ckc/requests');
+    }
     
     if (isLoading || !request) {
         return <div className="p-6"><Skeleton className="h-[70vh] w-full" /></div>
@@ -104,7 +128,7 @@ export default function CKCRequestDetailsPage() {
 
     return (
         <FormProvider {...form}>
-            <form onSubmit={form.handleSubmit(handleSubmit)}>
+            <form onSubmit={form.handleSubmit(handleApprove)}>
                  <div className="space-y-6">
                     <header>
                         <h1 className="text-2xl font-bold tracking-tight text-foreground">Request Form</h1>
@@ -135,6 +159,71 @@ export default function CKCRequestDetailsPage() {
                                                 <InfoRow label="Initiator Name" value={request.createdBy} />
                                                 <InfoRow label="Document Status" value="Prefilled" />
                                                 <InfoRow label="Comments" value="Nam semper, velit non interdum tristique, risus lectus lacinia ligula, id ultrices arcu nisl vitae elit. Duis a turpis nibh." />
+                                        </CardContent>
+                                    </Card>
+                                     <Card>
+                                        <CardHeader>
+                                            <CardTitle>Assign Case</CardTitle>
+                                        </CardHeader>
+                                        <CardContent className="space-y-6">
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+                                                <FormField
+                                                    control={form.control}
+                                                    name="makerId"
+                                                    render={({ field }) => (
+                                                        <FormItem className="grid grid-cols-3 items-center">
+                                                            <Label>Maker</Label>
+                                                            <div className="col-span-2">
+                                                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                                                    <SelectTrigger><SelectValue placeholder="Select Maker" /></SelectTrigger>
+                                                                    <SelectContent>
+                                                                        {makers.map(m => <SelectItem key={m.uid} value={m.uid}>{m.displayName}</SelectItem>)}
+                                                                    </SelectContent>
+                                                                </Select>
+                                                            </div>
+                                                        </FormItem>
+                                                    )}
+                                                />
+                                                <FormField
+                                                    control={form.control}
+                                                    name="checkerId"
+                                                    render={({ field }) => (
+                                                        <FormItem className="grid grid-cols-3 items-center">
+                                                            <Label>Checker</Label>
+                                                            <div className="col-span-2">
+                                                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                                                    <SelectTrigger><SelectValue placeholder="Select Checker" /></SelectTrigger>
+                                                                    <SelectContent>
+                                                                    {checkers.map(c => <SelectItem key={c.uid} value={c.uid}>{c.displayName}</SelectItem>)}
+                                                                    </SelectContent>
+                                                                </Select>
+                                                            </div>
+                                                        </FormItem>
+                                                    )}
+                                                />
+                                                <Controller
+                                                    control={form.control}
+                                                    name="allowEditingPreviousYear"
+                                                    render={({ field }) => (
+                                                        <RadioGroup
+                                                            onValueChange={field.onChange}
+                                                            value={field.value}
+                                                            className="flex items-center space-x-4 col-span-2"
+                                                        >
+                                                            <Label>Allow Editing Previous year</Label>
+                                                            <div className="flex items-center space-x-2">
+                                                                <RadioGroupItem value="Yes" id="yes" />
+                                                                <Label htmlFor="yes">Yes</Label>
+                                                            </div>
+                                                            <div className="flex items-center space-x-2">
+                                                                <RadioGroupItem value="No" id="no" />
+                                                                <Label htmlFor="no">No</Label>
+                                                            </div>
+                                                        </RadioGroup>
+                                                    )}
+                                                />
+                                            </div>
+                                            
                                         </CardContent>
                                     </Card>
                                 </div>
@@ -190,74 +279,14 @@ export default function CKCRequestDetailsPage() {
                                     </Card>
                                  </div>
                              </div>
-                              <Card>
-                                <CardHeader>
-                                    <CardTitle>Assign Case</CardTitle>
-                                </CardHeader>
-                                <CardContent className="space-y-6">
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
-                                        <FormField
-                                            control={form.control}
-                                            name="makerId"
-                                            render={({ field }) => (
-                                                <FormItem className="grid grid-cols-3 items-center">
-                                                    <Label>Maker</Label>
-                                                    <div className="col-span-2">
-                                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                                            <SelectTrigger><SelectValue placeholder="Select Maker" /></SelectTrigger>
-                                                            <SelectContent>
-                                                                {makers.map(m => <SelectItem key={m.uid} value={m.uid}>{m.displayName}</SelectItem>)}
-                                                            </SelectContent>
-                                                        </Select>
-                                                    </div>
-                                                </FormItem>
-                                            )}
-                                        />
-                                        <FormField
-                                            control={form.control}
-                                            name="checkerId"
-                                            render={({ field }) => (
-                                                 <FormItem className="grid grid-cols-3 items-center">
-                                                    <Label>Checker</Label>
-                                                     <div className="col-span-2">
-                                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                                            <SelectTrigger><SelectValue placeholder="Select Checker" /></SelectTrigger>
-                                                            <SelectContent>
-                                                            {checkers.map(c => <SelectItem key={c.uid} value={c.uid}>{c.displayName}</SelectItem>)}
-                                                            </SelectContent>
-                                                        </Select>
-                                                    </div>
-                                                </FormItem>
-                                            )}
-                                        />
-                                         <Controller
-                                            control={form.control}
-                                            name="allowEditingPreviousYear"
-                                            render={({ field }) => (
-                                                 <RadioGroup
-                                                    onValueChange={field.onChange}
-                                                    value={field.value}
-                                                    className="flex items-center space-x-4 col-span-2"
-                                                >
-                                                    <Label>Allow Editing Previous year</Label>
-                                                    <div className="flex items-center space-x-2">
-                                                        <RadioGroupItem value="Yes" id="yes" />
-                                                        <Label htmlFor="yes">Yes</Label>
-                                                    </div>
-                                                    <div className="flex items-center space-x-2">
-                                                        <RadioGroupItem value="No" id="no" />
-                                                        <Label htmlFor="no">No</Label>
-                                                    </div>
-                                                </RadioGroup>
-                                            )}
-                                        />
-                                    </div>
-                                    
-                                </CardContent>
-                            </Card>
-
                             <div className="flex justify-end gap-2 mt-6">
-                                <Button type="submit">Submit</Button>
+                                <Button type="submit">
+                                    <Check className="mr-2 h-4 w-4" /> Approve
+                                </Button>
+                                <Button type="button" variant="destructive" onClick={() => setIsRejectionModalOpen(true)}>
+                                    <X className="mr-2 h-4 w-4" /> Reject
+                                </Button>
+                                <Button type="button" variant="outline" onClick={() => setIsWithdrawalModalOpen(true)}>Withdraw</Button>
                                 <Button type="button" variant="outline" onClick={() => router.back()}>Close</Button>
                             </div>
                         </TabsContent>
@@ -268,7 +297,7 @@ export default function CKCRequestDetailsPage() {
                            <PastFinancialsTable companyId={request.companyId} />
                         </TabsContent>
                          <TabsContent value="documents">
-                            <Card>
+                             <Card>
                                 <CardContent className="p-6 text-center text-muted-foreground">
                                     A list of all documents will be displayed here.
                                 </CardContent>
@@ -284,7 +313,20 @@ export default function CKCRequestDetailsPage() {
                     </Tabs>
                 </div>
             </form>
+
+            <RejectionModal
+                isOpen={isRejectionModalOpen}
+                onClose={() => setIsRejectionModalOpen(false)}
+                onSubmit={handleReject}
+            />
+            <WithdrawalModal
+                isOpen={isWithdrawalModalOpen}
+                onClose={() => setIsWithdrawalModalOpen(false)}
+                onSubmit={handleWithdraw}
+            />
         </FormProvider>
     );
 }
+    
+
     
