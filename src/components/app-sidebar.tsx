@@ -43,7 +43,7 @@ const topMenuItems = [
     icon: LayoutDashboard,
   },
   {
-    href: '/portfolio',
+    href: '/portfolio/activities/NOTE-001',
     label: 'Portfolio',
     icon: Briefcase,
   },
@@ -81,7 +81,7 @@ export function AppSidebar() {
             <SidebarMenuItem key={item.href}>
               <SidebarMenuButton
                 asChild
-                isActive={pathname === item.href}
+                isActive={pathname === item.href || (item.href.startsWith('/portfolio') && pathname.startsWith('/portfolio'))}
                 tooltip={{ children: item.label, side: 'right' }}
                 className="justify-start"
               >
@@ -92,6 +92,19 @@ export function AppSidebar() {
               </SidebarMenuButton>
             </SidebarMenuItem>
           ))}
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                asChild
+                isActive={pathname === '/ckc-requests'}
+                tooltip={{ children: 'CKC', side: 'right' }}
+                className="justify-start"
+              >
+                <a href="/ckc-requests">
+                  <Users className="h-4 w-4" />
+                  <span className="text-sm">CKC</span>
+                </a>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
           {/* Rating Note Submenu */}
            <SidebarMenuItem>
                 <SidebarMenuSub>
