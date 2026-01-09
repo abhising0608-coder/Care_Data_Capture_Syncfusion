@@ -202,7 +202,7 @@ export function JsonSchemaForm({ schema, onSubmit, onCancel, requestId, dataKey,
     );
   };
   
-  const renderInlineEditableTable = ({
+ const renderInlineEditableTable = ({
     sectionKey,
     itemProperties,
     control,
@@ -218,6 +218,7 @@ export function JsonSchemaForm({ schema, onSubmit, onCancel, requestId, dataKey,
     const [editingIndex, setEditingIndex] = useState<number | null>(null);
 
     const handleAddNew = () => {
+      if (Object.values(newRow).every(val => !val)) return; // Don't add empty row
       append(newRow);
       setNewRow({});
     };
@@ -239,13 +240,23 @@ export function JsonSchemaForm({ schema, onSubmit, onCancel, requestId, dataKey,
       setNewRow({});
     };
 
-    const renderInputForCell = (item: Record<string, any>, header: string) => {
+    const renderInputForCell = (item: Record<string, any>, header: string, isNewRow: boolean) => {
       const prop = itemProperties[header];
       const value = item[header] ?? '';
 
+      const handleInputChange = (val: any) => {
+          if (isNewRow) {
+            setNewRow(prev => ({ ...prev, [header]: val }));
+          } else {
+             const updatedFields:any = [...fields];
+             updatedFields[editingIndex!][header] = val;
+             update(editingIndex!, updatedFields[editingIndex!]);
+          }
+      };
+
       if (prop.enum) {
         return (
-          <Select value={value} onValueChange={(val) => setNewRow(prev => ({ ...prev, [header]: val }))}>
+          <Select value={value} onValueChange={handleInputChange}>
             <SelectTrigger><SelectValue placeholder={prop.title} /></SelectTrigger>
             <SelectContent>
               {prop.enum.map((option: string) => <SelectItem key={option} value={option}>{option}</SelectItem>)}
@@ -258,7 +269,7 @@ export function JsonSchemaForm({ schema, onSubmit, onCancel, requestId, dataKey,
         <Input
           placeholder={prop.title}
           value={value}
-          onChange={(e) => setNewRow(prev => ({ ...prev, [header]: e.target.value }))}
+          onChange={(e) => handleInputChange(prop.type === 'number' ? e.target.valueAsNumber || '' : e.target.value)}
           type={prop.type === 'number' ? 'number' : 'text'}
         />
       );
@@ -267,52 +278,59 @@ export function JsonSchemaForm({ schema, onSubmit, onCancel, requestId, dataKey,
     return (
       <div className="space-y-4">
         <Table>
-          <TableHeader>
+          <TableHeader className="bg-muted/50">
             <TableRow>
               {headers.map(header => <TableHead key={header}>{itemProperties[header].title}</TableHead>)}
-              <TableHead className="w-[150px]">Actions</TableHead>
+              <TableHead className="w-[120px]">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {/* New/Editing Row */}
-            <TableRow>
-              {headers.map(header => (
-                <TableCell key={`new-${header}`}>
-                  {renderInputForCell(newRow, header)}
-                </TableCell>
-              ))}
-              <TableCell className="flex items-center gap-1">
-                {editingIndex !== null ? (
-                  <>
-                    <Button variant="ghost" size="icon" onClick={handleUpdate}><Check className="h-4 w-4 text-green-500" /></Button>
-                    <Button variant="ghost" size="icon" onClick={handleCancelEdit}><X className="h-4 w-4 text-red-500" /></Button>
-                  </>
-                ) : (
-                  <>
-                    <Button variant="ghost" size="icon" onClick={handleAddNew}><Check className="h-4 w-4 text-green-500" /></Button>
-                    <Button variant="ghost" size="icon" onClick={() => setNewRow({})}><RefreshCw className="h-4 w-4 text-blue-500" /></Button>
-                  </>
-                )}
-              </TableCell>
-            </TableRow>
-
-            {/* Existing Rows */}
-            {fields.map((item, index) => (
-              <TableRow key={item.id}>
+            {editingIndex === null && (
+               <TableRow>
                 {headers.map(header => (
-                  <TableCell key={`${item.id}-${header}`}>
-                    {(item as Record<string, any>)[header]}
+                  <TableCell key={`new-${header}`}>
+                    {renderInputForCell(newRow, header, true)}
                   </TableCell>
                 ))}
                 <TableCell className="flex items-center gap-1">
-                  <Button variant="ghost" size="icon" onClick={() => handleEdit(index)} disabled={editingIndex !== null}>
-                    <Pencil className="h-4 w-4 text-blue-500" />
-                  </Button>
-                  <Button variant="ghost" size="icon" onClick={() => remove(index)} disabled={editingIndex !== null}>
-                    <Trash2 className="h-4 w-4 text-destructive" />
-                  </Button>
+                    <Button variant="ghost" size="icon" onClick={handleAddNew}><Check className="h-4 w-4 text-green-500" /></Button>
+                    <Button variant="ghost" size="icon" onClick={() => setNewRow({})}><RefreshCw className="h-4 w-4 text-blue-500" /></Button>
                 </TableCell>
               </TableRow>
+            )}
+
+            {/* Existing Rows */}
+            {fields.map((item, index) => (
+               editingIndex === index ? (
+                 <TableRow key={item.id}>
+                    {headers.map(header => (
+                        <TableCell key={`${item.id}-edit-${header}`}>
+                            {renderInputForCell(fields[index] as any, header, false)}
+                        </TableCell>
+                    ))}
+                     <TableCell className="flex items-center gap-1">
+                        <Button variant="ghost" size="icon" onClick={handleUpdate}><Check className="h-4 w-4 text-green-500" /></Button>
+                        <Button variant="ghost" size="icon" onClick={handleCancelEdit}><X className="h-4 w-4 text-red-500" /></Button>
+                    </TableCell>
+                 </TableRow>
+               ) : (
+                <TableRow key={item.id}>
+                    {headers.map(header => (
+                    <TableCell key={`${item.id}-${header}`}>
+                        {(item as Record<string, any>)[header]}
+                    </TableCell>
+                    ))}
+                    <TableCell className="flex items-center gap-1">
+                    <Button variant="ghost" size="icon" onClick={() => handleEdit(index)}>
+                        <Pencil className="h-4 w-4 text-blue-500" />
+                    </Button>
+                    <Button variant="ghost" size="icon" onClick={() => remove(index)}>
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
+                    </TableCell>
+                </TableRow>
+               )
             ))}
           </TableBody>
         </Table>
