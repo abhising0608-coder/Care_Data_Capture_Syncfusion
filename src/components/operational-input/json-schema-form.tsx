@@ -339,9 +339,10 @@ export function JsonSchemaForm({ schema, onSubmit, onCancel, requestId, dataKey,
   };
   
  const AccordionSectionContent = ({ sectionKey, sectionProp }: { sectionKey: string, sectionProp: any }) => {
-    
+    const uiVariant = sectionProp['x-ui-variant'];
+
     // For sections that are simple objects with properties (like basicDetails)
-    if (sectionProp.properties && !sectionProp['x-ui-variant']) {
+    if (sectionProp.properties && !uiVariant) {
         return (
              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
                 {Object.keys(sectionProp.properties).map(fieldKey => 
@@ -360,102 +361,105 @@ export function JsonSchemaForm({ schema, onSubmit, onCancel, requestId, dataKey,
         });
     }
 
+    // This handles sections with "dataAvailability" dropdown.
+    if (uiVariant === 'accordion') {
+      const dataAvailabilityPath = `${sectionKey}.dataAvailability`;
+      const dataAvailability = useWatch({ control: form.control, name: dataAvailabilityPath });
+      const spreadsheetType = sectionProp['x-ui-spreadsheet-type'];
+      
+      const renderContent = () => {
+          if (dataAvailability !== 'Available') return null;
 
-    const dataAvailabilityPath = `${sectionKey}.dataAvailability`;
-    const dataAvailability = useWatch({ control: form.control, name: dataAvailabilityPath });
+          if (uiVariant === 'spreadsheet') {
+              const versionsPath = `${sectionKey}.versions`;
+              const activeVersionPath = `${sectionKey}.activeVersion`;
 
-    const uiVariant = sectionProp['x-ui-variant'];
-    const spreadsheetType = sectionProp['x-ui-spreadsheet-type'];
+              const handleSave = (newData: any[]) => {
+                  const currentVersions = form.getValues(versionsPath as any) || [];
+                  const newVersionNumber = currentVersions.length > 0 ? Math.max(...currentVersions.map((v: any) => v.version)) + 1 : 1;
+                  
+                  const newVersion = {
+                      version: newVersionNumber,
+                      timestamp: new Date().toISOString(),
+                      data: newData,
+                  };
+                  
+                  form.setValue(versionsPath as any, [...currentVersions, newVersion]);
+                  form.setValue(activeVersionPath as any, newVersionNumber);
+              };
 
+              const handleRollback = (versionNumber: number) => {
+                  form.setValue(activeVersionPath as any, versionNumber);
+              };
 
-    const renderContent = () => {
-        if (dataAvailability !== 'Available') return null;
+              const spreadsheetData = form.getValues(sectionKey as any);
+              
+              switch (spreadsheetType) {
+                case 'geography-sales':
+                  return (
+                    <GeographyWiseSalesSpreadsheet
+                      data={spreadsheetData}
+                      onSave={handleSave}
+                      onRollback={handleRollback}
+                    />
+                  );
+                case 'simple-table':
+                default:
+                  return (
+                    <SyncfusionSpreadsheet
+                      data={spreadsheetData}
+                      onSave={handleSave}
+                      onRollback={handleRollback}
+                    />
+                  );
+              }
+          }
 
-        if (uiVariant === 'spreadsheet') {
-            const versionsPath = `${sectionKey}.versions`;
-            const activeVersionPath = `${sectionKey}.activeVersion`;
+          if (sectionProp.properties?.tableData) {
+              return renderInlineEditableTable({
+                  sectionKey: `${sectionKey}.tableData`,
+                  itemProperties: sectionProp.properties.tableData.items.properties,
+                  control: form.control,
+              });
+          }
+          
+          return null;
+      }
 
-            const handleSave = (newData: any[]) => {
-                const currentVersions = form.getValues(versionsPath as any) || [];
-                const newVersionNumber = currentVersions.length > 0 ? Math.max(...currentVersions.map((v: any) => v.version)) + 1 : 1;
-                
-                const newVersion = {
-                    version: newVersionNumber,
-                    timestamp: new Date().toISOString(),
-                    data: newData,
-                };
-                
-                form.setValue(versionsPath as any, [...currentVersions, newVersion]);
-                form.setValue(activeVersionPath as any, newVersionNumber);
-            };
-
-            const handleRollback = (versionNumber: number) => {
-                form.setValue(activeVersionPath as any, versionNumber);
-            };
-
-            const spreadsheetData = form.getValues(sectionKey as any);
-            
-            switch (spreadsheetType) {
-              case 'geography-sales':
-                return (
-                  <GeographyWiseSalesSpreadsheet
-                    data={spreadsheetData}
-                    onSave={handleSave}
-                    onRollback={handleRollback}
-                  />
-                );
-              case 'simple-table':
-              default:
-                return (
-                  <SyncfusionSpreadsheet
-                    data={spreadsheetData}
-                    onSave={handleSave}
-                    onRollback={handleRollback}
-                  />
-                );
-            }
-        }
-
-        if (sectionProp.properties.tableData) {
-            return renderInlineEditableTable({
-                sectionKey: `${sectionKey}.tableData`,
-                itemProperties: sectionProp.properties.tableData.items.properties,
-                control: form.control,
-            });
-        }
-        
-        return null;
-    }
-
-    return (
-      <div className="space-y-4">
-        <div className="w-1/3">
-          <FormField
-            control={form.control}
-            name={dataAvailabilityPath}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{sectionProp.properties.dataAvailability.title}</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select availability" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {sectionProp.properties.dataAvailability.enum.map((option: string) => (
-                      <SelectItem key={option} value={option}>{option}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
+      return (
+        <div className="space-y-4">
+          <div className="w-1/3">
+            {sectionProp.properties?.dataAvailability && (
+              <FormField
+                control={form.control}
+                name={dataAvailabilityPath}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{sectionProp.properties.dataAvailability.title}</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select availability" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {sectionProp.properties.dataAvailability.enum.map((option: string) => (
+                          <SelectItem key={option} value={option}>{option}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             )}
-          />
+          </div>
+          {renderContent()}
         </div>
-        {renderContent()}
-      </div>
-    );
+      );
+    }
+    
+    return null; // Should not happen if schema is well-formed
   };
 
   if (isLoading) {
