@@ -22,19 +22,27 @@ const pendingSummaryCards = [
 ];
 
 const acceptedSummaryCards = [
-    { title: "Not Allotted", count: 12, color: "text-gray-500" },
-    { title: "WIP", count: 35, color: "text-blue-600" },
-    { title: "Checking Pending", count: 18, color: "text-yellow-600" },
-    { title: "CWIP", count: 8, color: "text-orange-600" },
-    { title: "In-Review", count: 30, color: "text-purple-600" },
+    { title: "Not Allotted", count: 23, color: "text-gray-500" },
+    { title: "WIP", count: 28, color: "text-blue-600" },
+    { title: "Checking Pending", count: 75, color: "text-yellow-600" },
+    { title: "CWIP", count: 30, color: "text-orange-600" },
+    { title: "In-Review", count: 20, color: "text-purple-600" },
 ];
 
 const closedSummaryCards = [
-    { title: "Total Closed Requests", count: 103, color: "text-blue-600" },
-    { title: "Manufacturing", count: 28, color: "text-orange-600" },
-    { title: "Bank", count: 75, color: "text-green-600" },
-    { title: "NBFC", count: 30, color: "text-purple-600" },
-    { title: "HFC", count: 20, color: "text-teal-600" },
+    { title: "Total Closed Requests", count: 309, color: "text-blue-600" },
+    { title: "Manufacturing", count: 100, color: "text-orange-600" },
+    { title: "Bank", count: 80, color: "text-green-600" },
+    { title: "NBFC", count: 70, color: "text-purple-600" },
+    { title: "HFC", count: 59, color: "text-teal-600" },
+];
+
+const rejectedSummaryCards = [
+    { title: "Total Rejected Requests", count: 32, color: "text-blue-600" },
+    { title: "Manufacturing", count: 10, color: "text-orange-600" },
+    { title: "Bank", count: 8, color: "text-green-600" },
+    { title: "NBFC", count: 7, color: "text-purple-600" },
+    { title: "HFC", count: 7, color: "text-teal-600" },
 ];
 
 
@@ -47,9 +55,10 @@ export default function CKCRequestsClient() {
         switch (activeTab) {
             case 'pending': return pendingSummaryCards;
             case 'accepted': return acceptedSummaryCards;
-            case 'rejected': return pendingSummaryCards; // Using pending as placeholder
+            case 'rejected': return rejectedSummaryCards; 
             case 'closed': return closedSummaryCards;
-            case 'on-hold': return []; // No cards for On-Hold
+            case 'withdrawn':
+            case 'on-hold': 
             default: return [];
         }
     }

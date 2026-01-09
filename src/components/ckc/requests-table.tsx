@@ -54,7 +54,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Skeleton } from '../ui/skeleton';
-import type { CKCRequest, RequestStatus } from '@/lib/definitions';
+import type { CKCRequest, RequestStatus, Role } from '@/lib/definitions';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/firebase';
 
@@ -248,7 +248,7 @@ export function CKCRequestsTable({ status, globalFilter, setGlobalFilter }: CKCR
         const isAdmin = user?.role === 'CKC_ADMIN';
         const isAnalyst = user?.role === 'CKC_ANALYST';
 
-        if (status === 'PENDING') {
+        if (status === 'PENDING' && isAnalyst) {
             return (
                 <Button variant="ghost" className="h-8 w-8 p-0" onClick={() => handleAcceptRequest(row.original.id)}>
                     <Check className="h-4 w-4 text-green-600" />
@@ -266,7 +266,7 @@ export function CKCRequestsTable({ status, globalFilter, setGlobalFilter }: CKCR
              return (
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0" disabled={row.getIsSelected()}>
+                        <Button variant="ghost" className="h-8 w-8 p-0">
                             <span className="sr-only">Open menu</span>
                             <MoreHorizontal className="h-4 w-4" />
                         </Button>
@@ -295,7 +295,7 @@ export function CKCRequestsTable({ status, globalFilter, setGlobalFilter }: CKCR
         return null;
       },
     },
-  ], [status, user]);
+  ], [status, user, router, toast, mutate]);
 
   const table = useReactTable({
     data: requests || [],
@@ -334,10 +334,36 @@ export function CKCRequestsTable({ status, globalFilter, setGlobalFilter }: CKCR
   }, [status]);
 
 
-  const isBulkActionDisabled = Object.keys(rowSelection).length <= 1 || table.getIsAllPageRowsSelected();
+  const isBulkActionDisabled = Object.keys(rowSelection).length < 1;
   const isAdmin = user?.role === 'CKC_ADMIN';
   const isAnalyst = user?.role === 'CKC_ANALYST';
   
+  const getBulkActions = (role: Role | undefined, currentStatus: typeof status) => {
+    if (!role) return [];
+
+    if (role === 'CKC_ADMIN') {
+        if (currentStatus === 'PENDING') {
+            return ['Approve Requests', 'Reject Requests', 'Withdraw Requests'];
+        }
+        if (currentStatus === 'ACCEPTED') {
+            return ['Assign Maker and Checker', 'Reject Request', 'Withdraw Request'];
+        }
+    }
+    
+     if (role === 'CKC_ANALYST') {
+        if (currentStatus === 'PENDING') {
+            return ['Accept Requests', 'Reject Requests', 'On-Hold'];
+        }
+        if (currentStatus === 'ACCEPTED') {
+            return ['Reject Requests', 'On-Hold'];
+        }
+    }
+
+    return [];
+  }
+  
+  const bulkActions = getBulkActions(user?.role, status);
+
   const handleExport = () => {
     toast({
       title: "Export Initiated",
@@ -361,41 +387,18 @@ export function CKCRequestsTable({ status, globalFilter, setGlobalFilter }: CKCR
     <div className="w-full">
         <div className="flex items-center pb-4">
              <div className="flex items-center gap-2 ml-auto">
-                <Select disabled={isBulkActionDisabled}>
-                    <SelectTrigger className="w-[180px]">
-                        <SelectValue placeholder="Select Bulk Action" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {isAdmin && status === 'ACCEPTED' && (
-                             <>
-                                <SelectItem value="assign-maker">Assign Maker</SelectItem>
-                                <SelectItem value="assign-checker">Assign Checker</SelectItem>
-                                <SelectItem value="reject-requests">Reject Requests</SelectItem>
-                                <SelectItem value="withdraw-requests">Withdraw Requests</SelectItem>
-                            </>
-                        )}
-                        {isAdmin && status === 'PENDING' && (
-                             <>
-                                <SelectItem value="approve">Approve Requests</SelectItem>
-                                <SelectItem value="reject">Reject Requests</SelectItem>
-                                <SelectItem value="withdraw">Withdraw Requests</SelectItem>
-                            </>
-                        )}
-                         {isAnalyst && status === 'ACCEPTED' && (
-                             <>
-                                <SelectItem value="reject">Reject Requests</SelectItem>
-                                <SelectItem value="on-hold">On-Hold</SelectItem>
-                            </>
-                        )}
-                        {isAnalyst && status === 'PENDING' && (
-                             <>
-                                <SelectItem value="accept">Accept Requests</SelectItem>
-                                <SelectItem value="reject">Reject Requests</SelectItem>
-                                <SelectItem value="on-hold">On-Hold</SelectItem>
-                            </>
-                        )}
-                    </SelectContent>
-                </Select>
+                {bulkActions.length > 0 && (
+                    <Select disabled={isBulkActionDisabled} onValueChange={(value) => toast({title: "Bulk Action", description: `Triggered: ${value}`})}>
+                        <SelectTrigger className="w-[180px]">
+                            <SelectValue placeholder="Select Bulk Action" />
+                        </SelectTrigger>
+                        <SelectContent>
+                           {bulkActions.map(action => (
+                               <SelectItem key={action} value={action}>{action}</SelectItem>
+                           ))}
+                        </SelectContent>
+                    </Select>
+                )}
                  <Button variant="outline" size="icon" onClick={handleExport}><Download className="h-5 w-5" /></Button>
                  <Button variant="outline" size="icon" onClick={handleFilter}><Filter className="h-5 w-5" /></Button>
                  <DropdownMenu>
