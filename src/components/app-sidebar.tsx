@@ -37,6 +37,7 @@ import {
   ScanLine,
   FileOutput,
   FileUp,
+  FilePlus,
   BookCopy,
 } from 'lucide-react';
 import { useAuth } from '@/firebase';
@@ -66,7 +67,7 @@ const ckcAnalystMenuItems = [
             { href: '#', label: 'Bank Statement' },
         ]
     },
-    { href: '#', label: 'Financial Input', icon: FileInput },
+    { href: '#', label: 'Financial Input', icon: FilePlus },
     { href: '#', label: 'Operational Input', icon: FileUp },
 ];
 const ckcAdminMenuItems = [
@@ -91,19 +92,19 @@ const ckcAdminMenuItems = [
       { href: '#', label: 'Bank Statement' },
     ],
   },
-  { href: '#', label: 'Financial Input', icon: FileInput },
+  { href: '#', label: 'Financial Input', icon: FilePlus },
   { href: '#', label: 'Operational Input', icon: FileUp },
   { href: '#', label: 'RAR Input', icon: BookCopy },
 ];
 
 const ratingNoteSubItems = [
-    { href: '#', label: 'Rating Note' },
+    { href: '/rating-note/page', label: 'Rating Note' },
     { href: '/manage-instrument/isin-update/temp-id/temp-id/temp-id', label: 'ISIN' },
-    { href: '#', label: 'RAR' },
-    { href: '#', label: 'RCM Status' },
-    { href: '#', label: 'Delay in Periodic Review' },
-    { href: '#', label: 'DMS' },
-    { href: '#', label: 'Banker/Lender' },
+    { href: '/rating-note/page', label: 'RAR' },
+    { href: '/rating-note/page', label: 'RCM Status' },
+    { href: '/rating-note/page', label: 'Delay in Periodic Review' },
+    { href: '/rating-note/page', label: 'DMS' },
+    { href: '/manage-instrument/banker-lender/temp-id/temp-id/temp-id', label: 'Banker/Lender' },
     { href: '/manage-instrument/update-inc-status', label: 'Update INC Status' },
 ];
 
