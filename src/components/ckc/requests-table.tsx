@@ -203,6 +203,13 @@ export function CKCRequestsTable({ status, globalFilter, setGlobalFilter }: CKCR
     });
   }
 
+  const handleFilter = () => {
+    toast({
+      title: "Filter Clicked",
+      description: "This is a placeholder for the column filtering UI.",
+    });
+  }
+
   return (
     <div className="w-full">
         <div className="flex items-center pb-4">
@@ -218,7 +225,7 @@ export function CKCRequestsTable({ status, globalFilter, setGlobalFilter }: CKCR
                     </SelectContent>
                 </Select>
                  <Button variant="outline" size="icon" onClick={handleExport}><Download className="h-5 w-5" /></Button>
-                 <Button variant="outline" size="icon"><Filter className="h-5 w-5" /></Button>
+                 <Button variant="outline" size="icon" onClick={handleFilter}><Filter className="h-5 w-5" /></Button>
                  <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                          <Button variant="outline" size="icon"><Settings className="h-5 w-5" /></Button>
