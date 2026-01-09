@@ -65,7 +65,7 @@ export const companyDetailsSchema = {
             "properties": {
                 "name": { "type": "string", "title": "Name" },
                 "designation": { "type": "string", "title": "Designation" },
-                "yearsOfExperience": { "type": "number", "title": "Years of Exp." },
+                "yearsOfExperience": { "type": "number", "title": "Years of Exp" },
                 "briefProfile": { "type": "string", "title": "Brief Profile" },
                 "age": { "type": "number", "title": "Age" },
                 "qualification": { "type": "string", "title": "Qualification" }
