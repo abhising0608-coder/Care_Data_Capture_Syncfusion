@@ -67,8 +67,8 @@ const ckcAnalystMenuItems = [
             { href: '#', label: 'Bank Statement' },
         ]
     },
-    { href: '#', label: 'Financial Input', icon: FilePlus },
-    { href: '#', label: 'Operational Input', icon: FileUp },
+    { href: '/financial-input/initiate', label: 'Financial Input', icon: FilePlus },
+    { href: '/operational-input/requests', label: 'Operational Input', icon: FileUp },
 ];
 const ckcAdminMenuItems = [
   { href: '/ckc/requests', label: 'CKC Requests', icon: FileText },
@@ -92,8 +92,8 @@ const ckcAdminMenuItems = [
       { href: '#', label: 'Bank Statement' },
     ],
   },
-  { href: '#', label: 'Financial Input', icon: FilePlus },
-  { href: '#', label: 'Operational Input', icon: FileUp },
+  { href: '/financial-input/initiate', label: 'Financial Input', icon: FilePlus },
+  { href: '/operational-input/requests', label: 'Operational Input', icon: FileUp },
   { href: '#', label: 'RAR Input', icon: BookCopy },
 ];
 
@@ -147,7 +147,7 @@ export function AppSidebar() {
             <SidebarMenuItem>
               <SidebarMenuSub>
                 <SidebarMenuButton
-                  isActive={pathname.startsWith('/ckc')}
+                  isActive={pathname.startsWith('/ckc') || pathname.startsWith('/financial-input') || pathname.startsWith('/operational-input')}
                   tooltip={{ children: 'CKC', side: 'right' }}
                   className="justify-start"
                 >
@@ -180,7 +180,7 @@ export function AppSidebar() {
                       <SidebarMenuSubButton
                         key={item.href}
                         asChild
-                        isActive={pathname === item.href}
+                        isActive={pathname.startsWith(item.href)}
                       >
                         <a href={item.href} className="flex items-center gap-2">
                            <item.icon className="h-4 w-4" />
