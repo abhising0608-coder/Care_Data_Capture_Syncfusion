@@ -105,26 +105,20 @@ export function CKCRequestsTable({ status, globalFilter, setGlobalFilter }: CKCR
     {
       accessorKey: 'id',
       header: ({ column }) => (
-          <div className="flex items-center">
-            <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
-                Request ID
-                <ArrowUpDown className="ml-2 h-4 w-4" />
-            </Button>
-            <Filter className="ml-2 h-4 w-4" />
-          </div>
+          <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
+              Request ID
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
       ),
       cell: ({ row }) => <Link href={`/ckc/requests/${row.getValue('id')}`} className="text-blue-600 hover:underline">{row.getValue('id')}</Link>,
     },
      {
       accessorKey: 'companyName',
       header: ({ column }) => (
-          <div className="flex items-center">
-            <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
-                Company Name
-                <ArrowUpDown className="ml-2 h-4 w-4" />
-            </Button>
-             <Filter className="ml-2 h-4 w-4" />
-          </div>
+          <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
+              Company Name
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
       ),
       cell: ({ row }) => <div className="capitalize">{row.getValue('companyName')}</div>,
     },
@@ -134,23 +128,30 @@ export function CKCRequestsTable({ status, globalFilter, setGlobalFilter }: CKCR
     },
      {
       accessorKey: 'finInputSector',
-      header: 'Fin. Input Sector',
+      header: ({ column }) => (
+        <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
+            Fin. Input Sector
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      ),
     },
     {
       accessorKey: 'listed',
       header: ({ column }) => (
-          <div className="flex items-center">
-            <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
-                Listed
-                <ArrowUpDown className="ml-2 h-4 w-4" />
-            </Button>
-            <Filter className="ml-2 h-4 w-4" />
-          </div>
+          <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
+              Listed
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
       ),
     },
      {
       accessorKey: 'cycle',
-      header: 'Cycle',
+      header: ({ column }) => (
+        <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
+            Cycle
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      ),
     },
     {
         accessorKey: 'receivedDate',
@@ -344,4 +345,5 @@ export function CKCRequestsTable({ status, globalFilter, setGlobalFilter }: CKCR
     </div>
   );
 }
+    
     
