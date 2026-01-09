@@ -276,8 +276,10 @@ export default function DashboardClient() {
               <DropdownMenuItem onClick={() => handleAction(note)}>
                 {getActionText(user?.role, note)}
               </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => router.push(`/portfolio/activities/${note.id}`)}>
+                View Activities
+              </DropdownMenuItem>
               <DropdownMenuItem>View Company Summary</DropdownMenuItem>
-              <DropdownMenuItem>View Workflow Status</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         )
@@ -309,7 +311,7 @@ export default function DashboardClient() {
   return (
     <div className="w-full">
         <div className="flex items-center py-4">
-            <h1 className="text-2xl font-semibold">Company Listing Page</h1>
+            <h1 className="text-2xl font-semibold">Dashboard</h1>
             <div className="ml-auto relative">
                 <Input
                 placeholder="Search companies..."

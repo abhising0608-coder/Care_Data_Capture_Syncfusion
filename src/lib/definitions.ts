@@ -14,6 +14,7 @@
 
 
 
+
 export type Role = 'CKC_ANALYST' | 'CKC_CHECKER' | 'CKC_ADMIN' | 'RATING_ANALYST' | 'GROUP_HEAD' | 'RATING_HEAD_SD' | 'SYSTEM' | 'QC' | 'RATING_COMMITTEE' | 'AUDITOR' | 'EDITOR';
 
 export type RequestStatus = 'PENDING' | 'ACCEPTED' | 'IN_PROGRESS' | 'SUBMITTED_FOR_CHECK' | 'SENT_BACK' | 'APPROVED' | 'CLOSED';
@@ -46,6 +47,9 @@ export type FeedbackStatus = 'Pending' | 'In Progress' | 'Completed';
 
 export type DiscussionStatus = 'Draft' | 'Shared with GH' | 'Completed';
 
+export type ActivityStatus = 'Not Initiated' | 'In Progress' | 'Completed';
+
+
 export type StatusHistory = {
   status: NoteStatus | RequestStatus;
   timestamp: string | Date;
@@ -72,6 +76,13 @@ export interface CompanyDashboard {
     raId: string;
     ghId?: string;
 }
+
+export type PortfolioActivity = {
+  id: string;
+  name: string;
+  status: ActivityStatus;
+  action: 'Rollback' | 'Attach RN' | 'Initiate' | null;
+};
 
 export type PressReleaseHistoryInstrument = {
   insId: string;

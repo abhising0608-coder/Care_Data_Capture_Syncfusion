@@ -24,24 +24,38 @@ import {
   ShieldCheck,
   UserCheck,
   Plane,
+  FilePen,
+  FileClock,
+  History,
+  ShieldX,
+  FileSearch,
+  Banknote,
+  Presentation,
+  FolderOpen
 } from 'lucide-react';
 import { useAuth } from '@/firebase';
+import { Badge } from '@/components/ui/badge';
 
-const menuItems = [
+const topMenuItems = [
   {
     href: '/dashboard',
-    label: 'Company Listing Page',
+    label: 'Dashboard',
     icon: LayoutDashboard,
   },
   {
-    href: '/ckc-requests',
-    label: 'CKC Requests',
-    icon: FileText,
+    href: '/portfolio',
+    label: 'Portfolio',
+    icon: Briefcase,
   },
   {
+    href: '/ckc-requests',
+    label: 'CKC',
+    icon: FolderOpen,
+  },
+   {
     id: 'due-diligence',
     label: 'Due Diligence',
-    icon: Briefcase,
+    icon: FileSearch,
     subItems: [
         { href: '/due-diligence/auditor-feedback', label: 'Auditor Feedback', icon: ShieldCheck },
         { href: '/due-diligence/banker-feedback', label: 'Banker Feedback', icon: Landmark },
@@ -53,11 +67,17 @@ const menuItems = [
         { href: '/due-diligence/site-visit', label: 'Site / Plant Visit', icon: Plane },
     ]
   },
-   {
-    href: '/e2e-test',
-    label: 'E2E Test Runner',
-    icon: TestTube2,
-  },
+];
+
+const ratingNoteSubItems = [
+    { href: '#', label: 'Rating Note' },
+    { href: '/manage-instrument/isin-update/temp-id/temp-id/temp-id', label: 'ISIN' },
+    { href: '#', label: 'RAR' },
+    { href: '#', label: 'RCM Status' },
+    { href: '#', label: 'Delay in Periodic Review' },
+    { href: '#', label: 'DMS' },
+    { href: '#', label: 'Banker/Lender' },
+    { href: '/manage-instrument/update-inc-status', label: 'Update INC Status' },
 ];
 
 export function AppSidebar() {
@@ -77,7 +97,7 @@ export function AppSidebar() {
       </SidebarHeader>
       <SidebarContent>
         <SidebarMenu>
-          {menuItems.map((item) => (
+          {topMenuItems.map((item) => (
             <SidebarMenuItem key={item.href || item.id}>
                 {item.subItems ? (
                      <SidebarMenuSub>
@@ -115,6 +135,44 @@ export function AppSidebar() {
                  )}
             </SidebarMenuItem>
           ))}
+          {/* Rating Note Submenu */}
+           <SidebarMenuItem>
+                <SidebarMenuSub>
+                    <SidebarMenuButton
+                        isActive={ratingNoteSubItems.some(item => pathname.startsWith(item.href.split('[')[0]))}
+                        tooltip={{ children: 'Rating Note', side: 'right' }}
+                        className="justify-start"
+                        >
+                        <FilePen className="h-4 w-4" />
+                        <span className="text-sm">Rating Note</span>
+                         <Badge className="ml-auto bg-blue-500 text-white">W</Badge>
+                    </SidebarMenuButton>
+                    <SidebarMenuSubContent>
+                        {ratingNoteSubItems.map(subItem => (
+                             <SidebarMenuSubButton key={subItem.href} asChild isActive={pathname === subItem.href}>
+                                <a href={subItem.href} className="flex items-center gap-2">
+                                    <span>{subItem.label}</span>
+                                </a>
+                            </SidebarMenuSubButton>
+                        ))}
+                    </SidebarMenuSubContent>
+                </SidebarMenuSub>
+            </SidebarMenuItem>
+
+            {/* E2E Test Runner */}
+            <SidebarMenuItem>
+                 <SidebarMenuButton
+                        asChild
+                        isActive={pathname === '/e2e-test'}
+                        tooltip={{ children: 'E2E Test Runner', side: 'right' }}
+                        className="justify-start"
+                    >
+                        <a href='/e2e-test'>
+                        <TestTube2 className="h-4 w-4" />
+                        <span className="text-sm">E2E Test Runner</span>
+                        </a>
+                    </SidebarMenuButton>
+            </SidebarMenuItem>
         </SidebarMenu>
       </SidebarContent>
       <SidebarFooter>

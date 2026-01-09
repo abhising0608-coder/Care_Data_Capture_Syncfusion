@@ -1,7 +1,8 @@
 
 
 
-import type { CKCRequest, AppUser, Role, RequestStatus, CompanyInfo, RatingNote, NoteStatus, RatingNoteDataSchema, DTFirm, DTContact, FeedbackStatus, QuestionnaireItem, IPAFirm, IPAContact, ThirdParty, AuditCommitteeMeeting, SiteVisit, AuditorFirm, AuditorContact, BankerFirm, BankerContact, RatingInstrument, RatingInstrumentCycle, LatestBankDetail, AnnexureVHistory, PressReleaseHistoryEntry, PressReleaseHistory, DMSDocumentHistory, BankerLenderDetail } from './definitions';
+
+import type { CKCRequest, AppUser, Role, RequestStatus, CompanyInfo, RatingNote, NoteStatus, RatingNoteDataSchema, DTFirm, DTContact, FeedbackStatus, QuestionnaireItem, IPAFirm, IPAContact, ThirdParty, AuditCommitteeMeeting, SiteVisit, AuditorFirm, AuditorContact, BankerFirm, BankerContact, RatingInstrument, RatingInstrumentCycle, LatestBankDetail, AnnexureVHistory, PressReleaseHistoryEntry, PressReleaseHistory, DMSDocumentHistory, BankerLenderDetail, PortfolioActivity } from './definitions';
 
 
 // --- FSD-based Master JSON Data Structure ---
@@ -100,6 +101,22 @@ const getMasterRatingNoteData = (noteId: string, companyName: string): RatingNot
   editorContent: "" // Start with empty editor content
 });
 
+export const mockPortfolioActivities: { preCommittee: PortfolioActivity[], postCommittee: PortfolioActivity[] } = {
+  preCommittee: [
+    { id: 'act-01', name: 'Rating Model', status: 'In Progress', action: 'Rollback' },
+    { id: 'act-02', name: 'Rating Note', status: 'Completed', action: 'Attach RN' },
+    { id: 'act-03', name: 'Send Note to GH', status: 'Completed', action: 'Rollback' },
+    { id: 'act-04', name: 'Send Note to RH/QC', status: 'Completed', action: 'Rollback' },
+    { id: 'act-05', name: 'ML/TF', status: 'Completed', action: 'Rollback' },
+    { id: 'act-06', name: 'Send note to Committee', status: 'Not Initiated', action: null },
+  ],
+  postCommittee: [
+    { id: 'act-07', name: 'Rating Committee Minutes', status: 'Not Initiated', action: 'Initiate' },
+    { id: 'act-08', name: 'Press Release', status: 'Not Initiated', action: 'Initiate' },
+  ]
+};
+
+
 
 let ratingNotes: RatingNote[] = [
     { 
@@ -159,6 +176,24 @@ let ratingNotes: RatingNote[] = [
              { status: 'In Review (GH)', timestamp: new Date().toISOString(), actorId: 'rating.analyst@careedge' }
         ],
         ratingNoteData: getMasterRatingNoteData('NOTE-003', 'Cipla Limited')
+    },
+     { 
+        id: 'STFCL-01', 
+        companyName: 'Shriram Transport Finance Company Ltd (STFCL)', 
+        companyId: 'COMP-104',
+        ratingCycle: 'Surveillance', 
+        priority: 'High', 
+        dueDate: '20 Jul 26', 
+        status: 'In Review (GH)',
+        currentActor: 'GROUP_HEAD',
+        initiatedBy: 'rating.analyst@careedge',
+        ghId: 'group.head@careedge',
+        editorContent: '',
+        statusHistory: [
+             { status: 'Draft', timestamp: new Date().toISOString(), actorId: 'rating.analyst@careedge' },
+             { status: 'In Review (GH)', timestamp: new Date().toISOString(), actorId: 'rating.analyst@careedge' }
+        ],
+        ratingNoteData: getMasterRatingNoteData('STFCL-01', 'Shriram Transport Finance Company Ltd (STFCL)')
     },
 ];
 
@@ -350,7 +385,7 @@ let requests: CKCRequest[] = [
     hoRoName: 'Bangalore RO',
     dealingAnalyst: 'Analyst B',
     groupHead: 'Head 2',
-    status: 'IN_PROGRESS',
+    status: 'ACCEPTED',
     cycle: 'Surveillance',
     auditedFY: ['2022', '2023'],
     provisionalFY: [],
@@ -359,16 +394,15 @@ let requests: CKCRequest[] = [
     receiptDateTime: '2024-05-02T11:30:00Z',
     createdBy: 'Initiator 2',
     resultType: 'Consolidated',
-    currentOwnerId: 'mock-user-123',
+    currentOwnerId: 'rating.analyst@careedge',
     currentOwnerRole: 'CKC_ANALYST',
     assignedCheckerId: 'checker-001',
     statusHistory: [
         { status: 'PENDING', timestamp: '2024-05-02T11:30:00Z', actorId: 'system', actorRole: 'SYSTEM' },
-        { status: 'ACCEPTED', timestamp: '2024-05-02T14:00:00Z', actorId: 'mock-user-123', actorRole: 'CKC_ANALYST' },
-        { status: 'IN_PROGRESS', timestamp: '2024-05-02T14:05:00Z', actorId: 'mock-user-123', actorRole: 'CKC_ANALYST' }
+        { status: 'ACCEPTED', timestamp: '2024-05-02T14:00:00Z', actorId: 'rating.analyst@careedge', actorRole: 'CKC_ANALYST' },
     ],
     receiptResponseDateTime: null,
-    entryAllottedDateTime: null,
+    entryAllottedDateTime: '2024-05-02T14:00:00Z',
     entryCompletedDateTime: null,
     checkingAllottedDateTime: null,
     checkingCompletedDateTime: null,
@@ -376,8 +410,8 @@ let requests: CKCRequest[] = [
     overallStatus: 'In Progress',
     itemType: 'Request',
     path: '/requests/REQ-002',
-    assignedTo: 'mock-user-123',
-    ckcAnalystName: 'CKC Analyst',
+    assignedTo: 'rating.analyst@careedge',
+    ckcAnalystName: 'Taha G',
     checker: 'checker-001'
   },
   {
@@ -1164,6 +1198,10 @@ export const getRequests = (status?: string, id?: string) => {
   let filteredRequests = requests;
   if (status) {
     const statuses = Array.isArray(status) ? status : status.split(',');
+    if(statuses.includes('CLOSED')) {
+        return requests.filter(r => r.status === 'CLOSED');
+    }
+
     filteredRequests = filteredRequests.filter(r => statuses.includes(r.status));
   }
   if (id) {
@@ -1289,7 +1327,8 @@ export const approveRequest = (id: string, user: AppUser) => {
     if(approvedRequest) {
         // Automatically move to CLOSED after approval
         const systemUser: AppUser = { uid: 'system', role: 'SYSTEM', displayName: 'System' };
-        return updateRequestStatus(id, 'CLOSED', systemUser);
+        requests = requests.map(r => r.id === id ? {...r, status: 'CLOSED'} : r);
+        return getRequestById(id);
     }
     return null;
 }
