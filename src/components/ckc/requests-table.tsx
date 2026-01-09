@@ -153,7 +153,7 @@ export function CKCRequestsTable({ status, globalFilter, setGlobalFilter }: CKCR
               <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
       ),
-      cell: ({ row }) => <Link href={`/operational-input/initiate?requestId=${row.getValue('id')}`} className="text-blue-600 hover:underline">{row.getValue('id')}</Link>,
+      cell: ({ row }) => <Link href={`/ckc/requests/${row.getValue('id')}`} className="text-blue-600 hover:underline">{row.getValue('id')}</Link>,
     },
      {
       accessorKey: 'companyName',
@@ -163,7 +163,7 @@ export function CKCRequestsTable({ status, globalFilter, setGlobalFilter }: CKCR
               <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
       ),
-      cell: ({ row }) => <div className="capitalize">{row.getValue('companyName')}</div>,
+      cell: ({ row }) => <Link href={`/ckc/requests/${row.original.id}`} className="capitalize text-blue-600 hover:underline">{row.getValue('companyName')}</Link>,
     },
      {
       accessorKey: 'companyId',
@@ -245,6 +245,9 @@ export function CKCRequestsTable({ status, globalFilter, setGlobalFilter }: CKCR
       id: 'actions',
       header: 'Actions',
       cell: ({ row }) => {
+        const isAdmin = user?.role === 'CKC_ADMIN';
+        const isAnalyst = user?.role === 'CKC_ANALYST';
+
         if (status === 'PENDING') {
             return (
                 <Button variant="ghost" className="h-8 w-8 p-0" onClick={() => handleAcceptRequest(row.original.id)}>
@@ -269,9 +272,22 @@ export function CKCRequestsTable({ status, globalFilter, setGlobalFilter }: CKCR
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => toast({title: "Placeholder", description:"Assign to Maker & Checker"})}>Assign to Maker & Checker</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => toast({title: "Placeholder", description:"Reject Request"})}>Reject Request</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => toast({title: "Placeholder", description:"Withdraw Request"})}>Withdraw Request</DropdownMenuItem>
+                       {isAdmin && (
+                            <>
+                                <DropdownMenuItem onClick={() => router.push(`/ckc/requests/${row.original.id}`)}>Assign to Maker & Checker</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => toast({title: "Placeholder", description:"Reject Request"})}>Reject Request</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => toast({title: "Placeholder", description:"Withdraw Request"})}>Withdraw Request</DropdownMenuItem>
+                            </>
+                        )}
+                        {isAnalyst && (
+                             <>
+                                <DropdownMenuItem onClick={() => router.push(`/financial-input/${row.original.id}`)}>Initiate Manual Entry</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => toast({title: "Placeholder", description:"Initiate via OCR"})}>Initiate via OCR</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => toast({title: "Placeholder", description:"Initiate XBRL"})}>Initiate XBRL</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => toast({title: "Placeholder", description:"Reject Request"})}>Reject Request</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => toast({title: "Placeholder", description:"On-Hold Request"})}>On-Hold Request</DropdownMenuItem>
+                            </>
+                        )}
                     </DropdownMenuContent>
                 </DropdownMenu>
              )
@@ -279,7 +295,7 @@ export function CKCRequestsTable({ status, globalFilter, setGlobalFilter }: CKCR
         return null;
       },
     },
-  ], [status]);
+  ], [status, user]);
 
   const table = useReactTable({
     data: requests || [],
@@ -319,6 +335,8 @@ export function CKCRequestsTable({ status, globalFilter, setGlobalFilter }: CKCR
 
 
   const isBulkActionDisabled = Object.keys(rowSelection).length <= 1 || table.getIsAllPageRowsSelected();
+  const isAdmin = user?.role === 'CKC_ADMIN';
+  const isAnalyst = user?.role === 'CKC_ANALYST';
   
   const handleExport = () => {
     toast({
@@ -348,9 +366,34 @@ export function CKCRequestsTable({ status, globalFilter, setGlobalFilter }: CKCR
                         <SelectValue placeholder="Select Bulk Action" />
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="assign-maker">Assign Maker</SelectItem>
-                        <SelectItem value="assign-checker">Assign Checker</SelectItem>
-                        <SelectItem value="close-requests">Close Requests</SelectItem>
+                        {isAdmin && status === 'ACCEPTED' && (
+                             <>
+                                <SelectItem value="assign-maker">Assign Maker</SelectItem>
+                                <SelectItem value="assign-checker">Assign Checker</SelectItem>
+                                <SelectItem value="reject-requests">Reject Requests</SelectItem>
+                                <SelectItem value="withdraw-requests">Withdraw Requests</SelectItem>
+                            </>
+                        )}
+                        {isAdmin && status === 'PENDING' && (
+                             <>
+                                <SelectItem value="approve">Approve Requests</SelectItem>
+                                <SelectItem value="reject">Reject Requests</SelectItem>
+                                <SelectItem value="withdraw">Withdraw Requests</SelectItem>
+                            </>
+                        )}
+                         {isAnalyst && status === 'ACCEPTED' && (
+                             <>
+                                <SelectItem value="reject">Reject Requests</SelectItem>
+                                <SelectItem value="on-hold">On-Hold</SelectItem>
+                            </>
+                        )}
+                        {isAnalyst && status === 'PENDING' && (
+                             <>
+                                <SelectItem value="accept">Accept Requests</SelectItem>
+                                <SelectItem value="reject">Reject Requests</SelectItem>
+                                <SelectItem value="on-hold">On-Hold</SelectItem>
+                            </>
+                        )}
                     </SelectContent>
                 </Select>
                  <Button variant="outline" size="icon" onClick={handleExport}><Download className="h-5 w-5" /></Button>
@@ -480,5 +523,3 @@ export function CKCRequestsTable({ status, globalFilter, setGlobalFilter }: CKCR
     </div>
   );
 }
-
-    
