@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useForm, useFieldArray, Controller, useWatch, FormProvider } from 'react-hook-form';
@@ -320,6 +321,28 @@ export function JsonSchemaForm({ schema, onSubmit, onCancel, requestId, dataKey,
   };
   
  const AccordionSectionContent = ({ sectionKey, sectionProp }: { sectionKey: string, sectionProp: any }) => {
+    
+    // For sections that are simple objects with properties (like basicDetails)
+    if (sectionProp.properties && !sectionProp['x-ui-variant']) {
+        return (
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+                {Object.keys(sectionProp.properties).map(fieldKey => 
+                    renderField(`${sectionKey}.${fieldKey}`, sectionProp.properties[fieldKey], form.control)
+                )}
+            </div>
+        );
+    }
+    
+    // For sections that are arrays of objects (like boardOfDirectors)
+    if (sectionProp.type === 'array' && sectionProp.items?.type === 'object') {
+         return renderInlineEditableTable({
+            sectionKey,
+            itemProperties: sectionProp.items.properties,
+            control: form.control,
+        });
+    }
+
+
     const dataAvailabilityPath = `${sectionKey}.dataAvailability`;
     const dataAvailability = useWatch({ control: form.control, name: dataAvailabilityPath });
 
@@ -479,15 +502,7 @@ export function JsonSchemaForm({ schema, onSubmit, onCancel, requestId, dataKey,
                     <AccordionTrigger>{sectionProp.title}</AccordionTrigger>
                     <AccordionContent className="p-4">
                       {sectionProp.type === 'object' ? (
-                         sectionProp['x-ui-variant'] ? (
-                           <AccordionSectionContent sectionKey={sectionKey} sectionProp={sectionProp} />
-                         ) : (
-                            <div className="grid md:grid-cols-2 gap-8">
-                            {Object.keys(sectionProp.properties).map(fieldKey => 
-                                renderField(`${sectionKey}.${fieldKey}`, sectionProp.properties[fieldKey], form.control)
-                            )}
-                            </div>
-                         )
+                         <AccordionSectionContent sectionKey={sectionKey} sectionProp={sectionProp} />
                       ) : sectionProp.type === 'array' ? (
                         renderInlineEditableTable({
                           sectionKey: sectionKey,
