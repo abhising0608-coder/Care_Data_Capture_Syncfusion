@@ -505,9 +505,9 @@ export function CKCRequestsTable({ status, globalFilter, setGlobalFilter }: CKCR
                 >
                 Previous
             </Button>
-             {Array.from({ length: table.getPageCount() }, (_, i) => i + 1).map(page => (
+             {Array.from({ length: table.getPageCount() }, (_, i) => i + 1).slice(0, 3).map(page => (
                 <Button key={page} variant={table.getState().pagination.pageIndex + 1 === page ? 'default' : 'outline'} size="sm" onClick={() => table.setPageIndex(page - 1)}>{page}</Button>
-            )).slice(0, 3)}
+            ))}
             {table.getPageCount() > 3 && <span>...</span>}
             {table.getPageCount() > 3 && <Button variant='outline' size="sm" onClick={() => table.setPageIndex(table.getPageCount() - 1)}>{table.getPageCount()}</Button>}
             <Button

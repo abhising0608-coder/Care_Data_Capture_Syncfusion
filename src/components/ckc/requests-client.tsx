@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import { useState } from 'react';
@@ -49,6 +47,7 @@ export default function CKCRequestsClient() {
         switch (activeTab) {
             case 'pending': return pendingSummaryCards;
             case 'accepted': return acceptedSummaryCards;
+            case 'rejected': return pendingSummaryCards; // Using pending as placeholder
             case 'closed': return closedSummaryCards;
             case 'on-hold': return []; // No cards for On-Hold
             default: return [];
