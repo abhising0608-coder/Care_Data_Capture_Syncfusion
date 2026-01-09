@@ -21,6 +21,7 @@ import type { CKCRequest, CKCRequestDocument } from '@/lib/definitions';
 import { useToast } from '@/hooks/use-toast';
 import { mockUsers } from '@/lib/mock-data';
 import { RejectionModal } from '@/components/ckc/rejection-modal';
+import { WithdrawalModal } from '@/components/ckc/withdrawal-modal';
 
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
@@ -55,6 +56,7 @@ export default function CKCRequestDetailsPage() {
     const { toast } = useToast();
     const requestId = params.id as string;
     const [isRejectionModalOpen, setIsRejectionModalOpen] = useState(false);
+    const [isWithdrawalModalOpen, setIsWithdrawalModalOpen] = useState(false);
 
     const { data: request, isLoading, error } = useSWR<CKCRequest>(
         requestId ? `/api/ckc/requests/${requestId}` : null,
@@ -103,6 +105,16 @@ export default function CKCRequestDetailsPage() {
         setIsRejectionModalOpen(false);
         router.push('/ckc/requests');
     }
+
+    const handleWithdraw = (reason: string) => {
+        console.log("Withdrawing with reason:", reason);
+         toast({
+            title: 'Request Withdrawn',
+            description: `Request ${request?.id} has been withdrawn.`,
+        });
+        setIsWithdrawalModalOpen(false);
+        router.push('/ckc/requests');
+    }
     
     if (isLoading || !request) {
         return <div className="p-6"><Skeleton className="h-[70vh] w-full" /></div>
@@ -118,6 +130,11 @@ export default function CKCRequestDetailsPage() {
                 isOpen={isRejectionModalOpen}
                 onClose={() => setIsRejectionModalOpen(false)}
                 onSubmit={handleReject}
+            />
+            <WithdrawalModal 
+                isOpen={isWithdrawalModalOpen}
+                onClose={() => setIsWithdrawalModalOpen(false)}
+                onSubmit={handleWithdraw}
             />
             <form onSubmit={form.handleSubmit(handleApprove)}>
                  <div className="space-y-6">
@@ -275,10 +292,11 @@ export default function CKCRequestDetailsPage() {
                     <div className="flex justify-end gap-2 mt-6">
                         <Button type="submit">Approve</Button>
                         <Button type="button" variant="outline" onClick={() => setIsRejectionModalOpen(true)}>Reject</Button>
-                        <Button type="button" variant="outline">Withdraw</Button>
+                        <Button type="button" variant="outline" onClick={() => setIsWithdrawalModalOpen(true)}>Withdraw</Button>
                     </div>
                 </div>
             </form>
         </FormProvider>
     );
 }
+    
