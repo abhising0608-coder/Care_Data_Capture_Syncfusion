@@ -20,6 +20,7 @@ import { Form, FormField, FormItem } from '@/components/ui/form';
 import type { CKCRequest, CKCRequestDocument } from '@/lib/definitions';
 import { useToast } from '@/hooks/use-toast';
 import { mockUsers } from '@/lib/mock-data';
+import { PastFinancialsTable } from '@/components/ckc/past-financials-table';
 
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
@@ -105,16 +106,18 @@ export default function CKCRequestDetailsPage() {
             <form onSubmit={form.handleSubmit(handleSubmit)}>
                  <div className="space-y-6">
                     <header>
-                        <h1 className="text-2xl font-bold tracking-tight text-foreground">Request Form</h1>
+                        <h1 className="text-2xl font-bold tracking-tight text-foreground">Request Details</h1>
+                         <p className="text-muted-foreground">{request.companyName}</p>
                     </header>
-                    <Tabs defaultValue="request-form" className="w-full">
+                    <Tabs defaultValue="request-details" className="w-full">
                         <TabsList>
+                            <TabsTrigger value="request-details">Request Details</TabsTrigger>
+                            <TabsTrigger value="past-financials">Past Financials</TabsTrigger>
                             <TabsTrigger value="mandate-details">Mandate Details</TabsTrigger>
-                            <TabsTrigger value="request-form">Request Form</TabsTrigger>
                             <TabsTrigger value="documents">Documents</TabsTrigger>
                             <TabsTrigger value="correction">Correction</TabsTrigger>
                         </TabsList>
-                        <TabsContent value="request-form" className="space-y-6">
+                        <TabsContent value="request-details" className="space-y-6">
                              <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
                                 {/* Left Column */}
                                 <div className="space-y-6">
@@ -256,6 +259,9 @@ export default function CKCRequestDetailsPage() {
                                 <Button type="submit">Submit</Button>
                                 <Button type="button" variant="outline" onClick={() => router.back()}>Close</Button>
                             </div>
+                        </TabsContent>
+                         <TabsContent value="past-financials">
+                           <PastFinancialsTable companyId={request.companyId} />
                         </TabsContent>
                         <TabsContent value="mandate-details">
                             <Card>

@@ -68,6 +68,21 @@ export interface CKCRequest {
   documents: CKCRequestDocument[];
 }
 
+export interface PastFinancialPeriod {
+  periodId: string;
+  period: string;
+  resultType: 'Actual' | 'Projection';
+  financialStatus: 'WIP' | 'Checked';
+  operationalStatus: 'WIP' | 'Checked';
+  kpuMaker: string;
+  kpuChecker: string;
+  ratingAnalyst: string;
+  updatedBy: string;
+  updatedOn: string;
+  status: 'Active' | 'In-active';
+}
+
+
 export type StatusHistory = {
   status: NoteStatus | RequestStatus;
   timestamp: string | Date;
