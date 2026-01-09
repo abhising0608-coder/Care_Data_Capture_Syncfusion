@@ -48,9 +48,11 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuCheckboxItem,
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Skeleton } from '../ui/skeleton';
 import type { CKCRequest, RequestStatus } from '@/lib/definitions';
+import { useToast } from '@/hooks/use-toast';
 
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
@@ -64,6 +66,7 @@ interface CKCRequestsTableProps {
 
 export function CKCRequestsTable({ status, globalFilter, setGlobalFilter }: CKCRequestsTableProps) {
   const router = useRouter();
+  const { toast } = useToast();
   
   const { data: requests, isLoading } = useSWR<CKCRequest[]>(
       status ? `/api/ckc/requests?status=${status}` : null, 
@@ -191,6 +194,13 @@ export function CKCRequestsTable({ status, globalFilter, setGlobalFilter }: CKCR
   });
 
   const isBulkActionDisabled = Object.keys(rowSelection).length <= 1 || table.getIsAllPageRowsSelected();
+  
+  const handleExport = () => {
+    toast({
+      title: "Export Initiated",
+      description: "This is a placeholder for the table export functionality.",
+    });
+  }
 
   return (
     <div className="w-full">
@@ -206,7 +216,7 @@ export function CKCRequestsTable({ status, globalFilter, setGlobalFilter }: CKCR
                         <SelectItem value="close-requests">Close Requests</SelectItem>
                     </SelectContent>
                 </Select>
-                 <Button variant="outline" size="icon"><Download className="h-5 w-5" /></Button>
+                 <Button variant="outline" size="icon" onClick={handleExport}><Download className="h-5 w-5" /></Button>
                  <Button variant="outline" size="icon"><Filter className="h-5 w-5" /></Button>
                  <DropdownMenu>
                     <DropdownMenuTrigger asChild>
