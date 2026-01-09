@@ -52,21 +52,6 @@ const topMenuItems = [
     label: 'CKC',
     icon: FolderOpen,
   },
-   {
-    id: 'due-diligence',
-    label: 'Due Diligence',
-    icon: FileSearch,
-    subItems: [
-        { href: '/due-diligence/auditor-feedback', label: 'Auditor Feedback', icon: ShieldCheck },
-        { href: '/due-diligence/banker-feedback', label: 'Banker Feedback', icon: Landmark },
-        { href: '/due-diligence/dt-feedback', label: 'DT Feedback', icon: FileText },
-        { href: '/due-diligence/ipa-feedback', label: 'IPA Feedback', icon: FileText },
-        { href: '/due-diligence/management-discussion', label: 'Management Discussion', icon: Users },
-        { href: '/due-diligence/third-party-check', label: 'Third Party Check', icon: UserCheck },
-        { href: '/due-diligence/audit-committee-meeting', label: 'Audit Committee Meeting', icon: Building },
-        { href: '/due-diligence/site-visit', label: 'Site / Plant Visit', icon: Plane },
-    ]
-  },
 ];
 
 const ratingNoteSubItems = [
