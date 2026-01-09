@@ -38,14 +38,11 @@ export function RejectionModal({ isOpen, onClose, onSubmit }: RejectionModalProp
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Reject Request</DialogTitle>
-          <DialogDescription>
-            Please provide comments for rejecting this request.
-          </DialogDescription>
+          <DialogTitle>Rejection Reason</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit(handleFormSubmit)}>
           <div className="grid gap-4 py-4">
-            <Label htmlFor="comments">Rejection Comments</Label>
+            <Label htmlFor="comments">Reason for Rejection</Label>
             <Textarea
               id="comments"
               placeholder="Enter rejection comments here..."
@@ -56,9 +53,7 @@ export function RejectionModal({ isOpen, onClose, onSubmit }: RejectionModalProp
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
-            <Button type="submit">
-              <Send className="mr-2 h-4 w-4" /> Submit
-            </Button>
+            <Button type="submit">Submit</Button>
           </DialogFooter>
         </form>
       </DialogContent>
