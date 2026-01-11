@@ -2,33 +2,25 @@
 'use client';
 
 import { useParams, useRouter } from 'next/navigation';
-import { useForm, FormProvider, useFieldArray, useWatch } from 'react-hook-form';
+import { useForm, FormProvider, useFieldArray, useWatch, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import useSWR from 'swr';
 import { v4 as uuidv4 } from 'uuid';
+import React, { useMemo } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
-import type { RatingInstrument, CompanyDashboard, BankerLenderDetail } from '@/lib/definitions';
+import type { RatingInstrument, BankerLenderDetail } from '@/lib/definitions';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Save, Send, Copy, ArrowLeft, RefreshCw, Pencil, Trash2, Check, X } from 'lucide-react';
-import { useMemo } from 'react';
-
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
 
@@ -63,9 +55,8 @@ export default function BankerLenderPage() {
     const { toast } = useToast();
     const [companyId, instrumentId, rcmId] = params.slug as string[];
 
-    const { data: company, isLoading: isCompanyLoading } = useSWR<CompanyDashboard>(`/api/companies/${companyId}`, fetcher);
     const { data: instrument, isLoading: isInstrumentLoading } = useSWR<RatingInstrument>(`/api/instruments/${instrumentId}`, fetcher);
-    const { data: initialData, isLoading: isDataLoading } = useSWR<BankerLenderDetail[]>(`/api/instruments/banker-lender/${instrumentId}/${rcmId}`, fetcher);
+    const { data: initialData, isLoading: isDataLoading, mutate } = useSWR<BankerLenderDetail[]>(`/api/instruments/banker-lender/${instrumentId}/${rcmId}`, fetcher);
 
     const form = useForm<BankerLenderFormValues>({
         resolver: zodResolver(formSchema),
@@ -87,10 +78,12 @@ export default function BankerLenderPage() {
     const grandTotal = useMemo(() => {
         return watchedDetails?.reduce((acc, curr) => acc + (curr.ratedAmount || 0), 0) || 0;
     }, [watchedDetails]);
-    
+
     const handleSave = async (data: BankerLenderFormValues) => {
-        const totalInstrumentAmount = (instrument?.instrumentSize || 0) / 100000; // Convert Lacs to Crores
-        if (grandTotal !== totalInstrumentAmount) {
+        const totalInstrumentAmount = instrument ? (instrument.instrumentSize / 100) : 0; // Convert Lacs to Crores
+        
+        // Use a small epsilon for float comparison
+        if (Math.abs(grandTotal - totalInstrumentAmount) > 0.001) {
             toast({
                 variant: 'destructive',
                 title: 'Validation Error',
@@ -105,14 +98,14 @@ export default function BankerLenderPage() {
                headers: { 'Content-Type': 'application/json' },
                body: JSON.stringify({ details: data.details }),
            });
+           mutate();
            toast({ title: 'Success', description: 'Banker/Lender details have been saved.' });
-           router.back();
        } catch (e) {
             toast({ variant: 'destructive', title: 'Error', description: 'Failed to save details.' });
        }
     };
     
-    const isLoading = isCompanyLoading || isInstrumentLoading || isDataLoading;
+    const isLoading = isInstrumentLoading || isDataLoading;
 
     if (isLoading) {
         return <div className="p-6 space-y-6"><Skeleton className="h-48 w-full" /><Skeleton className="h-64 w-full" /></div>;
@@ -121,18 +114,18 @@ export default function BankerLenderPage() {
     return (
         <FormProvider {...form}>
             <form onSubmit={handleSubmit(handleSave)} className="space-y-6">
-                <header>
+                <header className="flex justify-between items-center">
                     <h1 className="text-2xl font-bold tracking-tight text-foreground">Banker / Lender Details</h1>
                 </header>
 
                 <Card>
                     <CardContent className="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-4">
                         <InfoField label="Company" value={instrument?.client} />
-                        <InfoField label="Mandate" value={instrument?.mandateId} />
                         <InfoField label="Tenure" value={instrument?.category} />
+                         <InfoField label="Current Agenda Type" value={rcmId} />
+                        <InfoField label="Mandate" value={instrument?.mandateId} />
                         <InfoField label="Type of Facility" value={`${instrument?.category}, ${instrument?.subCategory}, ${instrument?.instrument}`} />
-                        <InfoField label="Current Agenda Type" value={rcmId} />
-                        <InfoField label="Amount (In Crore)" value={instrument ? (instrument.instrumentSize / 100000).toFixed(2) : 'N/A'} />
+                        <InfoField label="Amount (In Crore)" value={instrument ? (instrument.instrumentSize / 100).toFixed(2) : 'N/A'} />
                     </CardContent>
                 </Card>
 
@@ -152,7 +145,7 @@ export default function BankerLenderPage() {
 }
 
 function EditableBankerTable({ fields, append, remove, update, grandTotal }: any) {
-    const { control } = useForm();
+    const { control } = useForm(); // We need control for the Controller component if we were using it here.
     const [newRowData, setNewRowData] = React.useState<Partial<BankerLenderDetail>>({
       bankName: '', ratedAmount: 0, currencyType: 'INR India', repaymentTerms: '', remarks: ''
     });
@@ -180,20 +173,20 @@ function EditableBankerTable({ fields, append, remove, update, grandTotal }: any
                                  <SelectContent><SelectItem value="Kotak Mahindra Bank">Kotak Mahindra Bank</SelectItem><SelectItem value="Standard Chartered Bank">Standard Chartered Bank</SelectItem></SelectContent>
                                </Select>
                             </TableCell>
-                            <TableCell><Input type="number" value={newRowData.ratedAmount} onChange={e => setNewRowData(p => ({...p, ratedAmount: parseFloat(e.target.value)}))} /></TableCell>
+                            <TableCell><Input type="number" step="0.01" value={newRowData.ratedAmount || ''} onChange={e => setNewRowData(p => ({...p, ratedAmount: parseFloat(e.target.value) || 0}))} /></TableCell>
                              <TableCell>
                                 <Select onValueChange={(v) => setNewRowData(p => ({...p, currencyType: v}))} value={newRowData.currencyType}>
                                  <SelectTrigger><SelectValue/></SelectTrigger>
                                  <SelectContent><SelectItem value="INR India">INR India</SelectItem><SelectItem value="USD">USD</SelectItem></SelectContent>
                                </Select>
                             </TableCell>
-                            <TableCell><Input type="number" value={newRowData.ratedAmountForeign} onChange={e => setNewRowData(p => ({...p, ratedAmountForeign: parseFloat(e.target.value)}))} /></TableCell>
-                            <TableCell><Input value={newRowData.repaymentTerms} onChange={e => setNewRowData(p => ({...p, repaymentTerms: e.target.value}))} /></TableCell>
-                            <TableCell><Input value={newRowData.remarks} onChange={e => setNewRowData(p => ({...p, remarks: e.target.value}))} /></TableCell>
+                            <TableCell><Input type="number" step="0.01" value={newRowData.ratedAmountForeign || ''} onChange={e => setNewRowData(p => ({...p, ratedAmountForeign: parseFloat(e.target.value) || 0}))} /></TableCell>
+                            <TableCell><Input value={newRowData.repaymentTerms || ''} onChange={e => setNewRowData(p => ({...p, repaymentTerms: e.target.value}))} /></TableCell>
+                            <TableCell><Input value={newRowData.remarks || ''} onChange={e => setNewRowData(p => ({...p, remarks: e.target.value}))} /></TableCell>
                             <TableCell />
                              <TableCell className="flex gap-1">
                                 <Button variant="ghost" size="icon" type="button" onClick={handleAddNew}><Check className="h-4 w-4 text-green-500" /></Button>
-                                <Button variant="ghost" size="icon" type="button" onClick={() => setNewRowData({})}><RefreshCw className="h-4 w-4" /></Button>
+                                <Button variant="ghost" size="icon" type="button" onClick={() => setNewRowData({ bankName: '', ratedAmount: 0, currencyType: 'INR India', repaymentTerms: '', remarks: '' })}><RefreshCw className="h-4 w-4" /></Button>
                             </TableCell>
                         </TableRow>
                          {fields.map((field: BankerLenderDetail, index: number) => (
@@ -206,7 +199,7 @@ function EditableBankerTable({ fields, append, remove, update, grandTotal }: any
                                 <TableCell>{field.remarks}</TableCell>
                                 <TableCell><Badge variant={field.status === 'Verified by GH' ? 'default' : 'secondary'}>{field.status}</Badge></TableCell>
                                 <TableCell className="flex gap-1">
-                                    <Button variant="ghost" size="icon" type="button" disabled><Pencil className="h-4 w-4 text-muted-foreground" /></Button>
+                                    <Button variant="ghost" size="icon" type="button" disabled={field.status === 'Verified by GH'}><Pencil className="h-4 w-4 text-muted-foreground" /></Button>
                                     <Button variant="ghost" size="icon" type="button" onClick={() => remove(index)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
                                 </TableCell>
                             </TableRow>
@@ -223,4 +216,3 @@ function EditableBankerTable({ fields, append, remove, update, grandTotal }: any
       </Card>
     );
 }
-
