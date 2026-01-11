@@ -39,15 +39,24 @@ const mockDocuments: DocumentFile[] = [
 export function DocumentsModal({ isOpen, onClose, title }: DocumentsModalProps) {
     const { toast } = useToast();
     const [documents, setDocuments] = useState(mockDocuments);
+    const [isUploading, setIsUploading] = useState(false);
+    const [fileToUpload, setFileToUpload] = useState<File | null>(null);
 
     const handleUpload = () => {
+        if (!fileToUpload) {
+            toast({ title: 'No file selected', description: 'Please choose a file to upload.', variant: 'destructive' });
+            return;
+        }
+
         const newDoc: DocumentFile = {
             id: `doc-${documents.length + 1}`,
-            name: `Document_${documents.length + 1}.pdf`,
+            name: fileToUpload.name,
             uploadedAt: new Date().toISOString(),
         };
         setDocuments(prev => [...prev, newDoc]);
         toast({ title: 'Document Uploaded', description: `${newDoc.name} has been uploaded.` });
+        setFileToUpload(null);
+        setIsUploading(false);
     };
 
     const handleDelete = (docId: string) => {
@@ -61,69 +70,104 @@ export function DocumentsModal({ isOpen, onClose, title }: DocumentsModalProps) 
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="sm:max-w-xl">
+            <DialogContent className="sm:max-w-2xl">
                 <DialogHeader>
-                    <DialogTitle>{title}</DialogTitle>
+                    <DialogTitle>{isUploading ? 'Upload Documents' : title}</DialogTitle>
                      <DialogDescription>
-                        Manage documents related to this due diligence activity.
+                        {isUploading ? 'Choose a file to upload.' : 'Manage documents related to this due diligence activity.'}
                     </DialogDescription>
                 </DialogHeader>
                 <div className="py-4">
-                    <div className="flex justify-end mb-4">
-                         <Button onClick={handleUpload}>
-                            <Upload className="mr-2 h-4 w-4" /> Upload Document
-                        </Button>
-                    </div>
-                    <div className="rounded-md border">
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Document Name</TableHead>
-                                    <TableHead>Uploaded Date</TableHead>
-                                    <TableHead className="text-right">Action</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                             <TableBody>
-                                {documents.length > 0 ? (
-                                    documents.map((doc) => (
-                                        <TableRow key={doc.id}>
-                                            <TableCell className="font-medium">
-                                                <Button variant="link" className="p-0 h-auto" onClick={() => handleView(doc.name)}>
-                                                    <FileIcon className="mr-2 h-4 w-4" /> {doc.name}
-                                                </Button>
-                                            </TableCell>
-                                            <TableCell>{format(new Date(doc.uploadedAt), 'dd-MM-yyyy')}</TableCell>
-                                            <TableCell className="text-right">
-                                                 <Button variant="ghost" size="icon" onClick={() => handleView(doc.name)}><Eye className="h-4 w-4" /></Button>
-                                                 <AlertDialog>
-                                                    <AlertDialogTrigger asChild>
-                                                         <Button variant="ghost" size="icon"><Trash2 className="h-4 w-4 text-destructive" /></Button>
-                                                    </AlertDialogTrigger>
-                                                    <AlertDialogContent>
-                                                        <AlertDialogHeader>
-                                                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                                                            <AlertDialogDescription>This action will permanently delete the document.</AlertDialogDescription>
-                                                        </AlertDialogHeader>
-                                                        <AlertDialogFooter>
-                                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                            <AlertDialogAction onClick={() => handleDelete(doc.id)}>Delete</AlertDialogAction>
-                                                        </AlertDialogFooter>
-                                                    </AlertDialogContent>
-                                                </AlertDialog>
-                                            </TableCell>
-                                        </TableRow>
-                                    ))
-                                ) : (
+                   {isUploading ? (
+                     <div className="space-y-4">
+                        <div className="flex items-center justify-center w-full">
+                           <label htmlFor="dropzone-file" className="flex flex-col items-center justify-center w-full h-64 border-2 border-dashed rounded-lg cursor-pointer bg-muted/50 hover:bg-muted">
+                               <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                                   <Upload className="w-8 h-8 mb-4 text-muted-foreground" />
+                                   <p className="mb-2 text-sm text-muted-foreground"><span className="font-semibold">Click to upload</span> or drag and drop</p>
+                                   <p className="text-xs text-muted-foreground">PDF, DOCX, XLSX (MAX. 800x400px)</p>
+                               </div>
+                               <input id="dropzone-file" type="file" className="hidden" onChange={(e) => setFileToUpload(e.target.files ? e.target.files[0] : null)} />
+                           </label>
+                       </div> 
+                       {fileToUpload && (
+                            <div className="flex items-center justify-between p-2 border rounded-md">
+                                <div className="flex items-center gap-2">
+                                    <FileIcon className="h-5 w-5" />
+                                    <span className="text-sm">{fileToUpload.name}</span>
+                                </div>
+                                <Button variant="ghost" size="icon" onClick={() => setFileToUpload(null)}>
+                                    <Trash2 className="h-4 w-4 text-destructive" />
+                                </Button>
+                            </div>
+                       )}
+                     </div>
+                   ) : (
+                     <>
+                        <div className="flex justify-end mb-4">
+                            <Button onClick={() => setIsUploading(true)}>
+                                <Upload className="mr-2 h-4 w-4" /> Upload Document
+                            </Button>
+                        </div>
+                        <div className="rounded-md border">
+                            <Table>
+                                <TableHeader>
                                     <TableRow>
-                                        <TableCell colSpan={3} className="h-24 text-center">No documents uploaded yet.</TableCell>
+                                        <TableHead>Document Name</TableHead>
+                                        <TableHead>Uploaded Date</TableHead>
+                                        <TableHead className="text-right">Action</TableHead>
                                     </TableRow>
-                                )}
-                            </TableBody>
-                        </Table>
-                    </div>
+                                </TableHeader>
+                                <TableBody>
+                                    {documents.length > 0 ? (
+                                        documents.map((doc) => (
+                                            <TableRow key={doc.id}>
+                                                <TableCell className="font-medium">
+                                                    <Button variant="link" className="p-0 h-auto" onClick={() => handleView(doc.name)}>
+                                                        <FileIcon className="mr-2 h-4 w-4" /> {doc.name}
+                                                    </Button>
+                                                </TableCell>
+                                                <TableCell>{format(new Date(doc.uploadedAt), 'dd-MM-yyyy')}</TableCell>
+                                                <TableCell className="text-right">
+                                                    <Button variant="ghost" size="icon" onClick={() => handleView(doc.name)}><Eye className="h-4 w-4" /></Button>
+                                                    <AlertDialog>
+                                                        <AlertDialogTrigger asChild>
+                                                            <Button variant="ghost" size="icon"><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                                                        </AlertDialogTrigger>
+                                                        <AlertDialogContent>
+                                                            <AlertDialogHeader>
+                                                                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                                                <AlertDialogDescription>This action will permanently delete the document.</AlertDialogDescription>
+                                                            </AlertDialogHeader>
+                                                            <AlertDialogFooter>
+                                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                                <AlertDialogAction onClick={() => handleDelete(doc.id)}>Delete</AlertDialogAction>
+                                                            </AlertDialogFooter>
+                                                        </AlertDialogContent>
+                                                    </AlertDialog>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))
+                                    ) : (
+                                        <TableRow>
+                                            <TableCell colSpan={3} className="h-24 text-center">No documents uploaded yet.</TableCell>
+                                        </TableRow>
+                                    )}
+                                </TableBody>
+                            </Table>
+                        </div>
+                     </>
+                   )}
                 </div>
                  <DialogFooter>
-                    <Button onClick={onClose}>Close</Button>
+                    {isUploading ? (
+                        <>
+                           <Button variant="outline" onClick={() => setIsUploading(false)}>Back</Button>
+                           <Button onClick={handleUpload}>Save</Button>
+                        </>
+                    ) : (
+                       <Button onClick={onClose}>Close</Button>
+                    )}
                 </DialogFooter>
             </DialogContent>
         </Dialog>
