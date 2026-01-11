@@ -54,8 +54,8 @@ import { InstrumentEditModal } from './instrument-edit-modal';
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
-const renderDetailPanel = ({ row }: { row: Row<RatingInstrument> }) => {
-    return <InstrumentCycleHistoryTable cycleHistory={row.original.cycleHistory} />
+const renderDetailPanel = ({ row, companyId }: { row: Row<RatingInstrument>, companyId: string }) => {
+    return <InstrumentCycleHistoryTable cycleHistory={row.original.cycleHistory} companyId={companyId} />
 }
 
 export function InstrumentDetailsTable() {
@@ -232,7 +232,7 @@ export function InstrumentDetailsTable() {
                                             </TableRow>
                                             {row.getIsExpanded() && (
                                                 <TableRow>
-                                                    <TableCell colSpan={columns.length}>{renderDetailPanel({ row })}</TableCell>
+                                                    <TableCell colSpan={columns.length}>{renderDetailPanel({ row, companyId })}</TableCell>
                                                 </TableRow>
                                             )}
                                          </React.Fragment>

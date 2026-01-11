@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useParams, useRouter } from 'next/navigation';
@@ -196,7 +197,7 @@ interface IsinEditableTableProps {
 }
 
 function IsinEditableTable({ fields, onAddNew, onUpdate, onRemove, editingIndex, setEditingIndex }: IsinEditableTableProps) {
-    const { control, watch, setValue, getValues } = useFormContext();
+    const { control, watch, setValue, getValues } = useForm<IsinFormValues>();
     const [newRowData, setNewRowData] = useState<Partial<ISINRecord>>({});
 
     const headers = [

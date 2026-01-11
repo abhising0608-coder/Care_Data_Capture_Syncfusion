@@ -1,6 +1,7 @@
 
 
-import type { AppUser, Role, RequestStatus, CKCRequest, CKCRequestDocument, CompanyInfo, RatingNote, NoteStatus, RatingNoteDataSchema, LatestBankDetail, AnnexureVHistory, PressReleaseHistoryEntry, PressReleaseHistory, DMSDocumentHistory, RatingInstrument, RatingInstrumentCycle, PortfolioActivity, Mandate, Auditor, AuditorDiscussion, AuditorQuestionnaireItem, Banker, BankerDiscussion, DTA, DTADiscussion, DtaQuestionnaireItem, IPA, IPADiscussion, IpaQuestionnaireItem, ManagementDiscussion, ThirdPartyDiscussion, AuditCommitteeDiscussion, SitePlantVisit } from './definitions';
+
+import type { AppUser, Role, RequestStatus, CKCRequest, CKCRequestDocument, CompanyInfo, RatingNote, NoteStatus, RatingNoteDataSchema, LatestBankDetail, AnnexureVHistory, PressReleaseHistoryEntry, PressReleaseHistory, DMSDocumentHistory, RatingInstrument, RatingInstrumentCycle, PortfolioActivity, Mandate, Auditor, AuditorDiscussion, AuditorQuestionnaireItem, Banker, BankerDiscussion, DTA, DTADiscussion, DtaQuestionnaireItem, IPA, IPADiscussion, IpaQuestionnaireItem, ManagementDiscussion, ThirdPartyDiscussion, AuditCommitteeDiscussion, SitePlantVisit, BankerLenderDetail, ISINRecord } from './definitions';
 
 
 // --- FSD-based Master JSON Data Structure ---
@@ -575,6 +576,8 @@ let managementDiscussions: Record<string, ManagementDiscussion> = {};
 let thirdPartyDiscussions: Record<string, ThirdPartyDiscussion> = {};
 let auditCommitteeDiscussions: Record<string, AuditCommitteeDiscussion> = {};
 let sitePlantVisits: Record<string, SitePlantVisit> = {};
+let bankerLenderDetails: Record<string, BankerLenderDetail[]> = {};
+let isinRecords: Record<string, ISINRecord[]> = {};
 
 // --- New Rating Note Data Functions ---
 
@@ -974,6 +977,27 @@ export const saveSitePlantVisit = (companyId: string, data: Partial<SitePlantVis
     return sitePlantVisits[companyId];
 }
 
+export const getBankerLenderDetails = (instrumentId: string, rcmId: string): BankerLenderDetail[] => {
+    const key = `${instrumentId}-${rcmId}`;
+    return bankerLenderDetails[key] || [];
+}
+
+export const updateBankerLenderDetails = (instrumentId: string, rcmId: string, details: BankerLenderDetail[]): BankerLenderDetail[] => {
+    const key = `${instrumentId}-${rcmId}`;
+    bankerLenderDetails[key] = details;
+    return bankerLenderDetails[key];
+}
+
+export const getIsinRecords = (instrumentId: string, rcmId: string): ISINRecord[] => {
+    const key = `${instrumentId}-${rcmId}`;
+    return isinRecords[key] || [];
+}
+
+export const updateIsinRecord = (instrumentId: string, rcmId: string, records: ISINRecord[]): ISINRecord[] => {
+    const key = `${instrumentId}-${rcmId}`;
+    isinRecords[key] = records;
+    return isinRecords[key];
+}
 
 // --- DMS Document History Functions ---
 

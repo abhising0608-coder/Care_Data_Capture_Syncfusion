@@ -11,6 +11,7 @@ import {
 import {
   MoreHorizontal,
   Pencil,
+  Plus
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -18,7 +19,6 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import {
@@ -32,24 +32,24 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import type { RatingInstrumentCycle } from '@/lib/definitions';
 import { Badge } from '../ui/badge';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 
 interface InstrumentCycleHistoryTableProps {
     cycleHistory: RatingInstrumentCycle[];
+    companyId: string;
 }
 
 
-export function InstrumentCycleHistoryTable({ cycleHistory }: InstrumentCycleHistoryTableProps) {
+export function InstrumentCycleHistoryTable({ cycleHistory, companyId }: InstrumentCycleHistoryTableProps) {
     const { toast } = useToast();
     const router = useRouter();
 
-
-    const handleEditIsin = (instrumentId: string, rcmId: string) => {
-        toast({ title: 'Placeholder', description: `Navigate to ISIN update for RCM ID: ${rcmId}` });
-    };
-
-    const handleAddBanker = (instrumentId: string, rcmId: string) => {
-         toast({ title: 'Placeholder', description: `Navigate to Banker/Lender for RCM ID: ${rcmId}` });
+    const handleAction = (action: 'edit-isin' | 'add-banker', cycle: RatingInstrumentCycle) => {
+        if (action === 'edit-isin') {
+            router.push(`/manage-instrument/isin-update/${companyId}/${cycle.instrumentId}/${cycle.rcmId}`);
+        } else if (action === 'add-banker') {
+            router.push(`/manage-instrument/banker-lender/${companyId}/${cycle.instrumentId}/${cycle.rcmId}`);
+        }
     };
 
     const columns: ColumnDef<RatingInstrumentCycle>[] = [
@@ -76,12 +76,12 @@ export function InstrumentCycleHistoryTable({ cycleHistory }: InstrumentCycleHis
         { 
             accessorKey: 'instrumentSize', 
             header: 'Ins. Size(Lacs)',
-            cell: ({ row }) => row.original.instrumentSize.toLocaleString()
+            cell: ({ row }) => <div className="text-right">{row.original.instrumentSize.toLocaleString()}</div>
         },
         { 
             accessorKey: 'outstandingAmount', 
             header: 'Outst. Amt(Lacs)',
-            cell: ({ row }) => row.original.outstandingAmount.toLocaleString()
+            cell: ({ row }) => <div className="text-right">{row.original.outstandingAmount.toLocaleString()}</div>
         },
         {
             id: 'actions',
@@ -98,11 +98,11 @@ export function InstrumentCycleHistoryTable({ cycleHistory }: InstrumentCycleHis
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                            <DropdownMenuItem onClick={() => handleEditIsin(cycle.instrumentId, cycle.rcmId)}>
+                            <DropdownMenuItem onClick={() => handleAction('edit-isin', cycle)}>
                                 <Pencil className="mr-2 h-4 w-4" />Edit ISIN
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleAddBanker(cycle.instrumentId, cycle.rcmId)}>
-                                Add Banker/Lender
+                            <DropdownMenuItem onClick={() => handleAction('add-banker', cycle)}>
+                                <Plus className="mr-2 h-4 w-4" />Add Banker/Lender
                             </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
