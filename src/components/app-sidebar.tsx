@@ -40,6 +40,7 @@ import {
   BookCopy,
   ChevronDown,
   Wrench,
+  Newspaper,
 } from 'lucide-react';
 import { useAuth } from '@/firebase';
 import { Badge } from '@/components/ui/badge';
@@ -215,14 +216,15 @@ export function AppSidebar() {
 
            {isClient && <SidebarMenuItem>
               <SidebarMenuSub>
-                <SidebarMenuButton
+                <SidebarMenuSubButton
                   isActive={pathname.startsWith('/due-diligence')}
                   tooltip={{ children: 'Due Diligence', side: 'right' }}
                   className="justify-start"
                 >
                   <UserCheck className="h-4 w-4" />
                   <span className="text-sm">Due Diligence</span>
-                </SidebarMenuButton>
+                   <ChevronDown className="h-4 w-4 ml-auto shrink-0 transition-transform duration-200 group-data-[state=open]:rotate-180" />
+                </SidebarMenuSubButton>
                 <SidebarMenuSubContent>
                   {dueDiligenceMenuItems.map((item) => (
                       <SidebarMenuSubButton
@@ -242,14 +244,15 @@ export function AppSidebar() {
             
             {isClient && <SidebarMenuItem>
               <SidebarMenuSub>
-                <SidebarMenuButton
+                <SidebarMenuSubButton
                   isActive={pathname.startsWith('/manage-instrument')}
                   tooltip={{ children: 'Manage Instrument', side: 'right' }}
                   className="justify-start"
                 >
                   <Wrench className="h-4 w-4" />
                   <span className="text-sm">Manage Instrument</span>
-                </SidebarMenuButton>
+                   <ChevronDown className="h-4 w-4 ml-auto shrink-0 transition-transform duration-200 group-data-[state=open]:rotate-180" />
+                </SidebarMenuSubButton>
                 <SidebarMenuSubContent>
                   {manageInstrumentMenuItems.map((item) => (
                       <SidebarMenuSubButton
