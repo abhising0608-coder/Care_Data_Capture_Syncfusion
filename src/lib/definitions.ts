@@ -78,6 +78,23 @@ export interface Banker {
     discussions: BankerDiscussion[];
 }
 
+export interface DTADiscussion {
+    id: string;
+    contactPerson: string;
+    discussionHappened: 'Yes' | 'No';
+    minutesCaptured: 'Yes' | 'No' | 'Partial';
+    minutesCapturedOn: string | null;
+    emailId: string;
+    contact: string;
+    status: 'Pending' | 'In Progress' | 'Completed';
+}
+
+export interface DTA {
+    id: string;
+    firmName: string;
+    discussions: DTADiscussion[];
+}
+
 export interface CKCRequestDocument {
   id: string;
   docType: 'Audited FY' | 'Provisional FY' | 'Projection';
