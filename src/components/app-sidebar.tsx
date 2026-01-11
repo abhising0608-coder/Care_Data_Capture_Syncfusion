@@ -39,6 +39,7 @@ import {
   FilePlus,
   BookCopy,
   ChevronDown,
+  Wrench,
 } from 'lucide-react';
 import { useAuth } from '@/firebase';
 import { Badge } from '@/components/ui/badge';
@@ -112,6 +113,15 @@ const dueDiligenceMenuItems = [
     { href: '/due-diligence/site-plant-visit', label: 'Site / Plant Visit', icon: Building },
 ];
 
+const manageInstrumentMenuItems = [
+    { href: '/manage-instrument/instrument-details', label: 'Instrument Details', icon: FileText },
+    { href: '/manage-instrument/latest-bank-details', label: 'Latest Bank Details', icon: Landmark },
+    { href: '/manage-instrument/annexure-v-history', label: 'Annexure V History', icon: History },
+    { href: '/manage-instrument/press-release-history', label: 'PR Details History', icon: Newspaper },
+    { href: '/manage-instrument/dms-document-history', label: 'DMS Document History', icon: FolderOpen },
+];
+
+
 export function AppSidebar() {
   const pathname = usePathname();
   const { user } = useAuth();
@@ -155,14 +165,14 @@ export function AppSidebar() {
           {isClient && ['CKC_ADMIN', 'CKC_ANALYST'].includes(user?.role || '') && (
             <SidebarMenuItem>
               <SidebarMenuSub>
-                <SidebarMenuButton
+                <SidebarMenuSubButton
                   isActive={pathname.startsWith('/ckc') || pathname.startsWith('/financial-input') || pathname.startsWith('/operational-input/initiate')}
                   tooltip={{ children: 'CKC', side: 'right' }}
                   className="justify-start"
                 >
                   <Shield className="h-4 w-4" />
                   <span className="text-sm">CKC</span>
-                </SidebarMenuButton>
+                </SidebarMenuSubButton>
                 <SidebarMenuSubContent>
                   {ckcMenuItems.map((item) =>
                     item.subItems ? (
@@ -229,6 +239,34 @@ export function AppSidebar() {
                 </SidebarMenuSubContent>
               </SidebarMenuSub>
             </SidebarMenuItem>}
+            
+            {isClient && <SidebarMenuItem>
+              <SidebarMenuSub>
+                <SidebarMenuButton
+                  isActive={pathname.startsWith('/manage-instrument')}
+                  tooltip={{ children: 'Manage Instrument', side: 'right' }}
+                  className="justify-start"
+                >
+                  <Wrench className="h-4 w-4" />
+                  <span className="text-sm">Manage Instrument</span>
+                </SidebarMenuButton>
+                <SidebarMenuSubContent>
+                  {manageInstrumentMenuItems.map((item) => (
+                      <SidebarMenuSubButton
+                        key={item.href}
+                        asChild
+                        isActive={pathname.startsWith(item.href)}
+                      >
+                        <a href={item.href} className="flex items-center gap-2">
+                           <item.icon className="h-4 w-4" />
+                           <span>{item.label}</span>
+                        </a>
+                      </SidebarMenuSubButton>
+                  ))}
+                </SidebarMenuSubContent>
+              </SidebarMenuSub>
+            </SidebarMenuItem>}
+
         </SidebarMenu>
       </SidebarContent>
       <SidebarFooter>
