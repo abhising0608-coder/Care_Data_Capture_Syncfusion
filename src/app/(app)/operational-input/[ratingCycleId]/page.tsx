@@ -75,7 +75,7 @@ export default function OperationalInputFlowPage() {
                 description: `Operational data has been saved successfully.`,
             });
             
-            router.push(`/due-diligence/${ratingCycleId}`);
+            router.push(`/manage-instrument/${ratingCycleId}`);
             
         } catch (error) {
             console.error("Failed to save data:", error);

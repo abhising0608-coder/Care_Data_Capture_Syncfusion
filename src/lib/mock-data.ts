@@ -1,6 +1,6 @@
 
 
-import type { AppUser, Role, RequestStatus, CKCRequest, CKCRequestDocument, CompanyInfo, RatingNote, NoteStatus, RatingNoteDataSchema, DTFirm, DTContact, FeedbackStatus, QuestionnaireItem, IPAFirm, IPAContact, ThirdParty, AuditCommitteeMeeting, SiteVisit, AuditorFirm, AuditorContact, BankerFirm, BankerContact, RatingInstrument, RatingInstrumentCycle, LatestBankDetail, AnnexureVHistory, PressReleaseHistoryEntry, PressReleaseHistory, DMSDocumentHistory, BankerLenderDetail, PortfolioActivity, Mandate } from './definitions';
+import type { AppUser, Role, RequestStatus, CKCRequest, CKCRequestDocument, CompanyInfo, RatingNote, NoteStatus, RatingNoteDataSchema, LatestBankDetail, AnnexureVHistory, PressReleaseHistoryEntry, PressReleaseHistory, DMSDocumentHistory, BankerLenderDetail, PortfolioActivity, Mandate } from './definitions';
 
 
 // --- FSD-based Master JSON Data Structure ---
@@ -406,9 +406,6 @@ let operationalInputData: Record<string, any> = {
     }
 };
 
-export let auditCommitteeMeetings: Record<string, AuditCommitteeMeeting> = {};
-export let siteVisitData: Record<string, SiteVisit> = {};
-
 export const mockUsers: Record<string, AppUser> = {
     'rating.analyst@careedge': {
         uid: 'rating.analyst@careedge',
@@ -444,113 +441,11 @@ export const mockCompanies = [
     { id: 'COMP-106', companyName: 'Glenmark Pharmaceuticals Limited', ratingAnalystId: 'another.analyst', groupHeadId: 'group.head@careedge' },
 ];
 
-export const mockThirdParties: ThirdParty[] = [
-    {
-        id: 'TP-001',
-        name: 'Global Logistics Inc.',
-        relationship: 'Logistics Partner',
-        contacts: [
-            { id: 'TPC-001', name: 'Sarah Chen', designation: 'Operations Head', email: 'sarah.c@globallogistics.com', isPrimary: true },
-            { id: 'TPC-002', name: 'Mike Ross', designation: 'Account Manager', email: 'mike.r@globallogistics.com' },
-        ]
-    },
-    {
-        id: 'TP-002',
-        name: 'Innovate Solutions Ltd.',
-        relationship: 'Technology Vendor',
-        contacts: [
-            { id: 'TPC-003', name: 'David Lee', designation: 'CTO', email: 'david.l@innovatesolutions.com', isPrimary: true },
-        ]
-    }
-];
-
 export const mockTemplates = [
     { id: 'template-001', name: 'Standard Corporate Rating Template' },
     { id: 'template-002', name: 'Bank Rating Template' },
     { id: 'template-003', name: 'Infrastructure Project Rating Template' },
 ];
-
-let auditorFeedbackData: Record<string, AuditorFirm[]> = {
-    'COMP-101': [
-        {
-            id: 'AUDF-001',
-            firmName: 'A.U. Mojad & Associates',
-            contacts: [
-                { id: 'AUDC-001', name: 'A.U. Mojad', email: 'au.mojad@example.com', contact: '9123456780', discussionHappened: '', minutesCaptured: 'No', minutesCapturedOn: null, status: null },
-            ]
-        },
-         {
-            id: 'AUDF-002',
-            firmName: 'Ashish R Pai & Associates',
-            contacts: [
-                { id: 'AUDC-002', name: 'Ashish R Pai', email: 'ashish.pai@example.com', contact: '9123456781', discussionHappened: '', minutesCaptured: 'No', minutesCapturedOn: null, status: null },
-            ]
-        }
-    ]
-};
-
-let bankerFeedbackData: Record<string, BankerFirm[]> = {
-     'COMP-101': [
-        {
-            id: 'BANKF-001',
-            firmName: 'HDFC Bank',
-            contacts: [
-                { id: 'BANKC-001', name: 'Priya Sharma', email: 'priya.sharma@hdfc.com', contact: '9876543210', discussionHappened: '', minutesCaptured: 'No', minutesCapturedOn: null, status: null },
-            ]
-        },
-    ]
-};
-
-let dtFeedbackData: Record<string, DTFirm[]> = {
-    'COMP-101': [
-        {
-            id: 'DTF-001',
-            firmName: 'ABC Associates',
-            contacts: [
-                { id: 'DTC-001', name: 'John Doe', email: 'john.doe@abcfirm.com', contact: '9876543210', discussionHappened: '', minutesCaptured: 'No', minutesCapturedOn: null, status: null, questionnaire: [], summary: '' },
-                { id: 'DTC-002', name: 'Jane Smith', email: 'jane.smith@abcfirm.com', contact: '8765432109', discussionHappened: 'Yes', minutesCaptured: 'Partial', minutesCapturedOn: new Date().toISOString(), status: 'In Progress', questionnaire: [], summary: 'Summary of discussion with Jane.' },
-            ]
-        },
-         {
-            id: 'DTF-002',
-            firmName: 'PR Firm',
-            contacts: [
-                { id: 'DTC-003', name: 'Peter Jones', email: 'peter.jones@prfirm.com', contact: '7654321098', discussionHappened: '', minutesCaptured: 'No', minutesCapturedOn: null, status: null, questionnaire: [], summary: '' },
-            ]
-        }
-    ],
-    'COMP-102': [
-        {
-            id: 'DTF-003',
-            firmName: 'New India Associates',
-            contacts: [
-                 { id: 'DTC-004', name: 'Sam Wilson', email: 'sam.wilson@newindia.com', contact: '6543210987', discussionHappened: '', minutesCaptured: 'No', minutesCapturedOn: null, status: null, questionnaire: [], summary: '' },
-            ]
-        }
-    ]
-};
-
-let ipaFeedbackData: Record<string, IPAFirm[]> = {
-    'COMP-101': [
-        {
-            id: 'IPAF-001',
-            firmName: 'SDK & PR Associates',
-            contacts: [
-                { id: 'IPAC-001', name: 'Anish Kumar', email: 'anish.k@sdkpr.com', contact: '9876543211', discussionHappened: '', minutesCaptured: 'No', minutesCapturedOn: null, status: null, questionnaire: [], summary: '' },
-            ]
-        },
-     ],
-     'COMP-102': [
-        {
-            id: 'IPAF-002',
-            firmName: 'Nelson and Co.',
-            contacts: [
-                 { id: 'IPAC-002', name: 'Priya Sharma', email: 'priya.s@nelson.com', contact: '6543210988', discussionHappened: '', minutesCaptured: 'No', minutesCapturedOn: null, status: null, questionnaire: [], summary: '' },
-            ]
-        }
-    ]
-};
-
 
 let companyInfoData: Record<string, CompanyInfo> = {
     'COMP-101': {
@@ -572,23 +467,7 @@ let companyInfoData: Record<string, CompanyInfo> = {
             group: 'Sun Pharma Group',
             groupForCombinedApproach: ''
         },
-        contactDetails: [], auditorDetails: [
-             { id: 'AUD-001', firmName: 'A.U. Mojad & Associates', contactPerson: 'A.U. Mojad', emailId: 'au.mojad@example.com', contactNo: '9123456780' },
-             { id: 'AUD-002', firmName: 'Ashish R Pai & Associates', contactPerson: 'Ashish R Pai', emailId: 'ashish.pai@example.com', contactNo: '9123456781' },
-        ],
-        bankerDetails: [
-             { id: 'BANK-001', firmName: 'HDFC Bank', contactPerson: 'Priya Sharma', emailId: 'priya.sharma@hdfc.com', contactNo: '9876543210' }
-        ],
-        dtDetails: [
-            { id: 'DT-001', firmName: 'ABC Associates', contactPerson: 'John Doe', emailId: 'john.doe@abcfirm.com', contactNo: '9876543210' },
-            { id: 'DT-002', firmName: 'ABC Associates', contactPerson: 'Jane Smith', emailId: 'jane.smith@abcfirm.com', contactNo: '8765432109' },
-            { id: 'DT-003', firmName: 'PR Firm', contactPerson: 'Peter Jones', emailId: 'peter.jones@prfirm.com', contactNo: '7654321098' },
-        ],
-        ipaDetails: [
-             { id: 'IPA-001', firmName: 'SDK & PR Associates', contactPerson: 'Anish Kumar', emailId: 'anish.k@sdkpr.com', contactNo: '9876543211' },
-             { id: 'IPA-002', firmName: 'Nelson and Co.', contactPerson: 'Priya Sharma', emailId: 'priya.s@nelson.com', contactNo: '6543210988' },
-        ],
-        thirdPartyDetails: [],
+        contactDetails: [], auditorDetails: [], bankerDetails: [], dtDetails: [], ipaDetails: [], thirdPartyDetails: [],
         syncStatus: {
             source: 'CRM',
             lastUpdatedBy: 'crm-system',
@@ -632,39 +511,6 @@ export const getCompaniesByRole = (user: AppUser | null) => {
     }
 };
 
-export const getAuditorFeedbackByCompanyId = (companyId: string): AuditorFirm[] => {
-    const firms = auditorFeedbackData[companyId] || [];
-    return firms.map(firm => ({
-        ...firm,
-        contacts: firm.contacts.map(c => ({...c, status: c.status || null}))
-    }));
-}
-
-export const getBankerFeedbackByCompanyId = (companyId: string): BankerFirm[] => {
-    const firms = bankerFeedbackData[companyId] || [];
-    return firms.map(firm => ({
-        ...firm,
-        contacts: firm.contacts.map(c => ({...c, status: c.status || null}))
-    }));
-}
-
-export const getDTFeedbackByCompanyId = (companyId: string): DTFirm[] => {
-    const firms = dtFeedbackData[companyId] || [];
-    // Ensure all contacts have a non-null status for filtering
-    return firms.map(firm => ({
-        ...firm,
-        contacts: firm.contacts.map(c => ({...c, status: c.status || null}))
-    }));
-}
-
-export const getIPAFeedbackByCompanyId = (companyId: string): IPAFirm[] => {
-    const firms = ipaFeedbackData[companyId] || [];
-    return firms.map(firm => ({
-        ...firm,
-        contacts: firm.contacts.map(c => ({...c, status: c.status || null}))
-    }));
-}
-
 export const getDMSDocumentHistoryByCompanyId = (companyId: string): DMSDocumentHistory[] => {
     return mockDMSDocumentHistoryData || [];
 };
@@ -682,202 +528,6 @@ export const getPressReleaseHistoryByCompanyId = (companyId: string): PressRelea
 export const getAnnexureVHistoryByCompanyId = (companyId: string): AnnexureVHistory[] => {
     return mockAnnexureVHistoryData || [];
 }
-
-export const getAuditorFeedbackByContactId = (companyId: string, firmId: string, contactId: string): { firm: AuditorFirm, contact: AuditorContact } | null => {
-    const firm = auditorFeedbackData[companyId]?.find(f => f.id === firmId);
-    if (firm) {
-        const contact = firm.contacts.find(c => c.id === contactId);
-        if (contact) {
-            return { firm: JSON.parse(JSON.stringify(firm)), contact: JSON.parse(JSON.stringify(contact)) };
-        }
-    }
-    return null;
-}
-export const getBankerFeedbackByContactId = (companyId: string, firmId: string, contactId: string): { firm: BankerFirm, contact: BankerContact } | null => {
-    const firm = bankerFeedbackData[companyId]?.find(f => f.id === firmId);
-    if (firm) {
-        const contact = firm.contacts.find(c => c.id === contactId);
-        if (contact) {
-            return { firm: JSON.parse(JSON.stringify(firm)), contact: JSON.parse(JSON.stringify(contact)) };
-        }
-    }
-    return null;
-}
-
-export const getDTFeedbackByContactId = (companyId: string, firmId: string, contactId: string): { firm: DTFirm, contact: DTContact } | null => {
-    const firm = dtFeedbackData[companyId]?.find(f => f.id === firmId);
-    if (firm) {
-        const contact = firm.contacts.find(c => c.id === contactId);
-        if (contact) {
-            return { firm: JSON.parse(JSON.stringify(firm)), contact: JSON.parse(JSON.stringify(contact)) };
-        }
-    }
-    return null;
-}
-
-export const getIPAFeedbackByContactId = (companyId: string, firmId: string, contactId: string): { firm: IPAFirm, contact: IPAContact } | null => {
-    const firm = ipaFeedbackData[companyId]?.find(f => f.id === firmId);
-    if (firm) {
-        const contact = firm.contacts.find(c => c.id === contactId);
-        if (contact) {
-            return { firm: JSON.parse(JSON.stringify(firm)), contact: JSON.parse(JSON.stringify(contact)) };
-        }
-    }
-    return null;
-}
-
-export const createAuditorRecord = (companyId: string, firmId: string, contactId: string, discussionHappened: 'Yes' | 'No') => {
-    const firm = auditorFeedbackData[companyId]?.find(f => f.id === firmId);
-    if (!firm) return null;
-    
-    const contactIndex = firm.contacts.findIndex(c => c.id === contactId);
-    if (contactIndex === -1) return null;
-
-    const updatedContact = {
-        ...firm.contacts[contactIndex],
-        discussionHappened: discussionHappened,
-        status: 'Pending' as FeedbackStatus,
-        minutesCapturedOn: new Date().toISOString()
-    };
-    
-    firm.contacts[contactIndex] = updatedContact;
-    
-    return updatedContact;
-};
-
-export const createBankerRecord = (companyId: string, firmId: string, contactId: string, discussionHappened: 'Yes' | 'No') => {
-    const firm = bankerFeedbackData[companyId]?.find(f => f.id === firmId);
-    if (!firm) return null;
-    
-    const contactIndex = firm.contacts.findIndex(c => c.id === contactId);
-    if (contactIndex === -1) return null;
-
-    const updatedContact = {
-        ...firm.contacts[contactIndex],
-        discussionHappened: discussionHappened,
-        status: 'Pending' as FeedbackStatus,
-        minutesCapturedOn: new Date().toISOString()
-    };
-    
-    firm.contacts[contactIndex] = updatedContact;
-    
-    return updatedContact;
-};
-
-
-export const createDTRecord = (companyId: string, firmId: string, contactId: string, discussionHappened: 'Yes' | 'No') => {
-    const firm = dtFeedbackData[companyId]?.find(f => f.id === firmId);
-    if (!firm) return null;
-    
-    const contactIndex = firm.contacts.findIndex(c => c.id === contactId);
-    if (contactIndex === -1) return null;
-
-    const updatedContact = {
-        ...firm.contacts[contactIndex],
-        discussionHappened: discussionHappened,
-        status: 'Pending' as FeedbackStatus,
-        minutesCapturedOn: new Date().toISOString()
-    };
-    
-    firm.contacts[contactIndex] = updatedContact;
-    
-    return updatedContact;
-};
-
-export const createIPARecord = (companyId: string, firmId: string, contactId: string, discussionHappened: 'Yes' | 'No') => {
-    const firm = ipaFeedbackData[companyId]?.find(f => f.id === firmId);
-    if (!firm) return null;
-    
-    const contactIndex = firm.contacts.findIndex(c => c.id === contactId);
-    if (contactIndex === -1) return null;
-
-    const updatedContact = {
-        ...firm.contacts[contactIndex],
-        discussionHappened: discussionHappened,
-        status: 'Pending' as FeedbackStatus,
-        minutesCapturedOn: new Date().toISOString()
-    };
-    
-    firm.contacts[contactIndex] = updatedContact;
-    
-    return updatedContact;
-};
-
-const commonFeedbackUpdate = (contact: any, updates: any) => {
-    const updatedContact = { ...contact, ...updates };
-
-    if (updates.status === 'Completed') {
-        updatedContact.minutesCaptured = 'Yes';
-    } else if (updates.summary || (updates.questionnaire && updates.questionnaire.some((q: any) => q.remarks))) {
-        updatedContact.status = 'In Progress';
-        updatedContact.minutesCaptured = 'Partial';
-    } else if (updates.discussionHappened === 'No') {
-         updatedContact.status = 'In Progress';
-         updatedContact.minutesCaptured = 'No';
-    }
-
-    if (!updatedContact.minutesCapturedOn && (updatedContact.minutesCaptured === 'Partial' || updatedContact.minutesCaptured === 'Yes')) {
-        updatedContact.minutesCapturedOn = new Date().toISOString();
-    }
-    return updatedContact;
-}
-
-export const updateAuditorFeedback = (companyId: string, firmId: string, contactId: string, updates: Partial<AuditorContact>) => {
-    const firm = auditorFeedbackData[companyId]?.find(f => f.id === firmId);
-    if (firm) {
-        const contactIndex = firm.contacts.findIndex(c => c.id === contactId);
-        if (contactIndex !== -1) {
-            firm.contacts[contactIndex] = commonFeedbackUpdate(firm.contacts[contactIndex], updates);
-            return firm.contacts[contactIndex];
-        }
-    }
-    return null;
-}
-
-export const updateBankerFeedback = (companyId: string, firmId: string, contactId: string, updates: Partial<BankerContact>) => {
-    const firm = bankerFeedbackData[companyId]?.find(f => f.id === firmId);
-    if (firm) {
-        const contactIndex = firm.contacts.findIndex(c => c.id === contactId);
-        if (contactIndex !== -1) {
-            firm.contacts[contactIndex] = commonFeedbackUpdate(firm.contacts[contactIndex], updates);
-            return firm.contacts[contactIndex];
-        }
-    }
-    return null;
-}
-
-
-export const updateDTFeedback = (companyId: string, firmId: string, contactId: string, updates: Partial<DTContact>) => {
-    const firms = dtFeedbackData[companyId];
-    if (firms) {
-        const firm = firms.find(f => f.id === firmId);
-        if (firm) {
-            const contactIndex = firm.contacts.findIndex(c => c.id === contactId);
-            if (contactIndex !== -1) {
-                firm.contacts[contactIndex] = commonFeedbackUpdate(firm.contacts[contactIndex], updates);
-                return firm.contacts[contactIndex];
-            }
-        }
-    }
-    return null;
-};
-
-
-export const updateIPAFeedback = (companyId: string, firmId: string, contactId: string, updates: Partial<IPAContact>) => {
-    const firms = ipaFeedbackData[companyId];
-    if (firms) {
-        const firm = firms.find(f => f.id === firmId);
-        if (firm) {
-            const contactIndex = firm.contacts.findIndex(c => c.id === contactId);
-            if (contactIndex !== -1) {
-                firm.contacts[contactIndex] = commonFeedbackUpdate(firm.contacts[contactIndex], updates);
-                return firm.contacts[contactIndex];
-            }
-        }
-    }
-    return null;
-};
-
 
 export const getNotesByRole = (role: Role, userId: string): RatingNote[] => {
     if (!userId) return [];

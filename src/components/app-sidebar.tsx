@@ -16,7 +16,6 @@ import {
 import {
   LayoutDashboard,
   FileText,
-  TestTube2,
   Briefcase,
   Users,
   Building,
@@ -99,17 +98,6 @@ const ckcAdminMenuItems = [
   { href: '/financial-input/initiate', label: 'Financial Input', icon: FilePlus },
   { href: '/operational-input/requests', label: 'Operational Input', icon: FileUp },
   { href: '#', label: 'RAR Input', icon: BookCopy },
-];
-
-const dueDiligenceSubItems = [
-    { href: '/due-diligence/auditor-feedback', label: 'Auditor Feedback', icon: Users },
-    { href: '/due-diligence/banker-feedback', label: 'Banker Feedback', icon: Landmark },
-    { href: '/due-diligence/dt-feedback', label: 'DT Feedback', icon: Building },
-    { href: '/due-diligence/ipa-feedback', label: 'IPA Feedback', icon: ShieldCheck },
-    { href: '/due-diligence/management-discussion', label: 'Management Discussion', icon: Users },
-    { href: '/due-diligence/third-party-check', label: 'Third Party Check', icon: UserCheck },
-    { href: '/due-diligence/audit-committee-meeting', label: 'Audit Committee Meeting', icon: Presentation },
-    { href: '/due-diligence/site-visit', label: 'Site / Plant Visit', icon: Plane },
 ];
 
 export function AppSidebar() {
@@ -216,39 +204,6 @@ export function AppSidebar() {
                 </a>
               </SidebarMenuButton>
             </SidebarMenuItem>
-          
-           {/* Due Diligence Submenu */}
-            <SidebarMenuItem>
-              <SidebarMenuSub>
-                <SidebarMenuSubButton
-                  isActive={isClient ? dueDiligenceSubItems.some(item => pathname.startsWith(item.href)) : false}
-                  tooltip={{ children: 'Due Diligence', side: 'right' }}
-                  className="justify-start"
-                  asChild
-                >
-                  <Link href="/due-diligence/NOTE-001" className="flex items-center gap-2">
-                    <Shield className="h-4 w-4" />
-                    <span className="text-sm">Due Diligence</span>
-                    <ChevronDown className="h-4 w-4 ml-auto shrink-0 transition-transform duration-200 group-data-[state=open]:rotate-180" />
-                  </Link>
-                </SidebarMenuSubButton>
-                <SidebarMenuSubContent>
-                  {dueDiligenceSubItems.map(item => (
-                    <SidebarMenuSubButton
-                      key={item.href}
-                      asChild
-                      isActive={isClient ? pathname.startsWith(item.href) : false}
-                    >
-                      <a href={item.href} className="flex items-center gap-2">
-                         <item.icon className="h-4 w-4" />
-                         <span>{item.label}</span>
-                      </a>
-                    </SidebarMenuSubButton>
-                  ))}
-                </SidebarMenuSubContent>
-              </SidebarMenuSub>
-            </SidebarMenuItem>
-
         </SidebarMenu>
       </SidebarContent>
       <SidebarFooter>
