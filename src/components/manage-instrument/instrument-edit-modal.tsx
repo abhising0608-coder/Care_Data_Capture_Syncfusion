@@ -212,5 +212,3 @@ export function InstrumentEditModal({
     </Dialog>
   );
 }
-
-    

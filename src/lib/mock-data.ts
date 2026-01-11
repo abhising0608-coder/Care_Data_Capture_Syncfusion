@@ -1,6 +1,6 @@
 
 
-import type { AppUser, Role, RequestStatus, CKCRequest, CKCRequestDocument, CompanyInfo, RatingNote, NoteStatus, RatingNoteDataSchema, LatestBankDetail, AnnexureVHistory, PressReleaseHistoryEntry, PressReleaseHistory, DMSDocumentHistory, BankerLenderDetail, PortfolioActivity, Mandate, Auditor, AuditorDiscussion, AuditorQuestionnaireItem, Banker, BankerDiscussion, DTA, DTADiscussion, DtaQuestionnaireItem, IPA, IPADiscussion, IpaQuestionnaireItem, ManagementDiscussion, ThirdPartyDiscussion, AuditCommitteeDiscussion, SitePlantVisit } from './definitions';
+import type { AppUser, Role, RequestStatus, CKCRequest, CKCRequestDocument, CompanyInfo, RatingNote, NoteStatus, RatingNoteDataSchema, LatestBankDetail, AnnexureVHistory, PressReleaseHistoryEntry, PressReleaseHistory, DMSDocumentHistory, RatingInstrument, RatingInstrumentCycle, PortfolioActivity, Mandate, Auditor, AuditorDiscussion, AuditorQuestionnaireItem, Banker, BankerDiscussion, DTA, DTADiscussion, DtaQuestionnaireItem, IPA, IPADiscussion, IpaQuestionnaireItem, ManagementDiscussion, ThirdPartyDiscussion, AuditCommitteeDiscussion, SitePlantVisit } from './definitions';
 
 
 // --- FSD-based Master JSON Data Structure ---
@@ -763,33 +763,10 @@ export const getInstrumentsByCompanyId = (companyId: string): RatingInstrument[]
 export const getInstrumentById = (instrumentId: string): RatingInstrument | undefined => {
   for (const companyId in ratingInstruments) {
     const instrument = ratingInstruments[companyId].find(inst => inst.id === instrumentId);
-    if (instrument) return JSON.parse(JSON.stringify(instrument));
+    if (instrument) return instrument;
   }
   return undefined;
 };
-
-export const getBankerLenderDetails = (instrumentId: string, rcmId: string): BankerLenderDetail[] => {
-    const instrument = getInstrumentById(instrumentId);
-    if (instrument && instrument.bankerLenderDetails) {
-        return instrument.bankerLenderDetails[rcmId] || [];
-    }
-    return [];
-};
-
-export const updateBankerLenderDetails = (instrumentId: string, rcmId: string, details: BankerLenderDetail[]): RatingInstrument | null => {
-    for (const companyId in ratingInstruments) {
-        const instIndex = ratingInstruments[companyId].findIndex(inst => inst.id === instrumentId);
-        if (instIndex !== -1) {
-            const instrument = ratingInstruments[companyId][instIndex];
-            if (!instrument.bankerLenderDetails) {
-                instrument.bankerLenderDetails = {};
-            }
-            instrument.bankerLenderDetails[rcmId] = details;
-            return instrument;
-        }
-    }
-    return null;
-}
 
 export const getLatestBankDetailsByCompanyId = (companyId: string): LatestBankDetail[] => {
   return mockLatestBankDetails || [];
@@ -1002,21 +979,4 @@ export const saveSitePlantVisit = (companyId: string, data: Partial<SitePlantVis
 
 export const getDMSDocumentHistory = (companyId: string): DMSDocumentHistory[] => {
   return mockDMSDocumentHistoryData;
-}
-
-// --- ISIN Records Functions ---
-export function getIsinRecords(instrumentId: string, rcmId: string): any[] {
-    const instrument = getInstrumentById(instrumentId);
-    return instrument?.isinRecords || [];
-}
-
-export function updateIsinRecord(instrumentId: string, rcmId: string, records: any[]): any[] {
-    for (const companyId in ratingInstruments) {
-        const instIndex = ratingInstruments[companyId].findIndex(inst => inst.id === instrumentId);
-        if (instIndex !== -1) {
-            (ratingInstruments[companyId][instIndex] as any).isinRecords = records;
-            return records;
-        }
-    }
-    return [];
 }

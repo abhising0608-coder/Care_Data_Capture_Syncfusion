@@ -32,7 +32,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import type { RatingInstrumentCycle } from '@/lib/definitions';
 import { Badge } from '../ui/badge';
-import { useRouter, useParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 
 interface InstrumentCycleHistoryTableProps {
     cycleHistory: RatingInstrumentCycle[];
@@ -42,16 +42,14 @@ interface InstrumentCycleHistoryTableProps {
 export function InstrumentCycleHistoryTable({ cycleHistory }: InstrumentCycleHistoryTableProps) {
     const { toast } = useToast();
     const router = useRouter();
-    const params = useParams();
-    const companyId = params.ratingCycleId as string;
 
 
     const handleEditIsin = (instrumentId: string, rcmId: string) => {
-        router.push(`/manage-instrument/isin-update/${companyId}/${instrumentId}/${rcmId}`);
+        toast({ title: 'Placeholder', description: `Navigate to ISIN update for RCM ID: ${rcmId}` });
     };
 
     const handleAddBanker = (instrumentId: string, rcmId: string) => {
-         router.push(`/manage-instrument/banker-lender/${companyId}/${instrumentId}/${rcmId}`);
+         toast({ title: 'Placeholder', description: `Navigate to Banker/Lender for RCM ID: ${rcmId}` });
     };
 
     const columns: ColumnDef<RatingInstrumentCycle>[] = [

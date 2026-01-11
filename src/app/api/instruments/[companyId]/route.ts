@@ -1,3 +1,4 @@
+
 import { NextResponse } from 'next/server';
 import { getInstrumentsByCompanyId } from '@/lib/mock-data';
 import type { RatingInstrument } from '@/lib/definitions';

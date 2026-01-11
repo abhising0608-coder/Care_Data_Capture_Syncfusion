@@ -472,8 +472,6 @@ export type RatingInstrument = {
   initialRatingDate?: string;
   accountManager?: string;
   cycleHistory: RatingInstrumentCycle[];
-  isinRecords?: ISINRecord[];
-  bankerLenderDetails?: Record<string, BankerLenderDetail[]>;
 };
 
 export type CompanyMaster = {
