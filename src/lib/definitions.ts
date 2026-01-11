@@ -195,6 +195,12 @@ export interface AuditCommitteeDiscussion {
   minutes: AuditCommitteeMinute[];
 }
 
+export interface DocumentFile {
+  id: string;
+  name: string;
+  uploadedAt: string;
+}
+
 
 export interface CKCRequestDocument {
   id: string;

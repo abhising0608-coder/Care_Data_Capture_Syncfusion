@@ -5,7 +5,7 @@ import { useParams } from 'next/navigation';
 import useSWR from 'swr';
 import { useAuth } from '@/firebase';
 import { getCompaniesByRole } from '@/lib/mock-data';
-import type { Auditor, AppUser, RatingNote } from '@/lib/definitions';
+import type { IPA, AppUser, RatingNote } from '@/lib/definitions';
 import {
   Card,
   CardContent,
@@ -22,20 +22,20 @@ import {
 import { Button } from '@/components/ui/button';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Skeleton } from '@/components/ui/skeleton';
-import { AuditorDiscussionTable } from '@/components/due-diligence/auditor-discussion-table';
 import { useToast } from '@/hooks/use-toast';
+import { IpaDiscussionTable } from '@/components/due-diligence/ipa-discussion-table';
 import { File as FileIcon } from 'lucide-react';
-import { DocumentsModal } from './documents-modal';
+import { DocumentsModal } from '../../documents-modal';
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
 
-export default function AuditorFeedbackPage() {
+export default function IpaFeedbackPage() {
   const { user, isLoading: isAuthLoading } = useAuth();
   const params = useParams();
   const { toast } = useToast();
   
   const [selectedRatingCycle, setSelectedRatingCycle] = useState<string | null>(params.ratingCycleId as string || null);
-  const [auditors, setAuditors] = useState<Auditor[]>([]);
+  const [ipas, setIpas] = useState<IPA[]>([]);
   const [isDocsModalOpen, setIsDocsModalOpen] = useState(false);
   
   const companies = getCompaniesByRole(user as AppUser);
@@ -45,49 +45,49 @@ export default function AuditorFeedbackPage() {
     fetcher
   );
   
-  const { data: companyAuditors, isLoading: isAuditorsLoading, mutate } = useSWR(
-    selectedRatingCycle ? `/api/auditors/${selectedRatingCycle}` : null,
+  const { data: companyIpas, isLoading: isIpasLoading, mutate } = useSWR(
+    selectedRatingCycle ? `/api/ipa/${selectedRatingCycle}` : null,
     fetcher
   );
 
   useEffect(() => {
-    if (companyAuditors) {
-      setAuditors(companyAuditors);
+    if (companyIpas) {
+      setIpas(companyIpas);
     }
-  }, [companyAuditors]);
+  }, [companyIpas]);
 
 
   const handleGo = () => {
-    if (companyAuditors) {
-        setAuditors(companyAuditors);
+    if (companyIpas) {
+        setIpas(companyIpas);
     }
   };
   
-  const handleAddDiscussion = (auditorId: string, newDiscussion: any) => {
-      setAuditors(prevAuditors => 
-        prevAuditors.map(auditor => {
-            if (auditor.id === auditorId) {
-                return { ...auditor, discussions: [...auditor.discussions, newDiscussion] };
+  const handleAddDiscussion = (ipaId: string, newDiscussion: any) => {
+      setIpas(prevIpas => 
+        prevIpas.map(ipa => {
+            if (ipa.id === ipaId) {
+                return { ...ipa, discussions: [...ipa.discussions, newDiscussion] };
             }
-            return auditor;
+            return ipa;
         })
       );
       mutate();
   }
 
-  const AuditorRow = ({ auditor }: { auditor: Auditor }) => (
-    <AccordionItem value={auditor.id}>
+  const IpaRow = ({ ipa }: { ipa: IPA }) => (
+    <AccordionItem value={ipa.id}>
       <AccordionTrigger className="px-4">
-        <span className="font-semibold">{auditor.firmName}</span>
+        <span className="font-semibold">{ipa.firmName}</span>
       </AccordionTrigger>
       <AccordionContent className="p-0">
         <div className="p-4 bg-muted/50 border-t">
           {note && (
-             <AuditorDiscussionTable 
-                discussions={auditor.discussions}
-                auditor={auditor}
+             <IpaDiscussionTable 
+                discussions={ipa.discussions}
+                ipa={ipa}
                 note={note}
-                onAddDiscussion={(newDiscussion) => handleAddDiscussion(auditor.id, newDiscussion)}
+                onAddDiscussion={(newDiscussion) => handleAddDiscussion(ipa.id, newDiscussion)}
              />
           )}
         </div>
@@ -100,7 +100,7 @@ export default function AuditorFeedbackPage() {
     <div className="space-y-6">
       <header className="flex justify-between items-center">
         <h1 className="text-2xl font-bold tracking-tight text-foreground">
-          Auditor Feedback
+          IPA Feedback
         </h1>
         <Button variant="outline" onClick={() => setIsDocsModalOpen(true)}>
           <FileIcon className="mr-2 h-4 w-4" /> Documents
@@ -128,15 +128,15 @@ export default function AuditorFeedbackPage() {
               </SelectContent>
             </Select>
           </div>
-          <Button onClick={handleGo} disabled={!selectedRatingCycle || isAuditorsLoading || isNoteLoading}>
-            {(isAuditorsLoading || isNoteLoading) ? 'Loading...' : 'Go'}
+          <Button onClick={handleGo} disabled={!selectedRatingCycle || isIpasLoading || isNoteLoading}>
+            {(isIpasLoading || isNoteLoading) ? 'Loading...' : 'Go'}
           </Button>
         </CardContent>
       </Card>
 
-      {(isAuditorsLoading || isNoteLoading) && (
+      {(isIpasLoading || isNoteLoading) && (
          <Card>
-            <CardHeader><CardTitle>Auditors Firm</CardTitle></CardHeader>
+            <CardHeader><CardTitle>IPAs Firm</CardTitle></CardHeader>
             <CardContent className="space-y-2">
                 <Skeleton className="h-12 w-full" />
                 <Skeleton className="h-12 w-full" />
@@ -145,22 +145,22 @@ export default function AuditorFeedbackPage() {
         </Card>
       )}
 
-      {auditors.length > 0 && (
+      {ipas.length > 0 && (
          <Card>
-            <CardHeader><CardTitle>Auditors Firm</CardTitle></CardHeader>
+            <CardHeader><CardTitle>IPA Firm</CardTitle></CardHeader>
             <CardContent className="p-0">
-                <Accordion type="single" collapsible className="w-full">
-                    {auditors.map(auditor => <AuditorRow key={auditor.id} auditor={auditor} />)}
+                <Accordion type="multiple" collapsible className="w-full">
+                    {ipas.map(ipa => <IpaRow key={ipa.id} ipa={ipa} />)}
                 </Accordion>
             </CardContent>
         </Card>
       )}
     </div>
     <DocumentsModal
-      isOpen={isDocsModalOpen}
-      onClose={() => setIsDocsModalOpen(false)}
-      title="Auditor Feedback Documents"
-      />
+        isOpen={isDocsModalOpen}
+        onClose={() => setIsDocsModalOpen(false)}
+        title="IPA Feedback Documents"
+    />
     </>
   );
 }

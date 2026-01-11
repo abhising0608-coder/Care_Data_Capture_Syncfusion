@@ -204,7 +204,7 @@ export function AppSidebar() {
 
            {isClient && <SidebarMenuItem>
               <SidebarMenuSub>
-                <SidebarMenuSubButton
+                <SidebarMenuButton
                   isActive={pathname.startsWith('/due-diligence')}
                   tooltip={{ children: 'Due Diligence', side: 'right' }}
                   className="justify-start"
@@ -214,7 +214,7 @@ export function AppSidebar() {
                     <span className="text-sm">Due Diligence</span>
                   </a>
                    <ChevronDown className="h-4 w-4 ml-auto shrink-0 transition-transform duration-200 group-data-[state=open]:rotate-180" />
-                </SidebarMenuSubButton>
+                </SidebarMenuButton>
                 <SidebarMenuSubContent>
                   {dueDiligenceMenuItems.map((item) => (
                       <SidebarMenuSubButton

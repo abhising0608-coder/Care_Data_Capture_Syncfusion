@@ -7,7 +7,7 @@ import * as z from 'zod';
 import { v4 as uuidv4 } from 'uuid';
 import useSWR from 'swr';
 import { format } from 'date-fns';
-import { Calendar as CalendarIcon, Save, Mail, FileText, ArrowLeft, Send, PlusCircle, Check, RefreshCw, Pencil, Trash2 } from 'lucide-react';
+import { Calendar as CalendarIcon, Save, Mail, File as FileIcon, ArrowLeft, Send, PlusCircle, Check, RefreshCw, Pencil, Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
@@ -26,6 +26,7 @@ import type { AuditCommitteeDiscussion, AuditCommitteePersonnel, AuditCommitteeM
 import { getCompaniesByRole } from '@/lib/mock-data';
 import { Skeleton } from '../ui/skeleton';
 import { AuditCommitteeEmailModal } from './audit-committee-email-modal';
+import { DocumentsModal } from './documents-modal';
 
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
@@ -60,6 +61,7 @@ export default function AuditCommitteeClient() {
   
   const [selectedCompanyId, setSelectedCompanyId] = useState<string | null>(null);
   const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
+  const [isDocsModalOpen, setIsDocsModalOpen] = useState(false);
 
   const { data: company, isLoading: isCompanyLoading } = useSWR<CompanyDashboard>(selectedCompanyId ? `/api/companies/${selectedCompanyId}` : null, fetcher);
   const { data: discussionData, isLoading: isDataLoading, mutate } = useSWR<AuditCommitteeDiscussion>(
@@ -124,8 +126,11 @@ export default function AuditCommitteeClient() {
   return (
     <>
     <div className="space-y-6">
-      <header>
+      <header className="flex justify-between items-center">
         <h1 className="text-2xl font-bold tracking-tight text-foreground">Audit Committee Meeting</h1>
+        <Button variant="outline" onClick={() => setIsDocsModalOpen(true)}>
+          <FileIcon className="mr-2 h-4 w-4" /> Documents
+        </Button>
       </header>
 
       <FormProvider {...form}>
@@ -235,6 +240,11 @@ export default function AuditCommitteeClient() {
             analyst={user as AppUser}
         />
     )}
+     <DocumentsModal
+        isOpen={isDocsModalOpen}
+        onClose={() => setIsDocsModalOpen(false)}
+        title="Audit Committee Documents"
+    />
     </>
   );
 }

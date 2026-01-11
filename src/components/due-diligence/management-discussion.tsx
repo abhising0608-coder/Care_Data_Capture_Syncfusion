@@ -7,7 +7,7 @@ import * as z from 'zod';
 import { v4 as uuidv4 } from 'uuid';
 import useSWR from 'swr';
 import { format } from 'date-fns';
-import { Calendar as CalendarIcon, Save, Mail, FileText, ArrowLeft, Send, PlusCircle, Check, RefreshCw, Pencil, Trash2 } from 'lucide-react';
+import { Calendar as CalendarIcon, Save, Mail, File as FileIcon, ArrowLeft, Send, PlusCircle, Check, RefreshCw, Pencil, Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
@@ -26,6 +26,7 @@ import type { ManagementDiscussion, ManagementPersonnel, DiscussionMinute, Compa
 import { getCompaniesByRole } from '@/lib/mock-data';
 import { Skeleton } from '../ui/skeleton';
 import { ManagementEmailModal } from './management-email-modal';
+import { DocumentsModal } from './documents-modal';
 
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
@@ -61,6 +62,7 @@ export default function ManagementDiscussionClient() {
   
   const [selectedCompanyId, setSelectedCompanyId] = useState<string | null>(null);
   const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
+  const [isDocsModalOpen, setIsDocsModalOpen] = useState(false);
 
   const { data: company, isLoading: isCompanyLoading } = useSWR<CompanyDashboard>(selectedCompanyId ? `/api/companies/${selectedCompanyId}` : null, fetcher);
   const { data: discussionData, isLoading: isDataLoading, mutate } = useSWR<ManagementDiscussion>(
@@ -125,8 +127,11 @@ export default function ManagementDiscussionClient() {
   return (
     <>
     <div className="space-y-6">
-      <header>
+      <header className="flex justify-between items-center">
         <h1 className="text-2xl font-bold tracking-tight text-foreground">Management Discussion</h1>
+         <Button variant="outline" onClick={() => setIsDocsModalOpen(true)}>
+          <FileIcon className="mr-2 h-4 w-4" /> Documents
+        </Button>
       </header>
 
       <FormProvider {...form}>
@@ -240,6 +245,11 @@ export default function ManagementDiscussionClient() {
             analyst={user as AppUser}
         />
     )}
+     <DocumentsModal
+        isOpen={isDocsModalOpen}
+        onClose={() => setIsDocsModalOpen(false)}
+        title="Management Discussion Documents"
+    />
     </>
   );
 }
