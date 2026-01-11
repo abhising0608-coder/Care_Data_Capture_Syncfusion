@@ -3,6 +3,6 @@
 
 import { InstrumentDetailsTab } from "@/components/manage-instrument/instrument-details-tab";
 
-export default function InstrumentDetailsPage() {
+export default function InstrumentDetailsPageWithId() {
     return <InstrumentDetailsTab />;
 }

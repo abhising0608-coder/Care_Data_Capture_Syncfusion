@@ -2,7 +2,7 @@
 'use client';
 
 import React from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useParams } from 'next/navigation';
 import {
   Sidebar,
   SidebarHeader,
@@ -41,6 +41,7 @@ import {
   BookCopy,
   ChevronDown,
   Wrench,
+  Dms,
 } from 'lucide-react';
 import { useAuth } from '@/firebase';
 import { Badge } from '@/components/ui/badge';
@@ -115,15 +116,18 @@ const dueDiligenceMenuItems = [
 ];
 
 const manageInstrumentMenuItems = [
-    { href: '/manage-instrument/instrument-details', label: 'Instrument Details', icon: Wrench },
-    { href: '/manage-instrument/latest-bank-details', label: 'Latest Bank Details', icon: Landmark },
-    { href: '/manage-instrument/annexure-v-history', label: 'Annexure V History', icon: History },
-    { href: '/manage-instrument/press-release-history', label: 'PR Details History', icon: Newspaper },
+    { id: 'instrument-details', label: 'Instrument Details', icon: Wrench },
+    { id: 'latest-bank-details', label: 'Latest Bank Details', icon: Landmark },
+    { id: 'annexure-v-history', label: 'Annexure V History', icon: History },
+    { id: 'press-release-history', label: 'PR Details History', icon: Newspaper },
+    { id: 'dms-document-history', label: 'DMS Document History', icon: FolderOpen },
 ];
 
 
 export function AppSidebar() {
   const pathname = usePathname();
+  const params = useParams();
+  const ratingCycleId = params.ratingCycleId as string;
   const { user } = useAuth();
   const [isClient, setIsClient] = React.useState(false);
 
@@ -162,15 +166,6 @@ export function AppSidebar() {
             </SidebarMenuItem>
           ))}
           
-          <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={pathname.startsWith('/manage-instrument')}>
-                     <a href="/manage-instrument">
-                        <Wrench className="h-4 w-4" />
-                        <span className="text-sm">Manage Instrument</span>
-                    </a>
-                </SidebarMenuButton>
-            </SidebarMenuItem>
-
            {/* CKC Submenu */}
           {isClient && ['CKC_ADMIN', 'CKC_ANALYST'].includes(user?.role || '') && (
             <SidebarMenuItem>
@@ -263,18 +258,21 @@ export function AppSidebar() {
                    <ChevronDown className="h-4 w-4 ml-auto shrink-0 transition-transform duration-200 group-data-[state=open]:rotate-180" />
                 </SidebarMenuSubButton>
                 <SidebarMenuSubContent>
-                  {manageInstrumentMenuItems.map((item) => (
+                  {manageInstrumentMenuItems.map((item) => {
+                     const href = ratingCycleId ? `/manage-instrument/${item.id}/${ratingCycleId}` : '/manage-instrument';
+                     return (
                       <SidebarMenuSubButton
-                        key={item.href}
+                        key={item.id}
                         asChild
-                        isActive={pathname.startsWith(item.href)}
+                        isActive={pathname.startsWith(`/manage-instrument/${item.id}`)}
                       >
-                        <a href={item.href} className="flex items-center gap-2">
+                        <a href={href} className="flex items-center gap-2">
                            <item.icon className="h-4 w-4" />
                            <span>{item.label}</span>
                         </a>
                       </SidebarMenuSubButton>
-                  ))}
+                     )
+                  })}
                 </SidebarMenuSubContent>
               </SidebarMenuSub>
             </SidebarMenuItem>}
