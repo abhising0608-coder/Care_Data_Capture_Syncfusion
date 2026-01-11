@@ -16,6 +16,7 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import type { IPA, IPADiscussion, RatingNote } from '@/lib/definitions';
 import { useAuth } from '@/firebase';
+import { mockIpaContacts } from '@/lib/mock-data';
 
 
 interface IpaDiscussionTableProps {
@@ -62,13 +63,6 @@ export function IpaDiscussionTable({ discussions, ipa, note, onAddDiscussion }: 
     });
 
     const { control, handleSubmit, reset } = form;
-    
-    // Placeholder contacts for IPAs
-     const mockIpaContacts = [
-        { id: 'ipa-contact-1', name: 'Amit Sharma', email: 'amit@abc.com', contact: '0000000000' },
-        { id: 'ipa-contact-2', name: 'Vijay Varma', email: 'vijay@abc.com', contact: '0000000000' },
-    ];
-
 
     const handleAdd = (data: DiscussionFormValues) => {
         const contact = mockIpaContacts.find(c => c.name === data.contactPerson);

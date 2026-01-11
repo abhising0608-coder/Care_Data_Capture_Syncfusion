@@ -483,6 +483,11 @@ export const mockAuditorContacts = [
     { id: 'aud-contact-4', name: 'Prakash Jain', email: 'prakash@abc.com', contact: '0000000000' },
 ];
 
+export const mockIpaContacts = [
+    { id: 'ipa-contact-1', name: 'Amit Sharma', email: 'amit@abc.com', contact: '0000000000' },
+    { id: 'ipa-contact-2', name: 'Vijay Varma', email: 'vijay@abc.com', contact: '0000000000' },
+];
+
 export const mockAuditorQuestionnaire: AuditorQuestionnaireItem[] = [
     { id: 'q1', particulars: 'Duration of association with the captioned entity' },
     { id: 'q2', particulars: 'Opinion on quality of accounts, compliance with Guidelines of ICAI, adherence to Accounting Standards, adequacy of internal control systems etc.' },
@@ -680,7 +685,7 @@ export const updateDtaDiscussion = (dtaId: string, discussionId: string, updates
 
 
 export const getDMSDocumentHistoryByCompanyId = (companyId: string): DMSDocumentHistory[] => {
-    return mockDMSDocumentHistoryData || [];
+  return mockDMSDocumentHistoryData;
 };
 
 export const getPressReleaseHistoryByCompanyId = (companyId: string): PressReleaseHistory[] => {
