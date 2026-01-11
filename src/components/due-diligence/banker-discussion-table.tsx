@@ -91,11 +91,14 @@ export function BankerDiscussionTable({ discussions, banker, note, onAddDiscussi
     };
 
     const handleAction = (action: 'view' | 'email', discussion: BankerDiscussion) => {
-        // Placeholder for navigation/modal
-        toast({
-            title: `Action: ${action}`,
-            description: `Triggered for ${discussion.contactPerson}. Navigation to be implemented.`,
-        });
+        if (action === 'view') {
+            router.push(`/due-diligence/banker-feedback/${ratingCycleId}/${banker.id}/${discussion.id}`);
+        } else if (action === 'email') {
+            toast({
+                title: 'Placeholder',
+                description: `Email functionality for ${discussion.contactPerson} will be implemented next.`,
+            });
+        }
     };
     
     const handleDelete = (id: string) => {

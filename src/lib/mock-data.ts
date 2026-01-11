@@ -598,6 +598,26 @@ export const updateAuditorDiscussion = (auditorId: string, discussionId: string,
     return mockAuditors[auditorIndex].discussions[discussionIndex];
 };
 
+export const getBankerDiscussionById = (bankerId: string, discussionId: string): BankerDiscussion | undefined => {
+    const banker = mockBankers.find(a => a.id === bankerId);
+    return banker?.discussions.find(d => d.id === discussionId);
+};
+
+export const updateBankerDiscussion = (bankerId: string, discussionId: string, updates: Partial<BankerDiscussion>): BankerDiscussion | undefined => {
+    const bankerIndex = mockBankers.findIndex(a => a.id === bankerId);
+    if (bankerIndex === -1) return undefined;
+    
+    const discussionIndex = mockBankers[bankerIndex].discussions.findIndex(d => d.id === discussionId);
+    if (discussionIndex === -1) return undefined;
+    
+    mockBankers[bankerIndex].discussions[discussionIndex] = {
+        ...mockBankers[bankerIndex].discussions[discussionIndex],
+        ...updates
+    };
+
+    return mockBankers[bankerIndex].discussions[discussionIndex];
+};
+
 
 export const getDMSDocumentHistoryByCompanyId = (companyId: string): DMSDocumentHistory[] => {
     return mockDMSDocumentHistoryData || [];

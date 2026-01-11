@@ -68,6 +68,8 @@ export interface BankerDiscussion {
     emailId: string;
     contact: string;
     status: 'Pending' | 'In Progress' | 'Completed';
+    feedback?: Record<string, string>;
+    summary?: string;
 }
 
 export interface Banker {
