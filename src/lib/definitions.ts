@@ -40,6 +40,12 @@ export interface AuditorQuestionnaireItem {
   particulars: string;
 }
 
+export interface DtaQuestionnaireItem {
+  id: string;
+  particulars: string;
+}
+
+
 export interface AuditorDiscussion {
     id: string;
     contactPerson: string;
@@ -87,6 +93,8 @@ export interface DTADiscussion {
     emailId: string;
     contact: string;
     status: 'Pending' | 'In Progress' | 'Completed';
+    feedback?: Record<string, string>;
+    summary?: string;
 }
 
 export interface DTA {

@@ -1,6 +1,6 @@
 
 
-import type { AppUser, Role, RequestStatus, CKCRequest, CKCRequestDocument, CompanyInfo, RatingNote, NoteStatus, RatingNoteDataSchema, LatestBankDetail, AnnexureVHistory, PressReleaseHistoryEntry, PressReleaseHistory, DMSDocumentHistory, BankerLenderDetail, PortfolioActivity, Mandate, Auditor, AuditorDiscussion, AuditorQuestionnaireItem, Banker, BankerDiscussion, DTA, DTADiscussion } from './definitions';
+import type { AppUser, Role, RequestStatus, CKCRequest, CKCRequestDocument, CompanyInfo, RatingNote, NoteStatus, RatingNoteDataSchema, LatestBankDetail, AnnexureVHistory, PressReleaseHistoryEntry, PressReleaseHistory, DMSDocumentHistory, BankerLenderDetail, PortfolioActivity, Mandate, Auditor, AuditorDiscussion, AuditorQuestionnaireItem, Banker, BankerDiscussion, DTA, DTADiscussion, DtaQuestionnaireItem } from './definitions';
 
 
 // --- FSD-based Master JSON Data Structure ---
@@ -497,6 +497,13 @@ export const mockAuditorQuestionnaire: AuditorQuestionnaireItem[] = [
     { id: 'q11', particulars: 'Any other information' },
 ];
 
+export const mockDtaQuestionnaire: DtaQuestionnaireItem[] = [
+    { id: 'dta-q1', particulars: 'Any delays in the servicing of interest/principal on the instruments. If yes, provide details w.r.t amount of delay, number of days of delay, date of delay, etc.' },
+    { id: 'dta-q2', particulars: 'Any non-adherence to the terms and conditions (including cashflow waterfall, DSRA etc) or breach of material covenants as per the trust deed? If yes, provide details of the breach and its impact on interest rate or repayment schedule' },
+    { id: 'dta-q3', particulars: 'Other adverse observation (including debt restructuring) if any' },
+    { id: 'dta-q4', particulars: 'Any other information' },
+];
+
 
 let mockAuditors: Auditor[] = [
     { 
@@ -629,6 +636,26 @@ export const updateBankerDiscussion = (bankerId: string, discussionId: string, u
     };
 
     return mockBankers[bankerIndex].discussions[discussionIndex];
+};
+
+export const getDtaDiscussionById = (dtaId: string, discussionId: string): DTADiscussion | undefined => {
+    const dta = mockDtas.find(a => a.id === dtaId);
+    return dta?.discussions.find(d => d.id === discussionId);
+};
+
+export const updateDtaDiscussion = (dtaId: string, discussionId: string, updates: Partial<DTADiscussion>): DTADiscussion | undefined => {
+    const dtaIndex = mockDtas.findIndex(a => a.id === dtaId);
+    if (dtaIndex === -1) return undefined;
+    
+    const discussionIndex = mockDtas[dtaIndex].discussions.findIndex(d => d.id === discussionId);
+    if (discussionIndex === -1) return undefined;
+    
+    mockDtas[dtaIndex].discussions[discussionIndex] = {
+        ...mockDtas[dtaIndex].discussions[discussionIndex],
+        ...updates
+    };
+
+    return mockDtas[dtaIndex].discussions[discussionIndex];
 };
 
 

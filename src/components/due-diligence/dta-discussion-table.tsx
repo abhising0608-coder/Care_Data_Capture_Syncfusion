@@ -96,10 +96,14 @@ export function DtaDiscussionTable({ discussions, dta, note, onAddDiscussion }: 
     };
 
     const handleAction = (action: 'view' | 'email', discussion: DTADiscussion) => {
-         toast({
-            title: 'Placeholder Action',
-            description: `Triggered '${action}' for DTA discussion ${discussion.id}. This functionality will be built next.`,
-        });
+        if (action === 'view') {
+            router.push(`/due-diligence/dta-feedback/${ratingCycleId}/${dta.id}/${discussion.id}`);
+        } else {
+             toast({
+                title: 'Placeholder Action',
+                description: `Triggered '${action}' for DTA discussion ${discussion.id}. This functionality will be built next.`,
+            });
+        }
     };
     
     const handleDelete = (id: string) => {
