@@ -13,6 +13,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
@@ -369,7 +370,7 @@ export function JsonSchemaForm({ schema, onSubmit, onCancel, requestId, dataKey,
 
     if (uiVariant === 'accordion') {
       const sectionProperties = sectionProp.properties;
-      if (sectionProperties && sectionProperties.dataAvailability) {
+      if (sectionProperties && sectionProp.properties.dataAvailability) {
         return (
           <>
             <div className="w-1/3 p-4">
@@ -378,7 +379,7 @@ export function JsonSchemaForm({ schema, onSubmit, onCancel, requestId, dataKey,
                 name={`${sectionKey}.dataAvailability`}
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{sectionProperties.dataAvailability.title}</FormLabel>
+                    <FormLabel>{sectionProp.properties.dataAvailability.title}</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
@@ -386,7 +387,7 @@ export function JsonSchemaForm({ schema, onSubmit, onCancel, requestId, dataKey,
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {sectionProperties.dataAvailability.enum.map((option: string) => (
+                        {sectionProp.properties.dataAvailability.enum.map((option: string) => (
                           <SelectItem key={option} value={option}>{option}</SelectItem>
                         ))}
                       </SelectContent>
