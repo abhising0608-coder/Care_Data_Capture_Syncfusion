@@ -7,7 +7,6 @@ import { cn } from '@/lib/utils';
 import { useWorkflow } from '@/context/workflow-context';
 
 export const workflowSteps = [
-  { id: 'operational-input', name: 'Operational Input' },
   { id: 'due-diligence', name: 'Due Diligence' },
   { id: 'manage-instrument', name: 'Manage Instrument' },
   { id: 'initiate-rating-note', name: 'Initiate Rating Note' },
@@ -33,7 +32,6 @@ export function WorkflowStepper() {
   const ratingCycleId = params.ratingCycleId as string;
 
   const getStepIdFromPath = () => {
-    if (pathname.includes('/operational-input')) return 'operational-input';
     if (pathname.includes('/due-diligence')) return 'due-diligence';
     if (pathname.includes('/manage-instrument')) return 'manage-instrument';
     if (pathname.includes('/notes/new')) return 'initiate-rating-note';

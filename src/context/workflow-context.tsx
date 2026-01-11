@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, ReactNode, useCallback } from 'react';
 
-type StepId = 'operational-input' | 'due-diligence' | 'manage-instrument' | 'initiate-rating-note' | 'rating-note' | 'press-release';
+type StepId = 'due-diligence' | 'manage-instrument' | 'initiate-rating-note' | 'rating-note' | 'press-release';
 
 interface WorkflowContextType {
   activeCompanyId: string | null;
