@@ -207,8 +207,31 @@ export interface SitePlantVisit {
     careTeam: string[];
     plantVisited: string;
     locationDetails: string;
-    clientPersonnel: SiteVisitPersonnel[];
+    personnel: SiteVisitPersonnel[];
+    operationalStatus?: string;
+    deptProcesses?: string;
+    productsManufactured?: string;
+    capexCompleted?: string;
+    technologyAdopted?: string;
+    accreditations?: string;
+    rawMaterialStorage?: string;
+    rawMaterialDuration?: string;
+    finishedGoodsStorage?: string;
+    landAcquired?: string;
+    epcContractor?: string;
+    civilWorkStatus?: string;
+    civilWorkContractor?: string;
+    plantMachineryDetails?: string;
+    approvalsStatus?: string;
+    capexImplementationStatus?: string;
+    completionDate?: string;
+    labourRelations?: string;
+    labourUnion?: string;
+    workforceStrength?: string;
+    esicPfCompliance?: string;
+    anyOtherInfo?: string;
 }
+
 
 export interface DocumentFile {
   id: string;

@@ -1,6 +1,6 @@
 
 
-import type { AppUser, Role, RequestStatus, CKCRequest, CKCRequestDocument, CompanyInfo, RatingNote, NoteStatus, RatingNoteDataSchema, LatestBankDetail, AnnexureVHistory, PressReleaseHistoryEntry, PressReleaseHistory, DMSDocumentHistory, BankerLenderDetail, PortfolioActivity, Mandate, Auditor, AuditorDiscussion, AuditorQuestionnaireItem, Banker, BankerDiscussion, DTA, DTADiscussion, DtaQuestionnaireItem, IPA, IPADiscussion, IpaQuestionnaireItem } from './definitions';
+import type { AppUser, Role, RequestStatus, CKCRequest, CKCRequestDocument, CompanyInfo, RatingNote, NoteStatus, RatingNoteDataSchema, LatestBankDetail, AnnexureVHistory, PressReleaseHistoryEntry, PressReleaseHistory, DMSDocumentHistory, BankerLenderDetail, PortfolioActivity, Mandate, Auditor, AuditorDiscussion, AuditorQuestionnaireItem, Banker, BankerDiscussion, DTA, DTADiscussion, DtaQuestionnaireItem, IPA, IPADiscussion, IpaQuestionnaireItem, ManagementDiscussion, ThirdPartyDiscussion, AuditCommitteeDiscussion, SitePlantVisit } from './definitions';
 
 
 // --- FSD-based Master JSON Data Structure ---
@@ -571,6 +571,11 @@ let mockIpas: IPA[] = [
     { id: 'ipa-3', firmName: 'Premchand Associations', discussions: [] },
 ];
 
+let managementDiscussions: Record<string, ManagementDiscussion> = {};
+let thirdPartyDiscussions: Record<string, ThirdPartyDiscussion> = {};
+let auditCommitteeDiscussions: Record<string, AuditCommitteeDiscussion> = {};
+let sitePlantVisits: Record<string, SitePlantVisit> = {};
+
 // --- New Rating Note Data Functions ---
 
 export const getCkcRequests = (params: { status?: RequestStatus | null; id?: string | null }): CKCRequest[] => {
@@ -958,6 +963,40 @@ export const saveCompanyInfo = (ratingCycleId: string, data: CompanyInfo): Compa
     companyInfoData[ratingCycleId] = data;
     return JSON.parse(JSON.stringify(data));
 }
+
+
+export const getManagementDiscussion = (companyId: string): ManagementDiscussion | undefined => {
+    return managementDiscussions[companyId];
+}
+export const saveManagementDiscussion = (companyId: string, data: Partial<ManagementDiscussion>): ManagementDiscussion => {
+    managementDiscussions[companyId] = { ...managementDiscussions[companyId], ...data, companyId };
+    return managementDiscussions[companyId];
+}
+
+export const getThirdPartyDiscussion = (companyId: string): ThirdPartyDiscussion | undefined => {
+    return thirdPartyDiscussions[companyId];
+}
+export const saveThirdPartyDiscussion = (companyId: string, data: Partial<ThirdPartyDiscussion>): ThirdPartyDiscussion => {
+    thirdPartyDiscussions[companyId] = { ...thirdPartyDiscussions[companyId], ...data, companyId };
+    return thirdPartyDiscussions[companyId];
+}
+
+export const getAuditCommitteeDiscussion = (companyId: string): AuditCommitteeDiscussion | undefined => {
+    return auditCommitteeDiscussions[companyId];
+}
+export const saveAuditCommitteeDiscussion = (companyId: string, data: Partial<AuditCommitteeDiscussion>): AuditCommitteeDiscussion => {
+    auditCommitteeDiscussions[companyId] = { ...auditCommitteeDiscussions[companyId], ...data, companyId };
+    return auditCommitteeDiscussions[companyId];
+}
+
+export const getSitePlantVisit = (companyId: string): SitePlantVisit | undefined => {
+    return sitePlantVisits[companyId];
+}
+export const saveSitePlantVisit = (companyId: string, data: Partial<SitePlantVisit>): SitePlantVisit => {
+    sitePlantVisits[companyId] = { ...sitePlantVisits[companyId], ...data, companyId };
+    return sitePlantVisits[companyId];
+}
+
 
 // --- DMS Document History Functions ---
 
