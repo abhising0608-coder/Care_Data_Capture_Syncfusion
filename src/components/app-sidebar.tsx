@@ -115,11 +115,7 @@ const dueDiligenceMenuItems = [
 ];
 
 const manageInstrumentMenuItems = [
-    { href: '/manage-instrument/instrument-details', label: 'Instrument Details', icon: FileText },
-    { href: '/manage-instrument/latest-bank-details', label: 'Latest Bank Details', icon: Landmark },
-    { href: '/manage-instrument/annexure-v-history', label: 'Annexure V History', icon: History },
-    { href: '/manage-instrument/press-release-history', label: 'PR Details History', icon: Newspaper },
-    { href: '/manage-instrument/dms-document-history', label: 'DMS Document History', icon: FolderOpen },
+    // All items removed as per request
 ];
 
 
