@@ -1,3 +1,4 @@
+
 import { NextResponse } from 'next/server';
 import { getLatestBankDetailsByCompanyId } from '@/lib/mock-data';
 import type { LatestBankDetail } from '@/lib/definitions';
