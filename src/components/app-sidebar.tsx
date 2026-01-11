@@ -44,6 +44,7 @@ import { useAuth } from '@/firebase';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
+import Image from 'next/image';
 
 const topMenuItems = [
   {
@@ -131,7 +132,7 @@ export function AppSidebar() {
   return (
     <Sidebar>
       <SidebarHeader className="p-4 flex items-center justify-center">
-        <img src="/assets/logo/careedge-logo.png" alt="CareEdge Logo" style={{ height: '40px', objectFit: 'contain', maxWidth: '100%' }} />
+         <Image src="https://placehold.co/200x60/1A237E/FFFFFF?text=CareEdge" alt="CareEdge Logo" width={160} height={40} />
       </SidebarHeader>
       <SidebarContent>
         <SidebarMenu>

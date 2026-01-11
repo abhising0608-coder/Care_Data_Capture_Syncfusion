@@ -20,6 +20,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Loader2 } from 'lucide-react';
 import type { Role } from '@/lib/definitions';
+import Image from 'next/image';
 
 const loginSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email address.' }),
@@ -100,7 +101,7 @@ export default function LoginPage() {
   return (
     <>
         <div className="absolute top-8 left-8">
-            <img src="/assets/logo/careedge-logo.png" alt="CareEdge Logo" style={{ height: '40px', objectFit: 'contain', maxWidth: '100%' }} />
+            <Image src="https://placehold.co/200x60/1A237E/FFFFFF?text=CareEdge" alt="CareEdge Logo" width={160} height={40} />
         </div>
         <Card className="mx-auto w-full max-w-sm">
         <CardHeader>

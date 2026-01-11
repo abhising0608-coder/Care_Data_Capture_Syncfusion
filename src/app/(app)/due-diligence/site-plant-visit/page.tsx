@@ -1,20 +1,17 @@
+
 'use client';
 
-import dynamic from 'next/dynamic'
-import { Skeleton } from '@/components/ui/skeleton'
+import { redirect, useParams } from 'next/navigation';
 
-const SitePlantVisitClient = dynamic(() => import('@/components/due-diligence/site-plant-visit-client'), {
-  ssr: false,
-  loading: () => (
-     <div className="w-full p-4 sm:p-6 lg:p-8 space-y-4">
-        <Skeleton className="h-10 w-1/4" />
-        <Skeleton className="h-24 w-full" />
-        <Skeleton className="h-48 w-full" />
-        <Skeleton className="h-48 w-full" />
-     </div>
-  ),
-})
+export default function SitePlantVisitRedirectPage() {
+    const params = useParams();
+    const ratingCycleId = params.ratingCycleId as string;
 
-export default function SitePlantVisitPage() {
-  return <SitePlantVisitClient />;
+    // Redirect to a default or the first available rating cycle ID
+    if (ratingCycleId) {
+        redirect(`/due-diligence/site-plant-visit/${ratingCycleId}`);
+    } else {
+        // Fallback if no ID is present, though this is unlikely in the workflow
+        redirect('/due-diligence/site-plant-visit/NOTE-001');
+    }
 }
