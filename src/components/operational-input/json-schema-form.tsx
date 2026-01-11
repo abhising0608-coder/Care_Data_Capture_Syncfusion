@@ -218,8 +218,10 @@ export function JsonSchemaForm({ schema, onSubmit, onCancel, requestId, dataKey,
     const [editingIndex, setEditingIndex] = useState<number | null>(null);
 
     const handleAddNew = () => {
-      if (Object.values(newRow).every(val => !val)) return; // Don't add empty row
-      append(newRow);
+      const isRowEmpty = Object.values(newRow).every(val => val === '' || val === undefined || val === null);
+      if (isRowEmpty) return;
+
+      append({ srNo: fields.length + 1, ...newRow });
       setNewRow({});
     };
 
@@ -245,14 +247,12 @@ export function JsonSchemaForm({ schema, onSubmit, onCancel, requestId, dataKey,
       const value = item[header] ?? '';
 
       const handleInputChange = (val: any) => {
-          if (isNewRow) {
-            setNewRow(prev => ({ ...prev, [header]: val }));
+          const updatedRow = isNewRow ? { ...newRow, [header]: val } : { ...(fields[editingIndex!] as object), [header]: val };
+          
+          if(isNewRow) {
+            setNewRow(updatedRow);
           } else {
-             const updatedFields:any = [...fields];
-             if(editingIndex !== null) {
-               updatedFields[editingIndex][header] = val;
-               update(editingIndex, updatedFields[editingIndex]);
-             }
+            setNewRow(updatedRow); // Also update newRow state when editing
           }
       };
 
@@ -265,6 +265,10 @@ export function JsonSchemaForm({ schema, onSubmit, onCancel, requestId, dataKey,
             </SelectContent>
           </Select>
         );
+      }
+      
+      if (prop['x-ui-readonly']) {
+          return <Input placeholder={prop.title} value={(fields.length + 1).toString()} readOnly />;
       }
 
       return (
@@ -308,7 +312,7 @@ export function JsonSchemaForm({ schema, onSubmit, onCancel, requestId, dataKey,
                  <TableRow key={item.id}>
                     {headers.map(header => (
                         <TableCell key={`${item.id}-edit-${header}`}>
-                            {renderInputForCell(fields[index] as any, header, false)}
+                            {renderInputForCell(newRow, header, false)}
                         </TableCell>
                     ))}
                      <TableCell className="flex items-center gap-1">
@@ -363,7 +367,69 @@ export function JsonSchemaForm({ schema, onSubmit, onCancel, requestId, dataKey,
         });
     }
 
-    if (uiVariant === 'accordion' || uiVariant === 'spreadsheet') {
+    if (uiVariant === 'accordion') {
+      const sectionProperties = sectionProp.properties;
+      if (sectionProperties && sectionProperties.dataAvailability) {
+        return (
+          <>
+            <div className="w-1/3 p-4">
+              <FormField
+                control={form.control}
+                name={`${sectionKey}.dataAvailability`}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{sectionProperties.dataAvailability.title}</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select availability" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {sectionProperties.dataAvailability.enum.map((option: string) => (
+                          <SelectItem key={option} value={option}>{option}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            <Controller
+              control={form.control}
+              name={`${sectionKey}`}
+              render={({ field }) => {
+                if (field.value?.dataAvailability !== 'Available') return null;
+
+                const subSections = Object.keys(sectionProperties).filter(key => key !== 'dataAvailability');
+                
+                return (
+                  <Accordion type="multiple" className="w-full">
+                    {subSections.map(subSectionKey => {
+                      const subSectionProp = sectionProperties[subSectionKey];
+                      return (
+                        <AccordionItem value={subSectionKey} key={subSectionKey}>
+                          <AccordionTrigger>{subSectionProp.title}</AccordionTrigger>
+                          <AccordionContent>
+                             <div className="space-y-4 p-4">
+                              {renderInlineEditableTable({
+                                sectionKey: `${sectionKey}.${subSectionKey}`,
+                                itemProperties: subSectionProp.items.properties,
+                                control: form.control,
+                              })}
+                            </div>
+                          </AccordionContent>
+                        </AccordionItem>
+                      )
+                    })}
+                  </Accordion>
+                )
+              }}
+            />
+          </>
+        )
+      } else {
         return (
             <Accordion type="multiple" className="w-full">
                 {Object.keys(sectionProp.properties).map(subSectionKey => {
@@ -447,6 +513,7 @@ export function JsonSchemaForm({ schema, onSubmit, onCancel, requestId, dataKey,
                 })}
             </Accordion>
         );
+      }
     }
     
     return null; // Should not happen if schema is well-formed
@@ -505,29 +572,39 @@ export function JsonSchemaForm({ schema, onSubmit, onCancel, requestId, dataKey,
                                     {sectionProp.description && <CardDescription>{sectionProp.description}</CardDescription>}
                                 </CardHeader>
                                 <CardContent>
-                                    {sectionProp.type === 'object' ? (
-                                        renderSectionContent(sectionKey, sectionProp)
-                                    ) : sectionProp.type === 'array' ? (
-                                        renderInlineEditableTable({
-                                        sectionKey: sectionKey,
-                                        itemProperties: sectionProp.items.properties,
-                                        control: form.control,
-                                        })
-                                    ) : null}
+                                    {renderSectionContent(sectionKey, sectionProp)}
+                                     {sectionKey === 'otherDetails' && (
+                                        <div className="mt-8">
+                                            <h3 className="text-lg font-semibold mb-4">Import Data from Other Sectors</h3>
+                                            <div className="p-4 border rounded-lg space-y-4">
+                                                <div className="flex gap-4 items-end">
+                                                     <div className="flex-1">
+                                                        <Label>Select Sector</Label>
+                                                        <Select><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger><SelectContent><SelectItem value="auto">Auto</SelectItem><SelectItem value="infra">Infra</SelectItem></SelectContent></Select>
+                                                     </div>
+                                                     <div className="flex-1">
+                                                        <Label>Select Headings</Label>
+                                                        <Select><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger><SelectContent><SelectItem value="h1">Heading 1</SelectItem></SelectContent></Select>
+                                                     </div>
+                                                     <Button type="button">Continue</Button>
+                                                </div>
+                                            </div>
+                                            {submitButtonText && (
+                                                <div className="flex justify-end gap-4 mt-8">
+                                                    <Button type="submit">
+                                                        <Save className="h-4 w-4 mr-2" />
+                                                        {submitButtonText}
+                                                    </Button>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
                                 </CardContent>
                             </Card>
                         </TabsContent>
                     )
                 })}
              </Tabs>
-            {submitButtonText && (
-               <div className="flex justify-end gap-4">
-                  <Button type="submit">
-                    <Save className="h-4 w-4 mr-2" />
-                    {submitButtonText}
-                  </Button>
-              </div>
-            )}
           </form>
         </FormProvider>
       </CardContent>

@@ -3,13 +3,13 @@ export const otherDetailsSchema = {
   "description": "Provide any other relevant information or details.",
   "type": "object",
   "properties": {
-    "otherDetails": {
+    "otherInfo": {
       "type": "array",
       "title": "Other Details",
       "items": {
         "type": "object",
         "properties": {
-          "srNo": { "type": "number", "title": "Sr. No" },
+          "srNo": { "type": "number", "title": "Sr. No", "x-ui-readonly": true },
           "subject": { "type": "string", "title": "Subject" },
           "details": { "type": "string", "title": "Details" }
         }

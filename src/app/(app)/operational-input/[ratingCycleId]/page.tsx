@@ -89,15 +89,11 @@ export default function OperationalInputFlowPage() {
     
     return (
         <div className="space-y-6">
-             <header className="flex items-center justify-between">
+             <header>
                 <div>
                     <h1 className="text-2xl font-bold tracking-tight text-foreground">Operational Data Input</h1>
                     <p className="text-muted-foreground">Step 2: Enter sector-specific operational data. Only Pharma is required.</p>
                 </div>
-                 <Button onClick={formRef.handleSubmit(handleSubmit)}>
-                    <Save className="mr-2 h-4 w-4" />
-                    Save & Mark as Complete
-                </Button>
             </header>
             <main>
                 <Suspense fallback={<FormLoadingSkeleton />}>
@@ -107,13 +103,12 @@ export default function OperationalInputFlowPage() {
                         <JsonSchemaForm
                             formInstance={formRef}
                             schema={schema}
-                            schemaType="form"
                             onSubmit={handleSubmit}
                             onCancel={() => router.back()}
                             requestId={ratingCycleId!}
                             dataKey={dataKey}
                             isLastStep={false}
-                            submitButtonText="" // Button is now rendered outside
+                            submitButtonText="Save & Mark as Complete" // Button is now rendered inside
                         />
                     )}
                 </Suspense>

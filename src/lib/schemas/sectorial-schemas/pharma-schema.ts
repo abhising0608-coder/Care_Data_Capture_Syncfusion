@@ -1,3 +1,4 @@
+'use client';
 
 import { companyDetailsSchema } from '../company-details-schema';
 import { commonDetailsSchema } from '../common-details-schema';
