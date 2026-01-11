@@ -338,7 +338,7 @@ export const mockLatestBankDetails: LatestBankDetail[] = [
 export const mockAnnexureVHistoryData: AnnexureVHistory[] = [
     { id: '109630', instrument: 'Bank Facilities-Term Loan-Long Term', status: 'Active', amount: 464.90, count: 3, initialRatingDate: '2010-09-24', initialRating: 'CARE BB+', ratingActions: [{ date: '2010-09-24', rating: 'CARE BB+' }] },
     { id: '12363', instrument: 'Bank Facilities-Non-fund-based - ST-BG/LC', status: 'Closed', amount: 166.66, count: 0, initialRatingDate: '2011-05-09', initialRating: 'CARE A3', ratingActions: [{ date: '2011-05-09', rating: 'CARE A3' }] },
-    { id: '12363', instrument: 'Bank Facilities-Fund-based - LT/ ST-Cash Credit', status: 'Closed', amount: 524.67, count: 0, initialRatingDate: '2011-05-09', initialRating: 'CARE BBB-', ratingActions: [{ date: '2011-05-09', rating: 'CARE BBB-' }] },
+    { id: '12363', instrument: 'Bank Facilities-Fund-based - LT/ST-Cash Credit', status: 'Closed', amount: 524.67, count: 0, initialRatingDate: '2011-05-09', initialRating: 'CARE BBB-', ratingActions: [{ date: '2011-05-09', rating: 'CARE BBB-' }] },
     { id: '12363', instrument: 'Term Loan', status: 'Closed', amount: 125.00, count: 3, initialRatingDate: '2010-09-24', initialRating: 'CARE A4', ratingActions: [{ date: '2010-09-24', rating: 'CARE A4' }] },
     { id: '12363', instrument: 'Term Loan', status: 'Withdrawn', amount: 0, count: 3, initialRatingDate: '2010-09-24', initialRating: 'CARE BB+', ratingActions: [{ date: '2010-09-24', rating: 'CARE BB+' }] },
     { id: '12363', instrument: 'Non Fund Based Limits', status: 'Active', amount: 886.01, count: 0, initialRatingDate: '2010-09-24', initialRating: 'CARE AA: Stable', ratingActions: [{ date: '2010-09-24', rating: 'CARE AA: Stable' }] },
@@ -992,6 +992,39 @@ export const updateIsinRecord = (instrumentId: string, rcmId: string, records: I
 
 // --- DMS Document History Functions ---
 
-export const getDMSDocumentHistory = (companyId: string): DMSDocumentHistory[] => {
+export const getDMSDocumentHistoryByCompanyId = (companyId: string): DMSDocumentHistory[] => {
   return mockDMSDocumentHistoryData;
+}
+
+// --- Past Financials for CKC Request Details ---
+export const getPastFinancialsByCompanyId = (companyId: string) => {
+    return [];
+}
+
+// --- Mandate Details for CKC Request Details ---
+export const getMandateDetailsByRequestId = (requestId: string) => {
+    return {
+        mandateInfo: {
+            mandateId: 'MAN-12345',
+            mandateType: 'Initial',
+            mandateDate: '2024-04-15',
+            receivedDate: '2024-04-16',
+            regionBranch: 'Mumbai',
+            bdName: 'John Doe',
+            ratingGhName: 'Jane Smith',
+            vertical: 'Corporate'
+        },
+        companyInfo: {
+            address: '123 Business Rd, Financial District',
+            city: 'Mumbai',
+            zipcode: '400051',
+            state: 'Maharashtra',
+            country: 'India',
+            instrument: 'Term Loan',
+            instrumentSize: '100 Cr',
+            industry: 'Manufacturing',
+            subIndustry: 'Automotive',
+            sector: 'Auto OEM'
+        }
+    }
 }
