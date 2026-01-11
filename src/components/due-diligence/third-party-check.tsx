@@ -25,6 +25,7 @@ import { useAuth } from '@/firebase';
 import type { ThirdPartyDiscussion, ThirdPartyPersonnel, ThirdPartyMinute, CompanyDashboard, AppUser } from '@/lib/definitions';
 import { getCompaniesByRole } from '@/lib/mock-data';
 import { Skeleton } from '../ui/skeleton';
+import { ThirdPartyEmailModal } from './third-party-email-modal';
 
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
@@ -60,7 +61,9 @@ export default function ThirdPartyCheckClient() {
   const { user, isLoading: isAuthLoading } = useAuth();
   
   const [selectedCompanyId, setSelectedCompanyId] = useState<string | null>(null);
+  const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
 
+  const { data: company, isLoading: isCompanyLoading } = useSWR<CompanyDashboard>(selectedCompanyId ? `/api/companies/${selectedCompanyId}` : null, fetcher);
   const { data: discussionData, isLoading: isDataLoading, mutate } = useSWR<ThirdPartyDiscussion>(
       selectedCompanyId ? `/api/discussions/third-party/${selectedCompanyId}` : null,
       fetcher
@@ -124,6 +127,7 @@ export default function ThirdPartyCheckClient() {
   const relationship = discussionData?.relationship || 'Prefilled from master';
 
   return (
+    <>
     <div className="space-y-6">
       <header>
         <h1 className="text-2xl font-bold tracking-tight text-foreground">Third Party</h1>
@@ -241,7 +245,7 @@ export default function ThirdPartyCheckClient() {
             )}
 
             <div className="flex justify-end gap-2">
-                <Button type="button" variant="outline" onClick={() => toast({description: "Not Implemented"})}>Email to Client</Button>
+                <Button type="button" variant="outline" onClick={() => setIsEmailModalOpen(true)} disabled={!discussionData}>Email to Client</Button>
                 <Button type="button" variant="outline" onClick={() => toast({ title: 'Placeholder' })}>Send to GH</Button>
                 <Button type="submit">Save</Button>
                 <Button type="button" variant="outline" onClick={() => router.back()}>Back</Button>
@@ -249,6 +253,16 @@ export default function ThirdPartyCheckClient() {
         </form>
       </FormProvider>
     </div>
+    {discussionData && user && (
+        <ThirdPartyEmailModal
+            isOpen={isEmailModalOpen}
+            onClose={() => setIsEmailModalOpen(false)}
+            discussion={form.getValues()}
+            company={company || null}
+            analyst={user as AppUser}
+        />
+    )}
+    </>
   );
 }
 

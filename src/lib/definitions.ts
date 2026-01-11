@@ -144,7 +144,7 @@ export interface ThirdPartyDiscussion {
   companyId: string;
   organizationName: string;
   relationship: string;
-  interactionDate: string;
+  interactionDate: string | Date | null;
   meetingLocation: string;
   careTeam: string[];
   personnel: ThirdPartyPersonnel[];
