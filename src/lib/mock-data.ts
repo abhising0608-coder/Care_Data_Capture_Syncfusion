@@ -4,6 +4,7 @@
 
 
 
+
 import type { AppUser, Role, RequestStatus, CKCRequest, CKCRequestDocument, CompanyInfo, RatingNote, NoteStatus, RatingNoteDataSchema, LatestBankDetail, AnnexureVHistory, PressReleaseHistoryEntry, PressReleaseHistory, DMSDocumentHistory, RatingInstrument, RatingInstrumentCycle, PortfolioActivity, Mandate, Auditor, AuditorDiscussion, AuditorQuestionnaireItem, Banker, BankerDiscussion, DTA, DTADiscussion, DtaQuestionnaireItem, IPA, IPADiscussion, IpaQuestionnaireItem, ManagementDiscussion, ThirdPartyDiscussion, AuditCommitteeDiscussion, SitePlantVisit, BankerLenderDetail, ISINRecord } from './definitions';
 
 
@@ -990,41 +991,22 @@ export const updateIsinRecord = (instrumentId: string, rcmId: string, records: I
     return isinRecords[key];
 }
 
-// --- DMS Document History Functions ---
+export const getIpaDiscussionById = (ipaId: string, discussionId: string): IPADiscussion | undefined => {
+    const ipa = mockIpas.find(a => a.id === ipaId);
+    return ipa?.discussions.find(d => d.id === discussionId);
+};
 
-export const getDMSDocumentHistoryByCompanyId = (companyId: string): DMSDocumentHistory[] => {
-  return mockDMSDocumentHistoryData;
-}
+export const updateIpaDiscussion = (ipaId: string, discussionId: string, updates: Partial<IPADiscussion>): IPADiscussion | undefined => {
+    const ipaIndex = mockIpas.findIndex(a => a.id === ipaId);
+    if (ipaIndex === -1) return undefined;
+    
+    const discussionIndex = mockIpas[ipaIndex].discussions.findIndex(d => d.id === discussionId);
+    if (discussionIndex === -1) return undefined;
+    
+    mockIpas[ipaIndex].discussions[discussionIndex] = {
+        ...mockIpas[ipaIndex].discussions[discussionIndex],
+        ...updates
+    };
 
-// --- Past Financials for CKC Request Details ---
-export const getPastFinancialsByCompanyId = (companyId: string) => {
-    return [];
-}
-
-// --- Mandate Details for CKC Request Details ---
-export const getMandateDetailsByRequestId = (requestId: string) => {
-    return {
-        mandateInfo: {
-            mandateId: 'MAN-12345',
-            mandateType: 'Initial',
-            mandateDate: '2024-04-15',
-            receivedDate: '2024-04-16',
-            regionBranch: 'Mumbai',
-            bdName: 'John Doe',
-            ratingGhName: 'Jane Smith',
-            vertical: 'Corporate'
-        },
-        companyInfo: {
-            address: '123 Business Rd, Financial District',
-            city: 'Mumbai',
-            zipcode: '400051',
-            state: 'Maharashtra',
-            country: 'India',
-            instrument: 'Term Loan',
-            instrumentSize: '100 Cr',
-            industry: 'Manufacturing',
-            subIndustry: 'Automotive',
-            sector: 'Auto OEM'
-        }
-    }
-}
+    return mockIpas[ipaIndex].discussions[discussionIndex];
+};
