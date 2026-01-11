@@ -167,11 +167,32 @@ export interface DiscussionMinute {
 
 export interface ManagementDiscussion {
   companyId: string;
-  interactionDate: string;
+  interactionDate: string | Date | null;
   meetingLocation: string;
   careTeam: string[];
   personnel: ManagementPersonnel[];
   minutes: DiscussionMinute[];
+}
+
+export interface AuditCommitteePersonnel {
+  id: string;
+  name: string;
+}
+
+export interface AuditCommitteeMinute {
+  id: string;
+  srNo: number;
+  issue: string;
+  response: string;
+}
+
+export interface AuditCommitteeDiscussion {
+  companyId: string;
+  interactionDate: string | Date | null;
+  meetingLocation: string;
+  careTeam: string[];
+  personnel: AuditCommitteePersonnel[];
+  minutes: AuditCommitteeMinute[];
 }
 
 
