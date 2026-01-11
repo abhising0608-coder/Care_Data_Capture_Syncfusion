@@ -1,6 +1,6 @@
 
 
-import type { AppUser, Role, RequestStatus, CKCRequest, CKCRequestDocument, CompanyInfo, RatingNote, NoteStatus, RatingNoteDataSchema, LatestBankDetail, AnnexureVHistory, PressReleaseHistoryEntry, PressReleaseHistory, DMSDocumentHistory, BankerLenderDetail, PortfolioActivity, Mandate, Auditor, AuditorDiscussion } from './definitions';
+import type { AppUser, Role, RequestStatus, CKCRequest, CKCRequestDocument, CompanyInfo, RatingNote, NoteStatus, RatingNoteDataSchema, LatestBankDetail, AnnexureVHistory, PressReleaseHistoryEntry, PressReleaseHistory, DMSDocumentHistory, BankerLenderDetail, PortfolioActivity, Mandate, Auditor, AuditorDiscussion, AuditorQuestionnaireItem } from './definitions';
 
 
 // --- FSD-based Master JSON Data Structure ---
@@ -315,7 +315,7 @@ export const mockDMSDocumentHistoryData: DMSDocumentHistory[] = [
     { documentName: 'Information Memorandum', dmsStatus: 'Uploaded', dmsProcessType: 'Revalidation', dmsUploadedOn: '2010-09-24 10:48 AM', dmsUploadedBy: 'Maulesh Desai', reason: '-', mandateId: '2014-2015/20/21796' },
     { documentName: 'Management Meeting', dmsStatus: 'Pending', dmsProcessType: 'Review', dmsUploadedOn: '2010-09-24 10:48 AM', dmsUploadedBy: '-', reason: '-', mandateId: '2014-2015/20/21796' },
     { documentName: 'NDS', dmsStatus: 'Uploaded', dmsProcessType: 'Review', dmsUploadedOn: '2010-09-24 10:48 AM', dmsUploadedBy: 'Maulesh Desai', reason: '-', mandateId: '2014-2015/20/21796' },
-    { documentName: 'Rating Letter', dmsStatus: 'Uploaded', dmsProcessType: 'Review', dmsUploadedOn: '2010-09-24 10:48 AM', dmsUploadedBy: 'Maulesh Desai', reason: '-', mandateId: '2014-2015/20/21796' },
+    { documentName: 'Rating Letter', dmsStatus: 'Uploaded', dmsProcessType: 'Review', dmsUploadedOn: '2010-09-24 10_48 AM', dmsUploadedBy: 'Maulesh Desai', reason: '-', mandateId: '2014-2015/20/21796' },
     { documentName: 'Rating letter and email of Rating...', dmsStatus: 'Uploaded', dmsProcessType: 'Review', dmsUploadedOn: '2010-09-24 10:48 AM', dmsUploadedBy: 'Maulesh Desai', reason: '-', mandateId: '2014-2015/20/21796' },
 ];
 
@@ -483,7 +483,22 @@ export const mockAuditorContacts = [
     { id: 'aud-contact-4', name: 'Prakash Jain', email: 'prakash@abc.com', contact: '0000000000' },
 ];
 
-const mockAuditors: Auditor[] = [
+export const mockAuditorQuestionnaire: AuditorQuestionnaireItem[] = [
+    { id: 'q1', particulars: 'Duration of association with the captioned entity' },
+    { id: 'q2', particulars: 'Opinion on quality of accounts, compliance with Guidelines of ICAI, adherence to Accounting Standards, adequacy of internal control systems etc.' },
+    { id: 'q3', particulars: 'Impact of change in accounting policy on the financials, if any' },
+    { id: 'q4', particulars: 'Impact of <Qualified /adverse/disclaimer opinion> on the entity [If applicable]' },
+    { id: 'q5', particulars: 'Debt repayment track record' },
+    { id: 'q6', particulars: 'Track record of payment of undisputed statutory dues like PF, Service Tax, Income Tax etc.' },
+    { id: 'q7', particulars: 'Details of hedging of foreign exchange and derivative transactions, if any' },
+    { id: 'q8', particulars: 'Areas of risk identified by you at the time of audit, if any & measures taken by the management to mitigate them' },
+    { id: 'q9', particulars: 'Views on nature and likelihood of devolvement of the contingent liabilities' },
+    { id: 'q10', particulars: 'Existence of business contingency plans' },
+    { id: 'q11', particulars: 'Any other information' },
+];
+
+
+let mockAuditors: Auditor[] = [
     { 
         id: 'auditor-1', 
         firmName: 'A.U. Mojad & Associates', 
@@ -544,6 +559,27 @@ export const getAuditorsByCompanyId = (companyId: string): Auditor[] => {
   // In a real app, this would be a filtered fetch based on companyId
   return mockAuditors;
 };
+
+export const getAuditorDiscussionById = (auditorId: string, discussionId: string): AuditorDiscussion | undefined => {
+    const auditor = mockAuditors.find(a => a.id === auditorId);
+    return auditor?.discussions.find(d => d.id === discussionId);
+};
+
+export const updateAuditorDiscussion = (auditorId: string, discussionId: string, updates: Partial<AuditorDiscussion>): AuditorDiscussion | undefined => {
+    const auditorIndex = mockAuditors.findIndex(a => a.id === auditorId);
+    if (auditorIndex === -1) return undefined;
+    
+    const discussionIndex = mockAuditors[auditorIndex].discussions.findIndex(d => d.id === discussionId);
+    if (discussionIndex === -1) return undefined;
+    
+    mockAuditors[auditorIndex].discussions[discussionIndex] = {
+        ...mockAuditors[auditorIndex].discussions[discussionIndex],
+        ...updates
+    };
+
+    return mockAuditors[auditorIndex].discussions[discussionIndex];
+};
+
 
 export const getDMSDocumentHistoryByCompanyId = (companyId: string): DMSDocumentHistory[] => {
     return mockDMSDocumentHistoryData || [];
@@ -827,16 +863,16 @@ export const getDMSDocumentHistory = (companyId: string): DMSDocumentHistory[] =
 }
 
 // --- ISIN Records Functions ---
-export function getIsinRecords(instrumentId: string, rcmId: string): ISINRecord[] {
+export function getIsinRecords(instrumentId: string, rcmId: string): any[] {
     const instrument = getInstrumentById(instrumentId);
     return instrument?.isinRecords || [];
 }
 
-export function updateIsinRecord(instrumentId: string, rcmId: string, records: ISINRecord[]): ISINRecord[] {
+export function updateIsinRecord(instrumentId: string, rcmId: string, records: any[]): any[] {
     for (const companyId in ratingInstruments) {
         const instIndex = ratingInstruments[companyId].findIndex(inst => inst.id === instrumentId);
         if (instIndex !== -1) {
-            ratingInstruments[companyId][instIndex].isinRecords = records;
+            (ratingInstruments[companyId][instIndex] as any).isinRecords = records;
             return records;
         }
     }

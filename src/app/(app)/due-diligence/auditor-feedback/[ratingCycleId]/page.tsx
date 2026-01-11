@@ -1,11 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import useSWR from 'swr';
 import { useAuth } from '@/firebase';
-import { getCompaniesByRole, getAuditorsByCompanyId } from '@/lib/mock-data';
-import type { Auditor, AppUser, CompanyDashboard } from '@/lib/definitions';
+import { getCompaniesByRole } from '@/lib/mock-data';
+import type { Auditor, AppUser } from '@/lib/definitions';
 import {
   Card,
   CardContent,
@@ -35,7 +35,14 @@ export default function AuditorFeedbackPage() {
   const { toast } = useToast();
 
   const companies = getCompaniesByRole(user as AppUser);
-  const { data: companyAuditors, isLoading: isAuditorsLoading } = useSWR(selectedCompany ? `/api/auditors/${selectedCompany}` : null, fetcher);
+  const { data: companyAuditors, isLoading: isAuditorsLoading, mutate } = useSWR(selectedCompany ? `/api/auditors/${selectedCompany}` : null, fetcher);
+
+  useEffect(() => {
+    if (companyAuditors) {
+      setAuditors(companyAuditors);
+    }
+  }, [companyAuditors]);
+
 
   const handleGo = () => {
     if (companyAuditors) {
@@ -52,6 +59,7 @@ export default function AuditorFeedbackPage() {
             return auditor;
         })
       );
+      mutate();
   }
 
   const AuditorRow = ({ auditor }: { auditor: Auditor }) => (
@@ -62,7 +70,8 @@ export default function AuditorFeedbackPage() {
       <AccordionContent className="p-0">
         <div className="p-4 bg-muted/50 border-t">
           <AuditorDiscussionTable 
-            discussions={auditor.discussions} 
+            discussions={auditor.discussions}
+            auditorId={auditor.id}
             onAddDiscussion={(newDiscussion) => handleAddDiscussion(auditor.id, newDiscussion)}
           />
         </div>

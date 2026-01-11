@@ -35,6 +35,11 @@ export type ActivityStatus = 'Not Initiated' | 'In Progress' | 'Completed';
 
 export type AuditorFeedbackStatus = 'Pending' | 'Feedback Captured' | 'Minutes Uploaded';
 
+export interface AuditorQuestionnaireItem {
+  id: string;
+  particulars: string;
+}
+
 export interface AuditorDiscussion {
     id: string;
     contactPerson: string;
@@ -44,6 +49,8 @@ export interface AuditorDiscussion {
     email: string;
     contact: string;
     status: 'Pending' | 'In Progress' | 'Completed';
+    feedback?: Record<string, string>;
+    summary?: string;
 }
 
 export interface Auditor {

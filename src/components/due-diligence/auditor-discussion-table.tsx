@@ -7,6 +7,7 @@ import * as z from 'zod';
 import { v4 as uuidv4 } from 'uuid';
 import { Check, RefreshCw, Eye, Mail, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
+import { useRouter, useParams } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -18,6 +19,7 @@ import { mockAuditorContacts } from '@/lib/mock-data';
 
 interface AuditorDiscussionTableProps {
     discussions: AuditorDiscussion[];
+    auditorId: string;
     onAddDiscussion: (newDiscussion: AuditorDiscussion) => void;
 }
 
@@ -38,8 +40,12 @@ const statusVariant = (status: AuditorDiscussion['status']) => {
 }
 
 
-export function AuditorDiscussionTable({ discussions, onAddDiscussion }: AuditorDiscussionTableProps) {
+export function AuditorDiscussionTable({ discussions, auditorId, onAddDiscussion }: AuditorDiscussionTableProps) {
     const { toast } = useToast();
+    const router = useRouter();
+    const params = useParams();
+    const ratingCycleId = params.ratingCycleId as string;
+
     const [localDiscussions, setLocalDiscussions] = useState(discussions);
 
     const form = useForm<DiscussionFormValues>({
@@ -75,11 +81,15 @@ export function AuditorDiscussionTable({ discussions, onAddDiscussion }: Auditor
         });
     };
 
-    const handleAction = (action: 'view' | 'email', id: string) => {
-        toast({
-            title: 'Action Triggered',
-            description: `Action '${action}' on item ${id} is a placeholder for now.`
-        });
+    const handleAction = (action: 'view' | 'email', discussionId: string) => {
+        if (action === 'view') {
+            router.push(`/due-diligence/auditor-feedback/${ratingCycleId}/${auditorId}/${discussionId}`);
+        } else {
+            toast({
+                title: 'Action Triggered',
+                description: `Action '${action}' on item ${discussionId} is a placeholder for now.`
+            });
+        }
     };
     
     const handleDelete = (id: string) => {
