@@ -17,6 +17,7 @@ import { useToast } from '@/hooks/use-toast';
 import type { IPA, IPADiscussion, RatingNote } from '@/lib/definitions';
 import { useAuth } from '@/firebase';
 import { mockIpaContacts } from '@/lib/mock-data';
+import { IpaEmailModal } from './ipa-email-modal';
 
 
 interface IpaDiscussionTableProps {
@@ -90,11 +91,9 @@ export function IpaDiscussionTable({ discussions, ipa, note, onAddDiscussion }: 
     const handleAction = (action: 'view' | 'email', discussion: IPADiscussion) => {
         if (action === 'view') {
             router.push(`/due-diligence/ipa-feedback/${ratingCycleId}/${ipa.id}/${discussion.id}`);
-        } else {
-             toast({
-                title: `Action: ${action}`,
-                description: `Action on ${discussion.id} is a placeholder.`
-            })
+        } else if (action === 'email') {
+            setSelectedDiscussion(discussion);
+            setIsEmailModalOpen(true);
         }
     };
     
@@ -189,7 +188,16 @@ export function IpaDiscussionTable({ discussions, ipa, note, onAddDiscussion }: 
                 </div>
             </form>
         </FormProvider>
-        {/* Email Modal would be rendered here */}
+        {selectedDiscussion && note && ipa && user && (
+            <IpaEmailModal
+                isOpen={isEmailModalOpen}
+                onClose={() => setIsEmailModalOpen(false)}
+                discussion={selectedDiscussion}
+                ipa={ipa}
+                note={note}
+                analyst={user}
+            />
+        )}
         </>
     );
 }

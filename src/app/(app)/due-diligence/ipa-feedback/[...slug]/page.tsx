@@ -18,6 +18,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import type { IPA, IPADiscussion, RatingNote, AppUser } from '@/lib/definitions';
 import { mockIpaQuestionnaire } from '@/lib/mock-data';
 import { useAuth } from '@/firebase';
+import { IpaEmailModal } from '@/components/due-diligence/ipa-email-modal';
 
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
@@ -165,7 +166,7 @@ export default function IpaFeedbackCapturePage() {
                      <Button type="button" variant="outline" onClick={() => toast({description: 'Placeholder'})}><FileText className="mr-2 h-4 w-4"/>Export</Button>
                 </div>
                 <div className="flex gap-2">
-                    <Button type="button" variant="outline" onClick={() => toast({description: 'Placeholder'})}><Mail className="mr-2 h-4 w-4"/>Email to IPA</Button>
+                    <Button type="button" variant="outline" onClick={() => setIsEmailModalOpen(true)}><Mail className="mr-2 h-4 w-4"/>Email to IPA</Button>
                     <Button type="submit"><Save className="mr-2 h-4 w-4"/>Save</Button>
                     <Button type="button" variant="outline" onClick={handleMarkAsComplete}>Mark as Complete</Button>
                     <Button type="button" onClick={() => router.back()}><ArrowLeft className="mr-2 h-4 w-4"/>Back</Button>
@@ -174,6 +175,16 @@ export default function IpaFeedbackCapturePage() {
         </form>
       </FormProvider>
     </div>
+    {note && discussion && ipa && user && (
+        <IpaEmailModal
+            isOpen={isEmailModalOpen}
+            onClose={() => setIsEmailModalOpen(false)}
+            discussion={discussion}
+            ipa={ipa}
+            note={note}
+            analyst={user}
+        />
+    )}
     </>
   );
 }
