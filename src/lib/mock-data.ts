@@ -1,6 +1,6 @@
 
 
-import type { AppUser, Role, RequestStatus, CKCRequest, CKCRequestDocument, CompanyInfo, RatingNote, NoteStatus, RatingNoteDataSchema, LatestBankDetail, AnnexureVHistory, PressReleaseHistoryEntry, PressReleaseHistory, DMSDocumentHistory, BankerLenderDetail, PortfolioActivity, Mandate, Auditor, AuditorDiscussion, AuditorQuestionnaireItem, Banker, BankerDiscussion } from './definitions';
+import type { AppUser, Role, RequestStatus, CKCRequest, CKCRequestDocument, CompanyInfo, RatingNote, NoteStatus, RatingNoteDataSchema, LatestBankDetail, AnnexureVHistory, PressReleaseHistoryEntry, PressReleaseHistory, DMSDocumentHistory, BankerLenderDetail, PortfolioActivity, Mandate, Auditor, AuditorDiscussion, AuditorQuestionnaireItem, Banker, BankerDiscussion, DTA, DTADiscussion } from './definitions';
 
 
 // --- FSD-based Master JSON Data Structure ---
@@ -534,6 +534,15 @@ let mockBankers: Banker[] = [
     { id: 'bank-3', bankName: 'Yes Bank', discussions: [] },
 ];
 
+let mockDtas: DTA[] = [
+    { id: 'dta-1', firmName: 'ABC Associates', discussions: [
+        { id: 'd-dta-1-1', contactPerson: 'Amit Sharma', discussionHappened: 'Yes', minutesCaptured: 'No', minutesCapturedOn: null, emailId: 'amit@abc.com', contact: '0000000000', status: 'Pending' },
+        { id: 'd-dta-1-2', contactPerson: 'Vijay Varma', discussionHappened: 'Yes', minutesCaptured: 'Partial', minutesCapturedOn: null, emailId: 'vijay@abc.com', contact: '0000000000', status: 'In Progress' },
+    ]},
+    { id: 'dta-2', firmName: 'PR Firm', discussions: [] },
+    { id: 'dta-3', firmName: 'New India Associates', discussions: [] },
+];
+
 // --- New Rating Note Data Functions ---
 
 export const getCkcRequests = (params: { status?: RequestStatus | null; id?: string | null }): CKCRequest[] => {
@@ -576,6 +585,10 @@ export const getAuditorsByCompanyId = (companyId: string): Auditor[] => {
 
 export const getBankersByCompanyId = (companyId: string): Banker[] => {
   return mockBankers;
+};
+
+export const getDtasByCompanyId = (companyId: string): DTA[] => {
+  return mockDtas;
 };
 
 export const getAuditorDiscussionById = (auditorId: string, discussionId: string): AuditorDiscussion | undefined => {
