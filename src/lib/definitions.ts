@@ -35,15 +35,21 @@ export type ActivityStatus = 'Not Initiated' | 'In Progress' | 'Completed';
 
 export type AuditorFeedbackStatus = 'Pending' | 'Feedback Captured' | 'Minutes Uploaded';
 
+export interface AuditorDiscussion {
+    id: string;
+    contactPerson: string;
+    discussionHappened: 'Yes' | 'No';
+    minutesCaptured: 'Yes' | 'No' | 'Partial';
+    interactionDate: string | null;
+    email: string;
+    contact: string;
+    status: 'Pending' | 'In Progress' | 'Completed';
+}
+
 export interface Auditor {
     id: string;
     firmName: string;
-    contactPerson: string;
-    status: AuditorFeedbackStatus;
-    history: {
-        date: string;
-        capturedBy: string;
-    }[];
+    discussions: AuditorDiscussion[];
 }
 
 export interface CKCRequestDocument {

@@ -1,6 +1,6 @@
 
 
-import type { AppUser, Role, RequestStatus, CKCRequest, CKCRequestDocument, CompanyInfo, RatingNote, NoteStatus, RatingNoteDataSchema, LatestBankDetail, AnnexureVHistory, PressReleaseHistoryEntry, PressReleaseHistory, DMSDocumentHistory, BankerLenderDetail, PortfolioActivity, Mandate } from './definitions';
+import type { AppUser, Role, RequestStatus, CKCRequest, CKCRequestDocument, CompanyInfo, RatingNote, NoteStatus, RatingNoteDataSchema, LatestBankDetail, AnnexureVHistory, PressReleaseHistoryEntry, PressReleaseHistory, DMSDocumentHistory, BankerLenderDetail, PortfolioActivity, Mandate, Auditor, AuditorDiscussion } from './definitions';
 
 
 // --- FSD-based Master JSON Data Structure ---
@@ -476,6 +476,35 @@ let companyInfoData: Record<string, CompanyInfo> = {
     }
 };
 
+export const mockAuditorContacts = [
+    { id: 'aud-contact-1', name: 'Amit Sharma', email: 'amit@abc.com', contact: '0000000000' },
+    { id: 'aud-contact-2', name: 'Vijay Varma', email: 'vijay@abc.com', contact: '0000000000' },
+    { id: 'aud-contact-3', name: 'Rajesh M.', email: 'rajesh@abc.com', contact: '0000000000' },
+    { id: 'aud-contact-4', name: 'Prakash Jain', email: 'prakash@abc.com', contact: '0000000000' },
+];
+
+const mockAuditors: Auditor[] = [
+    { 
+        id: 'auditor-1', 
+        firmName: 'A.U. Mojad & Associates', 
+        discussions: [
+            { id: 'd-1-1', contactPerson: 'Amit Sharma', discussionHappened: 'Yes', minutesCaptured: 'No', interactionDate: null, email: 'amit@abc.com', contact: '0000000000', status: 'Pending' },
+            { id: 'd-1-2', contactPerson: 'Vijay Varma', discussionHappened: 'Yes', minutesCaptured: 'Partial', interactionDate: null, email: 'vijay@abc.com', contact: '0000000000', status: 'In Progress' },
+            { id: 'd-1-3', contactPerson: 'Rajesh M.', discussionHappened: 'Yes', minutesCaptured: 'Yes', interactionDate: '2025-03-12', email: 'rajesh@abc.com', contact: '0000000000', status: 'Completed' },
+        ] 
+    },
+    { 
+        id: 'auditor-2', 
+        firmName: 'Ashish R Pai & Associates', 
+        discussions: [] 
+    },
+    { 
+        id: 'auditor-3', 
+        firmName: 'Deloitte Touche Tohmatsu India LLP', 
+        discussions: [] 
+    },
+];
+
 // --- New Rating Note Data Functions ---
 
 export const getCkcRequests = (params: { status?: RequestStatus | null; id?: string | null }): CKCRequest[] => {
@@ -509,6 +538,11 @@ export const getCompaniesByRole = (user: AppUser | null) => {
         default:
             return mockCompanies;
     }
+};
+
+export const getAuditorsByCompanyId = (companyId: string): Auditor[] => {
+  // In a real app, this would be a filtered fetch based on companyId
+  return mockAuditors;
 };
 
 export const getDMSDocumentHistoryByCompanyId = (companyId: string): DMSDocumentHistory[] => {
