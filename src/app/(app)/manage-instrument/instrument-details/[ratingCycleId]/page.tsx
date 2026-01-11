@@ -1,8 +1,18 @@
 
 'use client';
 
-import { InstrumentDetailsTab } from "@/components/manage-instrument/instrument-details-tab";
+import { redirect, useParams } from 'next/navigation';
 
 export default function InstrumentDetailsPageWithId() {
-    return <InstrumentDetailsTab />;
+    const params = useParams();
+    const ratingCycleId = params.ratingCycleId as string;
+    
+    // Redirect to the main manage-instrument page which now handles tabs
+    if(ratingCycleId) {
+        redirect(`/manage-instrument/${ratingCycleId}`);
+    } else {
+        redirect('/manage-instrument');
+    }
+    
+    return null;
 }

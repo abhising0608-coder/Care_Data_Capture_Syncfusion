@@ -1,8 +1,17 @@
 
 'use client';
 
-import { LatestBankDetailsTab } from "@/components/manage-instrument/latest-bank-details-tab";
+import { redirect, useParams } from 'next/navigation';
 
 export default function LatestBankDetailsPage() {
-    return <LatestBankDetailsTab />;
+    const params = useParams();
+    const ratingCycleId = params.ratingCycleId as string;
+
+    if(ratingCycleId) {
+        redirect(`/manage-instrument/${ratingCycleId}?tab=latest-bank-details`);
+    } else {
+        redirect('/manage-instrument');
+    }
+
+    return null;
 }

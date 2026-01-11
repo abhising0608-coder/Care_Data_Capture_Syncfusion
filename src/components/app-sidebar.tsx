@@ -166,8 +166,7 @@ export function AppSidebar() {
             </SidebarMenuItem>
           ))}
           
-           {/* CKC Submenu */}
-          {isClient && ['CKC_ADMIN', 'CKC_ANALYST'].includes(user?.role || '') && (
+           {isClient && ['CKC_ADMIN', 'CKC_ANALYST'].includes(user?.role || '') && (
             <SidebarMenuItem>
               <SidebarMenuSub>
                 <SidebarMenuSubButton
@@ -246,36 +245,20 @@ export function AppSidebar() {
               </SidebarMenuSub>
             </SidebarMenuItem>}
             
-            {isClient && <SidebarMenuItem>
-              <SidebarMenuSub>
-                <SidebarMenuSubButton
+            {isClient && 
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
                   isActive={pathname.startsWith('/manage-instrument')}
                   tooltip={{ children: 'Manage Instrument', side: 'right' }}
                   className="justify-start"
                 >
-                  <Wrench className="h-4 w-4" />
-                  <span className="text-sm">Manage Instrument</span>
-                   <ChevronDown className="h-4 w-4 ml-auto shrink-0 transition-transform duration-200 group-data-[state=open]:rotate-180" />
-                </SidebarMenuSubButton>
-                <SidebarMenuSubContent>
-                  {manageInstrumentMenuItems.map((item) => {
-                     const href = ratingCycleId ? `/manage-instrument/${item.id}/${ratingCycleId}` : '/manage-instrument';
-                     return (
-                      <SidebarMenuSubButton
-                        key={item.id}
-                        asChild
-                        isActive={pathname.startsWith(`/manage-instrument/${item.id}`)}
-                      >
-                        <a href={href} className="flex items-center gap-2">
-                           <item.icon className="h-4 w-4" />
-                           <span>{item.label}</span>
-                        </a>
-                      </SidebarMenuSubButton>
-                     )
-                  })}
-                </SidebarMenuSubContent>
-              </SidebarMenuSub>
-            </SidebarMenuItem>}
+                  <a href={ratingCycleId ? `/manage-instrument/${ratingCycleId}` : '/manage-instrument'}>
+                    <Wrench className="h-4 w-4" />
+                    <span className="text-sm">Manage Instrument</span>
+                  </a>
+                </SidebarMenuButton>
+              </SidebarMenuItem>}
 
         </SidebarMenu>
       </SidebarContent>

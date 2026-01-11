@@ -1,8 +1,17 @@
 
 'use client';
 
-import { PressReleaseHistoryTab } from "@/components/manage-instrument/press-release-history-tab";
+import { redirect, useParams } from 'next/navigation';
 
 export default function PressReleaseHistoryPage() {
-    return <PressReleaseHistoryTab />;
+    const params = useParams();
+    const ratingCycleId = params.ratingCycleId as string;
+    
+    if(ratingCycleId) {
+        redirect(`/manage-instrument/${ratingCycleId}?tab=press-release-history`);
+    } else {
+        redirect('/manage-instrument');
+    }
+    
+    return null;
 }

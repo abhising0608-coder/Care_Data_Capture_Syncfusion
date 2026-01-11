@@ -1,8 +1,17 @@
 
 'use client';
 
-import { DMSDocumentHistoryTab } from "@/components/manage-instrument/dms-document-history-tab";
+import { redirect, useParams } from 'next/navigation';
 
 export default function DMSDocumentHistoryPage() {
-    return <DMSDocumentHistoryTab />;
+    const params = useParams();
+    const ratingCycleId = params.ratingCycleId as string;
+
+    if(ratingCycleId) {
+        redirect(`/manage-instrument/${ratingCycleId}?tab=dms-document-history`);
+    } else {
+        redirect('/manage-instrument');
+    }
+    
+    return null;
 }
