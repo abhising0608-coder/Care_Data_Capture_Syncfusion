@@ -127,6 +127,31 @@ export interface IPA {
     discussions: IPADiscussion[];
 }
 
+export interface ThirdPartyPersonnel {
+  id: string;
+  name: string;
+  designation: string;
+}
+
+export interface ThirdPartyMinute {
+  id: string;
+  srNo: number;
+  query: string;
+  response: string;
+}
+
+export interface ThirdPartyDiscussion {
+  companyId: string;
+  organizationName: string;
+  relationship: string;
+  interactionDate: string;
+  meetingLocation: string;
+  careTeam: string[];
+  personnel: ThirdPartyPersonnel[];
+  minutes: ThirdPartyMinute[];
+}
+
+
 export interface ManagementPersonnel {
   id: string;
   name: string;

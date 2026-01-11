@@ -106,7 +106,7 @@ const dueDiligenceMenuItems = [
     { href: '/due-diligence/dta-feedback', label: 'DTA Feedback', icon: FileText },
     { href: '/due-diligence/ipa-feedback', label: 'IPA Feedback', icon: FileText },
     { href: '/due-diligence/management-discussion', label: 'Management Discussion', icon: Presentation },
-    { href: '#', label: 'Third Party Check', icon: ShieldCheck },
+    { href: '/due-diligence/third-party-check', label: 'Third Party Check', icon: ShieldCheck },
     { href: '#', label: 'Audit Committee Meeting', icon: FolderOpen },
     { href: '#', label: 'Site / Plant Visit', icon: Building },
 ];
@@ -222,7 +222,7 @@ export function AppSidebar() {
                         asChild
                         isActive={pathname.startsWith(item.href)}
                       >
-                        <a href={`${item.href}/NOTE-001`} className="flex items-center gap-2">
+                        <a href={item.href.startsWith('#') ? '#' : `${item.href}/NOTE-001`} className="flex items-center gap-2">
                            <item.icon className="h-4 w-4" />
                            <span>{item.label}</span>
                         </a>
