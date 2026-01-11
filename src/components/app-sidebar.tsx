@@ -108,7 +108,7 @@ const dueDiligenceMenuItems = [
     { href: '/due-diligence/management-discussion', label: 'Management Discussion', icon: Presentation },
     { href: '/due-diligence/third-party-check', label: 'Third Party Check', icon: ShieldCheck },
     { href: '/due-diligence/audit-committee-meeting', label: 'Audit Committee Meeting', icon: FolderOpen },
-    { href: '#', label: 'Site / Plant Visit', icon: Building },
+    { href: '/due-diligence/site-plant-visit', label: 'Site / Plant Visit', icon: Building },
 ];
 
 export function AppSidebar() {

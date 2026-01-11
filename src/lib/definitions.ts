@@ -195,6 +195,21 @@ export interface AuditCommitteeDiscussion {
   minutes: AuditCommitteeMinute[];
 }
 
+export interface SiteVisitPersonnel {
+  id: string;
+  name: string;
+  designation: string;
+}
+
+export interface SitePlantVisit {
+    companyId: string;
+    visitDate: string | Date | null;
+    careTeam: string[];
+    plantVisited: string;
+    locationDetails: string;
+    clientPersonnel: SiteVisitPersonnel[];
+}
+
 export interface DocumentFile {
   id: string;
   name: string;
