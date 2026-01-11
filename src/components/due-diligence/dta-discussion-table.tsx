@@ -16,8 +16,7 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import type { DTA, DTADiscussion, RatingNote } from '@/lib/definitions';
 import { useAuth } from '@/firebase';
-// Assume DTA Email Modal will be created later. For now, we can use a placeholder.
-// import { DtaEmailModal } from './dta-email-modal';
+import { DtaEmailModal } from './dta-email-modal';
 
 
 interface DtaDiscussionTableProps {
@@ -52,8 +51,8 @@ export function DtaDiscussionTable({ discussions, dta, note, onAddDiscussion }: 
     const ratingCycleId = params.ratingCycleId as string;
 
     const [localDiscussions, setLocalDiscussions] = useState(discussions);
-    // const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
-    // const [selectedDiscussion, setSelectedDiscussion] = useState<DTADiscussion | null>(null);
+    const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
+    const [selectedDiscussion, setSelectedDiscussion] = useState<DTADiscussion | null>(null);
 
     const form = useForm<DiscussionFormValues>({
         resolver: zodResolver(discussionSchema),
@@ -98,11 +97,9 @@ export function DtaDiscussionTable({ discussions, dta, note, onAddDiscussion }: 
     const handleAction = (action: 'view' | 'email', discussion: DTADiscussion) => {
         if (action === 'view') {
             router.push(`/due-diligence/dta-feedback/${ratingCycleId}/${dta.id}/${discussion.id}`);
-        } else {
-             toast({
-                title: 'Placeholder Action',
-                description: `Triggered '${action}' for DTA discussion ${discussion.id}. This functionality will be built next.`,
-            });
+        } else if (action === 'email') {
+            setSelectedDiscussion(discussion);
+            setIsEmailModalOpen(true);
         }
     };
     
@@ -197,6 +194,16 @@ export function DtaDiscussionTable({ discussions, dta, note, onAddDiscussion }: 
                 </div>
             </form>
         </FormProvider>
+        {selectedDiscussion && note && user && dta && (
+            <DtaEmailModal
+                isOpen={isEmailModalOpen}
+                onClose={() => setIsEmailModalOpen(false)}
+                discussion={selectedDiscussion}
+                dta={dta}
+                note={note}
+                analyst={user}
+            />
+        )}
         </>
     );
 }

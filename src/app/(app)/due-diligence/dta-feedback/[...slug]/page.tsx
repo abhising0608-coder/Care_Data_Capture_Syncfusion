@@ -18,7 +18,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import type { DTA, DTADiscussion, RatingNote, AppUser } from '@/lib/definitions';
 import { mockDtaQuestionnaire } from '@/lib/mock-data';
 import { useAuth } from '@/firebase';
-// import { DtaEmailModal } from '@/components/due-diligence/dta-email-modal';
+import { DtaEmailModal } from '@/components/due-diligence/dta-email-modal';
 
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
@@ -166,7 +166,7 @@ export default function DtaFeedbackCapturePage() {
                      <Button type="button" variant="outline" onClick={() => toast({description: 'Placeholder'})}><FileText className="mr-2 h-4 w-4"/>Export</Button>
                 </div>
                 <div className="flex gap-2">
-                    <Button type="button" variant="outline" onClick={() => toast({title: "Placeholder", description: "Email to DT modal to be built."})}><Mail className="mr-2 h-4 w-4"/>Email to DT</Button>
+                    <Button type="button" variant="outline" onClick={() => setIsEmailModalOpen(true)}><Mail className="mr-2 h-4 w-4"/>Email to DT</Button>
                     <Button type="submit"><Save className="mr-2 h-4 w-4"/>Save</Button>
                     <Button type="button" variant="outline" onClick={handleMarkAsComplete}>Mark as Complete</Button>
                     <Button type="button" onClick={() => router.back()}><ArrowLeft className="mr-2 h-4 w-4"/>Back</Button>
@@ -175,7 +175,7 @@ export default function DtaFeedbackCapturePage() {
         </form>
       </FormProvider>
     </div>
-    {/* {note && discussion && dta && user && (
+    {note && discussion && dta && user && (
         <DtaEmailModal
             isOpen={isEmailModalOpen}
             onClose={() => setIsEmailModalOpen(false)}
@@ -184,7 +184,7 @@ export default function DtaFeedbackCapturePage() {
             dta={dta}
             analyst={user}
         />
-    )} */}
+    )}
     </>
   );
 }
