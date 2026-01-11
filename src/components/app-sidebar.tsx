@@ -222,7 +222,7 @@ export function AppSidebar() {
                         asChild
                         isActive={pathname.startsWith(item.href)}
                       >
-                        <a href={item.href.startsWith('#') ? '#' : `${item.href}/NOTE-001`} className="flex items-center gap-2">
+                        <a href={item.href} className="flex items-center gap-2">
                            <item.icon className="h-4 w-4" />
                            <span>{item.label}</span>
                         </a>
