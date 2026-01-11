@@ -32,3 +32,5 @@ export async function POST(
   const updatedData = updateIsinRecord(instrumentId, rcmId, body.isinRecords);
   return NextResponse.json(updatedData, { status: 200 });
 }
+
+    

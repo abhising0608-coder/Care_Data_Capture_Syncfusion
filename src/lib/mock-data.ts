@@ -573,8 +573,17 @@ let managementDiscussions: Record<string, ManagementDiscussion> = {};
 let thirdPartyDiscussions: Record<string, ThirdPartyDiscussion> = {};
 let auditCommitteeDiscussions: Record<string, AuditCommitteeDiscussion> = {};
 let sitePlantVisits: Record<string, SitePlantVisit> = {};
-let bankerLenderDetails: Record<string, BankerLenderDetail[]> = {};
-let isinRecords: Record<string, ISINRecord[]> = {};
+let bankerLenderDetails: Record<string, BankerLenderDetail[]> = {
+    '109630-109630': [
+        { id: 'bl-1', bankName: 'Standard Chartered Bank', ratedAmount: 15000, currencyType: 'INR', remarks: 'Initial allocation', status: 'Pending' },
+        { id: 'bl-2', bankName: 'Kotak Mahindra Bank', ratedAmount: 15000, currencyType: 'INR', remarks: 'Initial allocation', status: 'Pending' }
+    ]
+};
+let isinRecords: Record<string, ISINRecord[]> = {
+    '109630-109630': [
+        { id: 'isin-1', isin: 'ISIN123', type: 'Issued', status: 'Active', issueType: 'Public', listedOn: 'BSE/NSE', issuanceDate: '2024-03-13', couponRate: 34, maturityDate: '2024-03-13', redemptionDate: '2024-03-13', issueAmount: 123, outstandingAmount: 23 }
+    ]
+};
 
 // --- New Rating Note Data Functions ---
 
@@ -691,7 +700,7 @@ export const updateDtaDiscussion = (dtaId: string, discussionId: string, updates
 
 export const getDMSDocumentHistoryByCompanyId = (companyId: string): DMSDocumentHistory[] => {
   return mockDMSDocumentHistoryData;
-}
+};
 
 export const getPressReleaseHistoryByCompanyId = (companyId: string): PressReleaseHistory[] => {
     return mockPressReleaseHistoryData;
@@ -989,7 +998,7 @@ export const updateIsinRecord = (instrumentId: string, rcmId: string, records: I
     const key = `${instrumentId}-${rcmId}`;
     isinRecords[key] = records;
     return isinRecords[key];
-}
+};
 
 export const getIpaDiscussionById = (ipaId: string, discussionId: string): IPADiscussion | undefined => {
     const ipa = mockIpas.find(a => a.id === ipaId);
@@ -1010,3 +1019,5 @@ export const updateIpaDiscussion = (ipaId: string, discussionId: string, updates
 
     return mockIpas[ipaIndex].discussions[discussionIndex];
 };
+
+    

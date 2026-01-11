@@ -4,6 +4,7 @@
 
 
 
+
 export type Role = 'CKC_ANALYST' | 'CKC_CHECKER' | 'CKC_ADMIN' | 'RATING_ANALYST' | 'GROUP_HEAD' | 'RATING_HEAD_SD' | 'SYSTEM' | 'QC' | 'RATING_COMMITTEE' | 'AUDITOR' | 'EDITOR';
 
 export type RequestStatus = 'PENDING' | 'ACCEPTED' | 'IN_PROGRESS' | 'SUBMITTED_FOR_CHECK' | 'SENT_BACK' | 'APPROVED' | 'CLOSED' | 'REJECTED' | 'WITHDRAWN' | 'ON_HOLD';
@@ -431,24 +432,24 @@ export type BankerLenderDetail = {
   ratedAmount: number;
   currencyType: string;
   ratedAmountForeign?: number;
-  repaymentTerms: string;
-  remarks: string;
+  repaymentTerms?: string;
+  remarks?: string;
   status: 'Pending' | 'Verified by GH';
 };
 
 export type ISINRecord = {
-  id: string;
-  isin: string;
-  type: string;
-  status: string;
-  issueType: string;
-  listedOn: string;
-  issuanceDate?: string | Date | null;
-  couponRate?: number | null;
-  maturityDate?: string | Date | null;
-  redemptionDate?: string | Date | null;
-  issueAmount?: number | null;
-  outstandingAmount?: number | null;
+    id: string;
+    isin: string;
+    type: 'Issued' | 'Unissued';
+    status: 'Active' | 'Closed' | 'Delete';
+    issueType: 'Private' | 'Public' | 'Not Applicable';
+    listedOn: 'BSE' | 'NSE' | 'BSE/NSE';
+    issuanceDate: string | Date | null;
+    couponRate?: number | null;
+    maturityDate: string | Date | null;
+    redemptionDate: string | Date | null;
+    issueAmount?: number | null;
+    outstandingAmount?: number | null;
 };
 
 
@@ -701,3 +702,5 @@ export interface RatingNoteDataSchema {
   audit: Audit;
   editorContent?: string; // To store the latest SFDT
 }
+
+    

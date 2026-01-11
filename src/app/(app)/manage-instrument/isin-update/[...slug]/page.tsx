@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useParams, useRouter } from 'next/navigation';
@@ -31,10 +32,10 @@ const fetcher = (url: string) => fetch(url).then(res => res.json());
 const isinSchema = z.object({
     id: z.string(),
     isin: z.string().min(1, "ISIN is required"),
-    type: z.string().min(1, "Type is required"),
-    status: z.string().min(1, "Status is required"),
-    issueType: z.string().min(1, "Type of Issue is required"),
-    listedOn: z.string().min(1, "Listed On is required"),
+    type: z.enum(['Issued', 'Unissued']),
+    status: z.enum(['Active', 'Closed', 'Delete']),
+    issueType: z.enum(['Private', 'Public', 'Not Applicable']),
+    listedOn: z.enum(['BSE', 'NSE', 'BSE/NSE']),
     issuanceDate: z.date().nullable(),
     couponRate: z.preprocess((val) => Number(String(val)), z.number().optional().nullable()),
     maturityDate: z.date().nullable(),
@@ -65,11 +66,8 @@ export default function IsinUpdatePage() {
     const { mutate } = useSWRConfig();
     const [companyId, instrumentId, rcmId] = params.slug as string[];
 
-    const [editingIndex, setEditingIndex] = useState<number | null>(null);
-
-    const { data: company, isLoading: isCompanyLoading } = useSWR<CompanyDashboard>(`/api/companies/${companyId}`, fetcher);
     const { data: instrument, isLoading: isInstrumentLoading } = useSWR<RatingInstrument>(`/api/instruments/${instrumentId}`, fetcher);
-    const { data: isinData, isLoading: isIsinLoading } = useSWR<ISINRecord[]>(`/api/instruments/isin/${companyId}/${instrumentId}/${rcmId}`, fetcher);
+    const { data: isinData, isLoading: isIsinLoading, mutate: mutateIsin } = useSWR<ISINRecord[]>(`/api/instruments/isin/${companyId}/${instrumentId}/${rcmId}`, fetcher);
     
     const form = useForm<IsinFormValues>({
         resolver: zodResolver(formSchema),
@@ -106,7 +104,7 @@ export default function IsinUpdatePage() {
                headers: { 'Content-Type': 'application/json' },
                body: JSON.stringify({ isinRecords: data.isinRecords }),
            });
-           mutate(`/api/instruments/isin/${companyId}/${instrumentId}/${rcmId}`);
+           mutateIsin();
            toast({ title: "Success", description: "ISIN records have been saved." });
            router.back();
        } catch (e) {
@@ -114,16 +112,7 @@ export default function IsinUpdatePage() {
        }
     };
     
-    const handleAddNew = (data: any) => {
-        if (editingIndex !== null) {
-            update(editingIndex, data);
-            setEditingIndex(null);
-        } else {
-            append({ ...data, id: uuidv4() });
-        }
-    };
-
-    const isLoading = isCompanyLoading || isInstrumentLoading || isIsinLoading;
+    const isLoading = isInstrumentLoading || isIsinLoading;
 
     if (isLoading) {
         return <div className="space-y-6"><Skeleton className="h-24 w-full" /><Skeleton className="h-64 w-full" /></div>;
@@ -133,14 +122,14 @@ export default function IsinUpdatePage() {
         <FormProvider {...form}>
             <form onSubmit={handleSubmit(handleSave)} className="space-y-6">
                 <header>
-                    <h1 className="text-3xl font-bold tracking-tight text-foreground">ISIN Update</h1>
+                    <h1 className="text-2xl font-bold tracking-tight text-foreground">ISIN Update</h1>
                 </header>
 
                 <Card>
                     <CardContent className="p-6 grid grid-cols-1 md:grid-cols-3 gap-4">
                         <InfoField label="Company" value={instrument?.client} />
                         <InfoField label="Mandate ID" value={instrument?.mandateId} />
-                        <InfoField label="Instrument ID" value={instrument?.id} />
+                        <InfoField label="Instrument ID" value={instrument?.instrumentId} />
                     </CardContent>
                 </Card>
 
@@ -169,11 +158,9 @@ export default function IsinUpdatePage() {
 
                 <IsinEditableTable 
                     fields={fields} 
-                    onAddNew={handleAddNew}
-                    onUpdate={update}
-                    onRemove={remove}
-                    editingIndex={editingIndex}
-                    setEditingIndex={setEditingIndex}
+                    append={append}
+                    update={update}
+                    remove={remove}
                 />
 
                 <div className="flex justify-end gap-4">
@@ -185,34 +172,29 @@ export default function IsinUpdatePage() {
     );
 }
 
-// --- Editable Table Component ---
 
 interface IsinEditableTableProps {
     fields: any[];
-    onAddNew: (data: any) => void;
-    onUpdate: (index: number, data: any) => void;
-    onRemove: (index: number) => void;
-    editingIndex: number | null;
-    setEditingIndex: (index: number | null) => void;
+    append: (data: any) => void;
+    update: (index: number, data: any) => void;
+    remove: (index: number) => void;
 }
 
-function IsinEditableTable({ fields, onAddNew, onUpdate, onRemove, editingIndex, setEditingIndex }: IsinEditableTableProps) {
-    const { control, watch, setValue, getValues } = useForm<IsinFormValues>();
+function IsinEditableTable({ fields, append, update, remove }: IsinEditableTableProps) {
     const [newRowData, setNewRowData] = useState<Partial<ISINRecord>>({});
+    const [editingIndex, setEditingIndex] = useState<number | null>(null);
 
-    const headers = [
-        "ISIN", "Date of Issuance", "Coupon Rate (%)", "Maturity Date", "Redemption Date", "Issue Amt.", "Outstanding Amt.", "Action"
-    ];
+    const headers = ["ISIN", "Date of Issuance", "Coupon Rate (%)", "Maturity Date", "Redemption Date", "Issue Amt.", "Outstanding Amt.", "Action"];
 
     const handleSaveRow = () => {
-        const path = `isinRecords.${editingIndex}`;
-        onUpdate(editingIndex!, newRowData);
+        if (editingIndex === null) return;
+        update(editingIndex!, newRowData);
         setEditingIndex(null);
         setNewRowData({});
     };
     
     const handleAddNewRow = () => {
-        onAddNew(newRowData);
+        append({ ...newRowData, id: uuidv4() });
         setNewRowData({});
     }
 
@@ -224,36 +206,31 @@ function IsinEditableTable({ fields, onAddNew, onUpdate, onRemove, editingIndex,
     const renderCell = (field: any, header: string, index: number) => {
         const isEditing = editingIndex === index;
         const data = isEditing ? newRowData : field;
+        const fieldName = header.toLowerCase().replace(/ /g, '').replace('(%)', 'rate').replace('ofissuance', 'issuanceDate');
+        
+        if (isEditing) {
+            switch(header) {
+                 case "Date of Issuance":
+                 case "Maturity Date":
+                 case "Redemption Date":
+                    return <DateField value={data[fieldName]} onChange={(date: any) => setNewRowData(p => ({...p, [fieldName]: date}))} />;
+                default:
+                    return <Input value={data[fieldName] || ''} onChange={(e) => setNewRowData(p => ({...p, [fieldName]: e.target.value}))} />;
+            }
+        }
         
         switch(header) {
-            case "ISIN":
-            case "Coupon Rate (%)":
-            case "Issue Amt.":
-            case "Outstanding Amt.":
-                 return isEditing ? <Input value={data[header.toLowerCase().replace(/ /g, '').replace('(%)', 'rate')] || ''} onChange={(e) => setNewRowData(p => ({...p, [header.toLowerCase().replace(/ /g, '').replace('(%)', 'rate')]: e.target.value}))} /> : data.isin;
             case "Date of Issuance":
             case "Maturity Date":
             case "Redemption Date":
-                const fieldName = header.toLowerCase().replace(/ /g, '').replace('of', 'Date');
-                return isEditing ? <DateField value={data[fieldName]} onChange={(date: any) => setNewRowData(p => ({...p, [fieldName]: date}))} /> : data[fieldName] ? format(new Date(data[fieldName]), "dd/MM/yyyy") : '';
-            case "Action":
-                 return isEditing ? (
-                    <div className="flex gap-1">
-                        <Button variant="ghost" size="icon" type="button" onClick={handleSaveRow}><Check className="h-4 w-4 text-green-500" /></Button>
-                        <Button variant="ghost" size="icon" type="button" onClick={() => setEditingIndex(null)}><X className="h-4 w-4 text-red-500" /></Button>
-                    </div>
-                ) : (
-                     <div className="flex gap-1">
-                        <Button variant="ghost" size="icon" type="button" onClick={() => handleEditRow(index)}><Pencil className="h-4 w-4 text-blue-500" /></Button>
-                        <Button variant="ghost" size="icon" type="button" onClick={() => onRemove(index)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
-                    </div>
-                );
-            default: return null;
+                return data[fieldName] ? format(new Date(data[fieldName]), "dd/MM/yyyy") : '';
+            default:
+                return data[fieldName];
         }
     };
     
     const renderNewRowCell = (header: string) => {
-         const fieldName = header.toLowerCase().replace(/ /g, '').replace('(%)', 'rate').replace('of', 'Date');
+         const fieldName = header.toLowerCase().replace(/ /g, '').replace('(%)', 'rate').replace('ofissuance', 'issuanceDate');
 
          if (['Date of Issuance', 'Maturity Date', 'Redemption Date'].includes(header)) {
              return <DateField value={newRowData[fieldName as keyof typeof newRowData]} onChange={(date: any) => setNewRowData(p => ({...p, [fieldName as keyof typeof newRowData]: date}))} />
@@ -275,21 +252,32 @@ function IsinEditableTable({ fields, onAddNew, onUpdate, onRemove, editingIndex,
                             <TableRow>{headers.map(h => <TableHead key={h}>{h}</TableHead>)}</TableRow>
                         </TableHeader>
                         <TableBody>
-                            {editingIndex === null && (
-                                <TableRow>
-                                    {headers.map(h => h !== 'Action' ? (
-                                        <TableCell key={`new-${h}`}>{renderNewRowCell(h)}</TableCell>
-                                    ) : (
-                                        <TableCell key="new-action" className="flex gap-1">
-                                            <Button variant="ghost" size="icon" type="button" onClick={handleAddNewRow}><Check className="h-4 w-4 text-green-500" /></Button>
-                                            <Button variant="ghost" size="icon" type="button" onClick={() => setNewRowData({})}><RefreshCw className="h-4 w-4 text-blue-500" /></Button>
-                                        </TableCell>
-                                    ))}
-                                </TableRow>
-                            )}
+                            <TableRow>
+                                {headers.map(h => h !== 'Action' ? (
+                                    <TableCell key={`new-${h}`}>{renderNewRowCell(h)}</TableCell>
+                                ) : (
+                                    <TableCell key="new-action" className="flex gap-1">
+                                        <Button variant="ghost" size="icon" type="button" onClick={handleAddNewRow}><Check className="h-4 w-4 text-green-500" /></Button>
+                                        <Button variant="ghost" size="icon" type="button" onClick={() => setNewRowData({})}><RefreshCw className="h-4 w-4 text-blue-500" /></Button>
+                                    </TableCell>
+                                ))}
+                            </TableRow>
                              {fields.map((field, index) => (
                                 <TableRow key={field.id}>
                                     {headers.map(h => <TableCell key={`${field.id}-${h}`}>{renderCell(field, h, index)}</TableCell>)}
+                                    <TableCell className="flex gap-1">
+                                        {editingIndex === index ? (
+                                          <>
+                                            <Button variant="ghost" size="icon" type="button" onClick={handleSaveRow}><Check className="h-4 w-4 text-green-500" /></Button>
+                                            <Button variant="ghost" size="icon" type="button" onClick={() => setEditingIndex(null)}><X className="h-4 w-4 text-red-500" /></Button>
+                                          </>
+                                        ) : (
+                                          <>
+                                            <Button variant="ghost" size="icon" type="button" onClick={() => handleEditRow(index)}><Pencil className="h-4 w-4 text-blue-500" /></Button>
+                                            <Button variant="ghost" size="icon" type="button" onClick={() => remove(index)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                                          </>
+                                        )}
+                                    </TableCell>
                                 </TableRow>
                             ))}
                         </TableBody>
@@ -305,7 +293,7 @@ const DateField = ({ value, onChange }: { value: Date | null | undefined, onChan
         <PopoverTrigger asChild>
             <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !value && "text-muted-foreground")}>
                 <CalendarIcon className="mr-2 h-4 w-4" />
-                {value ? format(value, "dd/MM/yyyy") : <span>Pick a date</span>}
+                {value ? format(new Date(value), "dd/MM/yyyy") : <span>Pick a date</span>}
             </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0">
@@ -313,3 +301,5 @@ const DateField = ({ value, onChange }: { value: Date | null | undefined, onChan
         </PopoverContent>
     </Popover>
 );
+
+    
