@@ -22,9 +22,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/firebase';
-import type { ManagementDiscussion, ManagementPersonnel, DiscussionMinute } from '@/lib/definitions';
+import type { ManagementDiscussion, ManagementPersonnel, DiscussionMinute, CompanyDashboard, AppUser } from '@/lib/definitions';
 import { getCompaniesByRole } from '@/lib/mock-data';
 import { Skeleton } from '../ui/skeleton';
+import { ManagementEmailModal } from './management-email-modal';
 
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
@@ -59,7 +60,9 @@ export default function ManagementDiscussionClient() {
   const { user, isLoading: isAuthLoading } = useAuth();
   
   const [selectedCompanyId, setSelectedCompanyId] = useState<string | null>(null);
+  const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
 
+  const { data: company, isLoading: isCompanyLoading } = useSWR<CompanyDashboard>(selectedCompanyId ? `/api/companies/${selectedCompanyId}` : null, fetcher);
   const { data: discussionData, isLoading: isDataLoading, mutate } = useSWR<ManagementDiscussion>(
       selectedCompanyId ? `/api/discussions/management/${selectedCompanyId}` : null,
       fetcher
@@ -120,6 +123,7 @@ export default function ManagementDiscussionClient() {
   const isLoading = isAuthLoading || (selectedCompanyId && isDataLoading);
 
   return (
+    <>
     <div className="space-y-6">
       <header>
         <h1 className="text-2xl font-bold tracking-tight text-foreground">Management Discussion</h1>
@@ -219,7 +223,7 @@ export default function ManagementDiscussionClient() {
             )}
 
             <div className="flex justify-end gap-2">
-                <Button type="button" variant="outline" onClick={() => toast({ title: 'Placeholder' })}>Email to Client</Button>
+                <Button type="button" variant="outline" onClick={() => setIsEmailModalOpen(true)}>Email to Client</Button>
                 <Button type="button" variant="outline" onClick={() => toast({ title: 'Placeholder' })}>Send to GH</Button>
                 <Button type="submit">Save</Button>
                 <Button type="button" variant="outline" onClick={() => router.back()}>Back</Button>
@@ -227,6 +231,16 @@ export default function ManagementDiscussionClient() {
         </form>
       </FormProvider>
     </div>
+    {discussionData && company && user && (
+        <ManagementEmailModal
+            isOpen={isEmailModalOpen}
+            onClose={() => setIsEmailModalOpen(false)}
+            discussion={form.getValues()}
+            company={company}
+            analyst={user as AppUser}
+        />
+    )}
+    </>
   );
 }
 
