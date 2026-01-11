@@ -7,7 +7,6 @@ import { cn } from '@/lib/utils';
 import { useWorkflow } from '@/context/workflow-context';
 
 export const workflowSteps = [
-  { id: 'company-information', name: 'Company Information' },
   { id: 'operational-input', name: 'Operational Input' },
   { id: 'due-diligence', name: 'Due Diligence' },
   { id: 'manage-instrument', name: 'Manage Instrument' },
@@ -34,7 +33,6 @@ export function WorkflowStepper() {
   const ratingCycleId = params.ratingCycleId as string;
 
   const getStepIdFromPath = () => {
-    if (pathname.includes('/company-information')) return 'company-information';
     if (pathname.includes('/operational-input')) return 'operational-input';
     if (pathname.includes('/due-diligence')) return 'due-diligence';
     if (pathname.includes('/manage-instrument')) return 'manage-instrument';
@@ -68,7 +66,7 @@ export function WorkflowStepper() {
     <nav aria-label="Progress" className="space-y-4">
       <ol role="list" className="space-y-4 md:flex md:space-x-8 md:space-y-0">
         {workflowSteps.map((step) => {
-          const isCompleted = completedSteps.includes(step.id);
+          const isCompleted = completedSteps.includes(step.id as any);
           const isCurrent = step.id === currentStepId;
 
           let status: 'complete' | 'current' | 'upcoming' = 'upcoming';
