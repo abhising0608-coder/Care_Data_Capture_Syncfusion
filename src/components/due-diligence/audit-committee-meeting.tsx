@@ -22,9 +22,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/firebase';
-import type { AuditCommitteeDiscussion, AuditCommitteePersonnel, AuditCommitteeMinute, CompanyDashboard } from '@/lib/definitions';
+import type { AuditCommitteeDiscussion, AuditCommitteePersonnel, AuditCommitteeMinute, CompanyDashboard, AppUser } from '@/lib/definitions';
 import { getCompaniesByRole } from '@/lib/mock-data';
 import { Skeleton } from '../ui/skeleton';
+import { AuditCommitteeEmailModal } from './audit-committee-email-modal';
 
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
@@ -58,7 +59,9 @@ export default function AuditCommitteeClient() {
   const { user, isLoading: isAuthLoading } = useAuth();
   
   const [selectedCompanyId, setSelectedCompanyId] = useState<string | null>(null);
+  const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
 
+  const { data: company, isLoading: isCompanyLoading } = useSWR<CompanyDashboard>(selectedCompanyId ? `/api/companies/${selectedCompanyId}` : null, fetcher);
   const { data: discussionData, isLoading: isDataLoading, mutate } = useSWR<AuditCommitteeDiscussion>(
       selectedCompanyId ? `/api/discussions/audit-committee/${selectedCompanyId}` : null,
       fetcher
@@ -216,13 +219,22 @@ export default function AuditCommitteeClient() {
             )}
 
             <div className="flex justify-end gap-2">
-                <Button type="button" variant="outline" onClick={() => toast({ title: 'Placeholder' })}>Email to Client</Button>
+                <Button type="button" variant="outline" onClick={() => setIsEmailModalOpen(true)}>Email to Client</Button>
                 <Button type="button" variant="outline" onClick={() => toast({ title: 'Placeholder' })}>Send to GH</Button>
                 <Button type="submit">Save</Button>
             </div>
         </form>
       </FormProvider>
     </div>
+    {discussionData && company && user && (
+         <AuditCommitteeEmailModal
+            isOpen={isEmailModalOpen}
+            onClose={() => setIsEmailModalOpen(false)}
+            discussion={form.getValues()}
+            company={company}
+            analyst={user as AppUser}
+        />
+    )}
     </>
   );
 }
