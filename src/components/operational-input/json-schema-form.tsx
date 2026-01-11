@@ -249,8 +249,10 @@ export function JsonSchemaForm({ schema, onSubmit, onCancel, requestId, dataKey,
             setNewRow(prev => ({ ...prev, [header]: val }));
           } else {
              const updatedFields:any = [...fields];
-             updatedFields[editingIndex!][header] = val;
-             update(editingIndex!, updatedFields[editingIndex!]);
+             if(editingIndex !== null) {
+               updatedFields[editingIndex][header] = val;
+               update(editingIndex, updatedFields[editingIndex]);
+             }
           }
       };
 
@@ -353,7 +355,7 @@ export function JsonSchemaForm({ schema, onSubmit, onCancel, requestId, dataKey,
     }
     
     // For sections that are arrays of objects (like boardOfDirectors)
-    if (sectionProp.type === 'array' && sectionProp.items?.type === 'object') {
+    if (sectionProp.type === 'array' && sectionProp.items?.type === 'object' && uiVariant !== 'accordion') {
          return renderInlineEditableTable({
             sectionKey,
             itemProperties: sectionProp.items.properties,
@@ -361,102 +363,90 @@ export function JsonSchemaForm({ schema, onSubmit, onCancel, requestId, dataKey,
         });
     }
 
-    // This handles sections with "dataAvailability" dropdown.
-    if (uiVariant === 'accordion') {
-      const dataAvailabilityPath = `${sectionKey}.dataAvailability`;
-      const dataAvailability = useWatch({ control: form.control, name: dataAvailabilityPath });
-      const spreadsheetType = sectionProp['x-ui-spreadsheet-type'];
-      
-      const renderContent = () => {
-          if (dataAvailability !== 'Available') return null;
+    if (uiVariant === 'accordion' || uiVariant === 'spreadsheet') {
+        return (
+            <Accordion type="multiple" className="w-full">
+                {Object.keys(sectionProp.properties).map(subSectionKey => {
+                    const subSectionProp = sectionProp.properties[subSectionKey];
+                    const subSectionUiVariant = subSectionProp['x-ui-variant'];
 
-          if (uiVariant === 'spreadsheet') {
-              const versionsPath = `${sectionKey}.versions`;
-              const activeVersionPath = `${sectionKey}.activeVersion`;
+                    return (
+                        <AccordionItem value={subSectionKey} key={subSectionKey}>
+                            <AccordionTrigger>{subSectionProp.title}</AccordionTrigger>
+                            <AccordionContent>
+                                <div className="space-y-4 p-4">
+                                  {subSectionUiVariant === 'spreadsheet' && subSectionProp.properties?.dataAvailability ? (
+                                    <>
+                                       <div className="w-1/3">
+                                          <FormField
+                                            control={form.control}
+                                            name={`${sectionKey}.${subSectionKey}.dataAvailability`}
+                                            render={({ field }) => (
+                                              <FormItem>
+                                                <FormLabel>{subSectionProp.properties.dataAvailability.title}</FormLabel>
+                                                <Select onValueChange={field.onChange} value={field.value}>
+                                                  <FormControl>
+                                                    <SelectTrigger>
+                                                      <SelectValue placeholder="Select availability" />
+                                                    </SelectTrigger>
+                                                  </FormControl>
+                                                  <SelectContent>
+                                                    {subSectionProp.properties.dataAvailability.enum.map((option: string) => (
+                                                      <SelectItem key={option} value={option}>{option}</SelectItem>
+                                                    ))}
+                                                  </SelectContent>
+                                                </Select>
+                                                <FormMessage />
+                                              </FormItem>
+                                            )}
+                                          />
+                                        </div>
+                                       <Controller
+                                          control={form.control}
+                                          name={`${sectionKey}.${subSectionKey}`}
+                                          render={({ field }) => {
+                                            if (field.value?.dataAvailability !== 'Available') return null;
 
-              const handleSave = (newData: any[]) => {
-                  const currentVersions = form.getValues(versionsPath as any) || [];
-                  const newVersionNumber = currentVersions.length > 0 ? Math.max(...currentVersions.map((v: any) => v.version)) + 1 : 1;
-                  
-                  const newVersion = {
-                      version: newVersionNumber,
-                      timestamp: new Date().toISOString(),
-                      data: newData,
-                  };
-                  
-                  form.setValue(versionsPath as any, [...currentVersions, newVersion]);
-                  form.setValue(activeVersionPath as any, newVersionNumber);
-              };
+                                            const handleSave = (newData: any) => {
+                                                const currentVal = field.value || { versions: [], activeVersion: 0 };
+                                                const newVersionNumber = currentVal.versions.length > 0 ? Math.max(...currentVal.versions.map((v: any) => v.version)) + 1 : 1;
+                                                const newVersion = {
+                                                    version: newVersionNumber,
+                                                    timestamp: new Date().toISOString(),
+                                                    data: newData,
+                                                };
+                                                const newVersions = [...currentVal.versions, newVersion];
+                                                field.onChange({ ...currentVal, versions: newVersions, activeVersion: newVersionNumber });
+                                            };
+                                            const handleRollback = (versionNumber: number) => {
+                                                field.onChange({ ...field.value, activeVersion: versionNumber });
+                                            };
 
-              const handleRollback = (versionNumber: number) => {
-                  form.setValue(activeVersionPath as any, versionNumber);
-              };
-
-              const spreadsheetData = form.getValues(sectionKey as any);
-              
-              switch (spreadsheetType) {
-                case 'geography-sales':
-                  return (
-                    <GeographyWiseSalesSpreadsheet
-                      data={spreadsheetData}
-                      onSave={handleSave}
-                      onRollback={handleRollback}
-                    />
-                  );
-                case 'simple-table':
-                default:
-                  return (
-                    <SyncfusionSpreadsheet
-                      data={spreadsheetData}
-                      onSave={handleSave}
-                      onRollback={handleRollback}
-                    />
-                  );
-              }
-          }
-
-          if (sectionProp.properties?.tableData) {
-              return renderInlineEditableTable({
-                  sectionKey: `${sectionKey}.tableData`,
-                  itemProperties: sectionProp.properties.tableData.items.properties,
-                  control: form.control,
-              });
-          }
-          
-          return null;
-      }
-
-      return (
-        <div className="space-y-4 p-4">
-          <div className="w-1/3">
-            {sectionProp.properties?.dataAvailability && (
-              <FormField
-                control={form.control}
-                name={dataAvailabilityPath}
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{sectionProp.properties.dataAvailability.title}</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select availability" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {sectionProp.properties.dataAvailability.enum.map((option: string) => (
-                          <SelectItem key={option} value={option}>{option}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
-          </div>
-          {renderContent()}
-        </div>
-      );
+                                            const spreadsheetType = subSectionProp['x-ui-spreadsheet-type'];
+                                            switch (spreadsheetType) {
+                                              case 'geography-sales':
+                                                return <GeographyWiseSalesSpreadsheet data={field.value} onSave={handleSave} onRollback={handleRollback} />;
+                                              case 'simple-table':
+                                              default:
+                                                return <SyncfusionSpreadsheet data={field.value} onSave={handleSave} onRollback={handleRollback} />;
+                                            }
+                                          }}
+                                        />
+                                    </>
+                                  ) : subSectionProp.type === 'array' && subSectionProp.items?.type === 'object' ? (
+                                    renderInlineEditableTable({
+                                        sectionKey: `${sectionKey}.${subSectionKey}`,
+                                        itemProperties: subSectionProp.items.properties,
+                                        control: form.control,
+                                    })
+                                  ) : null}
+                                </div>
+                            </AccordionContent>
+                        </AccordionItem>
+                    );
+                })}
+            </Accordion>
+        );
     }
     
     return null; // Should not happen if schema is well-formed
