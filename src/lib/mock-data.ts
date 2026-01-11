@@ -1,6 +1,6 @@
 
 
-import type { AppUser, Role, RequestStatus, CKCRequest, CKCRequestDocument, CompanyInfo, RatingNote, NoteStatus, RatingNoteDataSchema, LatestBankDetail, AnnexureVHistory, PressReleaseHistoryEntry, PressReleaseHistory, DMSDocumentHistory, BankerLenderDetail, PortfolioActivity, Mandate, Auditor, AuditorDiscussion, AuditorQuestionnaireItem } from './definitions';
+import type { AppUser, Role, RequestStatus, CKCRequest, CKCRequestDocument, CompanyInfo, RatingNote, NoteStatus, RatingNoteDataSchema, LatestBankDetail, AnnexureVHistory, PressReleaseHistoryEntry, PressReleaseHistory, DMSDocumentHistory, BankerLenderDetail, PortfolioActivity, Mandate, Auditor, AuditorDiscussion, AuditorQuestionnaireItem, Banker, BankerDiscussion } from './definitions';
 
 
 // --- FSD-based Master JSON Data Structure ---
@@ -520,6 +520,20 @@ let mockAuditors: Auditor[] = [
     },
 ];
 
+let mockBankers: Banker[] = [
+    { 
+        id: 'bank-1', 
+        bankName: 'ICICI Bank', 
+        discussions: [
+            { id: 'd-b-1-1', contactPerson: 'Amit Sharma', discussionHappened: 'Yes', minutesCaptured: 'No', minutesCapturedOn: null, emailId: 'amit@icici.com', contact: '1111111111', status: 'Pending' },
+            { id: 'd-b-1-2', contactPerson: 'Vijay Varma', discussionHappened: 'Yes', minutesCaptured: 'Partial', minutesCapturedOn: null, emailId: 'vijay@icici.com', contact: '2222222222', status: 'In Progress' },
+            { id: 'd-b-1-3', contactPerson: 'Rajesh M.', discussionHappened: 'Yes', minutesCaptured: 'Yes', minutesCapturedOn: '2025-03-12', emailId: 'rajesh@icici.com', contact: '3333333333', status: 'Completed' },
+        ] 
+    },
+    { id: 'bank-2', bankName: 'HDFC Bank', discussions: [] },
+    { id: 'bank-3', bankName: 'Yes Bank', discussions: [] },
+];
+
 // --- New Rating Note Data Functions ---
 
 export const getCkcRequests = (params: { status?: RequestStatus | null; id?: string | null }): CKCRequest[] => {
@@ -558,6 +572,10 @@ export const getCompaniesByRole = (user: AppUser | null) => {
 export const getAuditorsByCompanyId = (companyId: string): Auditor[] => {
   // In a real app, this would be a filtered fetch based on companyId
   return mockAuditors;
+};
+
+export const getBankersByCompanyId = (companyId: string): Banker[] => {
+  return mockBankers;
 };
 
 export const getAuditorDiscussionById = (auditorId: string, discussionId: string): AuditorDiscussion | undefined => {

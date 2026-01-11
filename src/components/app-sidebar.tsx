@@ -103,12 +103,12 @@ const ckcAdminMenuItems = [
 const dueDiligenceMenuItems = [
     { href: '/due-diligence/auditor-feedback', label: 'Auditor Feedback', icon: Users },
     { href: '/due-diligence/banker-feedback', label: 'Banker Feedback', icon: Landmark },
-    { href: '/due-diligence/dta-feedback', label: 'DTA Feedback', icon: FileText },
-    { href: '/due-diligence/ipa-feedback', label: 'IPA Feedback', icon: FileText },
-    { href: '/due-diligence/management-discussion', label: 'Management Discussion', icon: Presentation },
-    { href: '/due-diligence/third-party-check', label: 'Third Party Check', icon: ShieldCheck },
-    { href: '/due-diligence/audit-committee-meeting', label: 'Audit Committee Meeting', icon: FolderOpen },
-    { href: '/due-diligence/site-plant-visit', label: 'Site / Plant Visit', icon: Building },
+    { href: '#', label: 'DTA Feedback', icon: FileText },
+    { href: '#', label: 'IPA Feedback', icon: FileText },
+    { href: '#', label: 'Management Discussion', icon: Presentation },
+    { href: '#', label: 'Third Party Check', icon: ShieldCheck },
+    { href: '#', label: 'Audit Committee Meeting', icon: FolderOpen },
+    { href: '#', label: 'Site / Plant Visit', icon: Building },
 ];
 
 export function AppSidebar() {
@@ -203,19 +203,6 @@ export function AppSidebar() {
           )}
 
            {isClient && <SidebarMenuItem>
-              <SidebarMenuButton
-                asChild
-                isActive={pathname.startsWith('/operational-input/requests')}
-                tooltip={{ children: 'Operational Input', side: 'right' }}
-                className="justify-start"
-              >
-                <a href="/operational-input/requests">
-                  <FileUp className="h-4 w-4" />
-                  <span className="text-sm">Operational Input</span>
-                </a>
-              </SidebarMenuButton>
-            </SidebarMenuItem>}
-             {isClient && <SidebarMenuItem>
               <SidebarMenuSub>
                 <SidebarMenuSubButton
                   isActive={pathname.startsWith('/due-diligence')}
@@ -225,8 +212,8 @@ export function AppSidebar() {
                   <a href="/due-diligence/auditor-feedback/NOTE-001" className="flex items-center gap-2">
                     <UserCheck className="h-4 w-4" />
                     <span className="text-sm">Due Diligence</span>
-                    <ChevronDown className="h-4 w-4 ml-auto shrink-0 transition-transform duration-200 group-data-[state=open]:rotate-180" />
                   </a>
+                   <ChevronDown className="h-4 w-4 ml-auto shrink-0 transition-transform duration-200 group-data-[state=open]:rotate-180" />
                 </SidebarMenuSubButton>
                 <SidebarMenuSubContent>
                   {dueDiligenceMenuItems.map((item) => (

@@ -59,6 +59,23 @@ export interface Auditor {
     discussions: AuditorDiscussion[];
 }
 
+export interface BankerDiscussion {
+    id: string;
+    contactPerson: string;
+    discussionHappened: 'Yes' | 'No';
+    minutesCaptured: 'Yes' | 'No' | 'Partial';
+    minutesCapturedOn: string | null;
+    emailId: string;
+    contact: string;
+    status: 'Pending' | 'In Progress' | 'Completed';
+}
+
+export interface Banker {
+    id: string;
+    bankName: string;
+    discussions: BankerDiscussion[];
+}
+
 export interface CKCRequestDocument {
   id: string;
   docType: 'Audited FY' | 'Provisional FY' | 'Projection';
