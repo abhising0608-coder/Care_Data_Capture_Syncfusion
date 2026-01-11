@@ -132,7 +132,7 @@ export function AppSidebar() {
   return (
     <Sidebar>
       <SidebarHeader className="p-4 flex items-center justify-center">
-         <Image src="https://placehold.co/200x60/1A237E/FFFFFF?text=CareEdge" alt="CareEdge Logo" width={160} height={40} />
+         <Image src="https://placehold.co/160x40/1A237E/FFFFFF?text=CareEdge" alt="CareEdge Logo" width={160} height={40} />
       </SidebarHeader>
       <SidebarContent>
         <SidebarMenu>
@@ -210,11 +210,8 @@ export function AppSidebar() {
                   tooltip={{ children: 'Due Diligence', side: 'right' }}
                   className="justify-start"
                 >
-                  <a href="/due-diligence/auditor-feedback/NOTE-001" className="flex items-center gap-2">
-                    <UserCheck className="h-4 w-4" />
-                    <span className="text-sm">Due Diligence</span>
-                  </a>
-                   <ChevronDown className="h-4 w-4 ml-auto shrink-0 transition-transform duration-200 group-data-[state=open]:rotate-180" />
+                  <UserCheck className="h-4 w-4" />
+                  <span className="text-sm">Due Diligence</span>
                 </SidebarMenuButton>
                 <SidebarMenuSubContent>
                   {dueDiligenceMenuItems.map((item) => (
