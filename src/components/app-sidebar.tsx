@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import { usePathname } from 'next/navigation';
 import {
   Sidebar,
@@ -22,7 +23,6 @@ import {
   Landmark,
   ShieldCheck,
   UserCheck,
-  Plane,
   FilePen,
   FileClock,
   History,
@@ -42,9 +42,8 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/firebase';
 import { Badge } from '@/components/ui/badge';
-import React from 'react';
-import { cn } from '@/lib/utils';
 import Link from 'next/link';
+import { cn } from '@/lib/utils';
 
 const topMenuItems = [
   {
@@ -73,6 +72,7 @@ const ckcAnalystMenuItems = [
     { href: '/financial-input/initiate', label: 'Financial Input', icon: FilePlus },
     { href: '/operational-input/requests', label: 'Operational Input', icon: FileUp },
 ];
+
 const ckcAdminMenuItems = [
   { href: '/ckc/requests', label: 'CKC Requests', icon: FileText },
   { href: '#', label: 'Request Form', icon: FilePen },
@@ -100,6 +100,17 @@ const ckcAdminMenuItems = [
   { href: '#', label: 'RAR Input', icon: BookCopy },
 ];
 
+const dueDiligenceMenuItems = [
+    { href: '/due-diligence/auditor-feedback', label: 'Auditor Feedback', icon: Users },
+    { href: '/due-diligence/banker-feedback', label: 'Banker Feedback', icon: Landmark },
+    { href: '/due-diligence/dta-feedback', label: 'DTA Feedback', icon: FileText },
+    { href: '/due-diligence/ipa-feedback', label: 'IPA Feedback', icon: FileText },
+    { href: '/due-diligence/management-discussion', label: 'Management Discussion', icon: Presentation },
+    { href: '/due-diligence/third-party-check', label: 'Third Party Check', icon: ShieldCheck },
+    { href: '/due-diligence/audit-committee-meeting', label: 'Audit Committee Meeting', icon: FolderOpen },
+    { href: '/due-diligence/site-plant-visit', label: 'Site / Plant Visit', icon: Building },
+];
+
 export function AppSidebar() {
   const pathname = usePathname();
   const { user } = useAuth();
@@ -124,11 +135,11 @@ export function AppSidebar() {
       </SidebarHeader>
       <SidebarContent>
         <SidebarMenu>
-          {topMenuItems.map((item) => (
+          {isClient && topMenuItems.map((item) => (
             <SidebarMenuItem key={item.href}>
               <SidebarMenuButton
                 asChild
-                isActive={isClient ? (pathname === item.href || (item.href.startsWith('/portfolio') && pathname.startsWith('/portfolio'))) : false}
+                isActive={pathname === item.href || (item.href.startsWith('/portfolio') && pathname.startsWith('/portfolio'))}
                 tooltip={{ children: item.label, side: 'right' }}
                 className="justify-start"
               >
@@ -191,10 +202,10 @@ export function AppSidebar() {
             </SidebarMenuItem>
           )}
 
-           <SidebarMenuItem>
+           {isClient && <SidebarMenuItem>
               <SidebarMenuButton
                 asChild
-                isActive={isClient ? pathname.startsWith('/operational-input/requests') : false}
+                isActive={pathname.startsWith('/operational-input/requests')}
                 tooltip={{ children: 'Operational Input', side: 'right' }}
                 className="justify-start"
               >
@@ -203,7 +214,36 @@ export function AppSidebar() {
                   <span className="text-sm">Operational Input</span>
                 </a>
               </SidebarMenuButton>
-            </SidebarMenuItem>
+            </SidebarMenuItem>}
+             {isClient && <SidebarMenuItem>
+              <SidebarMenuSub>
+                <SidebarMenuSubButton
+                  isActive={pathname.startsWith('/due-diligence')}
+                  tooltip={{ children: 'Due Diligence', side: 'right' }}
+                  className="justify-start"
+                >
+                  <a href="/due-diligence/auditor-feedback/NOTE-001" className="flex items-center gap-2">
+                    <UserCheck className="h-4 w-4" />
+                    <span className="text-sm">Due Diligence</span>
+                    <ChevronDown className="h-4 w-4 ml-auto shrink-0 transition-transform duration-200 group-data-[state=open]:rotate-180" />
+                  </a>
+                </SidebarMenuSubButton>
+                <SidebarMenuSubContent>
+                  {dueDiligenceMenuItems.map((item) => (
+                      <SidebarMenuSubButton
+                        key={item.href}
+                        asChild
+                        isActive={pathname.startsWith(item.href)}
+                      >
+                        <a href={`${item.href}/NOTE-001`} className="flex items-center gap-2">
+                           <item.icon className="h-4 w-4" />
+                           <span>{item.label}</span>
+                        </a>
+                      </SidebarMenuSubButton>
+                  ))}
+                </SidebarMenuSubContent>
+              </SidebarMenuSub>
+            </SidebarMenuItem>}
         </SidebarMenu>
       </SidebarContent>
       <SidebarFooter>

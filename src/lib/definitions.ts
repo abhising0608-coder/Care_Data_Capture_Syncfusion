@@ -33,6 +33,19 @@ export type DiscussionStatus = 'Draft' | 'Shared with GH' | 'Completed';
 
 export type ActivityStatus = 'Not Initiated' | 'In Progress' | 'Completed';
 
+export type AuditorFeedbackStatus = 'Pending' | 'Feedback Captured' | 'Minutes Uploaded';
+
+export interface Auditor {
+    id: string;
+    firmName: string;
+    contactPerson: string;
+    status: AuditorFeedbackStatus;
+    history: {
+        date: string;
+        capturedBy: string;
+    }[];
+}
+
 export interface CKCRequestDocument {
   id: string;
   docType: 'Audited FY' | 'Provisional FY' | 'Projection';
