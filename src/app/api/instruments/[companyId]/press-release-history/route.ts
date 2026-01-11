@@ -1,3 +1,4 @@
+
 import { NextResponse } from 'next/server';
 import { getPressReleaseHistoryByCompanyId } from '@/lib/mock-data';
 import type { PressReleaseHistory } from '@/lib/definitions';

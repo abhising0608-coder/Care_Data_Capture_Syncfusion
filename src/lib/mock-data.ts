@@ -3,6 +3,7 @@
 
 
 
+
 import type { AppUser, Role, RequestStatus, CKCRequest, CKCRequestDocument, CompanyInfo, RatingNote, NoteStatus, RatingNoteDataSchema, LatestBankDetail, AnnexureVHistory, PressReleaseHistoryEntry, PressReleaseHistory, DMSDocumentHistory, RatingInstrument, RatingInstrumentCycle, PortfolioActivity, Mandate, Auditor, AuditorDiscussion, AuditorQuestionnaireItem, Banker, BankerDiscussion, DTA, DTADiscussion, DtaQuestionnaireItem, IPA, IPADiscussion, IpaQuestionnaireItem, ManagementDiscussion, ThirdPartyDiscussion, AuditCommitteeDiscussion, SitePlantVisit, BankerLenderDetail, ISINRecord } from './definitions';
 
 
@@ -345,24 +346,17 @@ export const mockAnnexureVHistoryData: AnnexureVHistory[] = [
     { id: '12363', instrument: 'Term Loan', status: 'Closed', amount: 150.00, count: 0, initialRatingDate: '2010-09-24', initialRating: 'CARE BB+', ratingActions: [{ date: '2010-09-24', rating: 'CARE BB+' }] },
 ];
 
-export const mockPressReleaseHistoryData: PressReleaseHistoryEntry[] = [
-  { id: 'PR-2025-03-12', pressReleaseDate: '2025-03-12', mandates: [
-    { mandateId: '12100/121/1212', instruments: [
-      { insId: '122342/1212', category: 'LT', subCategory: 'Fund Based', instrumentName: 'NCD', instrumentSize: 100, agendaType: 'Surveillance', ratingAssigned: 'Care AAA' },
-      { insId: '122342/1212', category: 'ST', subCategory: 'Fund Based', instrumentName: 'NCD', instrumentSize: 100, agendaType: 'Surveillance', ratingAssigned: 'Care AAA' },
-    ]},
-    { mandateId: '12100/121/1214', instruments: [
-       { insId: '122342/1214', category: 'LT', subCategory: 'Non-Fund Based', instrumentName: 'BG', instrumentSize: 200, agendaType: 'Surveillance', ratingAssigned: 'Care AA+' },
-    ]}
-  ]},
-  { id: 'PR-2024-03-14', pressReleaseDate: '2024-03-14', mandates: [
-      { mandateId: '12100/121/1000', instruments: [
-      { insId: '122342/1000', category: 'LT', subCategory: 'Fund Based', instrumentName: 'Term Loan', instrumentSize: 500, agendaType: 'Initial', ratingAssigned: 'Care A+' },
-    ]}
-  ]},
-  { id: 'PR-2023-05-18', pressReleaseDate: '2023-05-18', mandates: [] },
-  { id: 'PR-2022-11-04', pressReleaseDate: '2022-11-04', mandates: [] },
+export const mockPressReleaseHistoryData: PressReleaseHistory[] = [
+  { id: '109630', instrument: 'Bank Facilities-Term Loan-Long Term', instrumentStatus: 'Active', instrumentListed: 'Unlisted', meetingDate: '2010-09-24', ratedAmount: 464.90, revisionDate: '2010-09-24', revisedRating: 'CARE BB+', priorRevisionDate: '-', priorRating: '-' },
+  { id: '12363', instrument: 'Bank Facilities-Non-fund-based - ST-BG/LC', instrumentStatus: 'Closed', instrumentListed: 'Unlisted', meetingDate: '2011-05-09', ratedAmount: 166.66, revisionDate: '2011-05-09', revisedRating: 'CARE A3', priorRevisionDate: '2010-09-24', priorRating: 'CARE A4+' },
+  { id: '12363', instrument: 'Bank Facilities-Fund-based - LT/ST-Cash Credit', instrumentStatus: 'Closed', instrumentListed: 'Unlisted', meetingDate: '2011-05-09', ratedAmount: 524.67, revisionDate: '2011-05-09', revisedRating: 'CARE BBB-', priorRevisionDate: '2010-09-24', priorRating: 'CARE A' },
+  { id: '12363', instrument: 'Term Loan', instrumentStatus: 'Closed', instrumentListed: 'Unlisted', meetingDate: '2010-09-24', ratedAmount: 125.00, revisionDate: '2010-09-24', revisedRating: 'CARE A4', priorRevisionDate: '-', priorRating: '-' },
+  { id: '12363', instrument: 'Term Loan', instrumentStatus: 'Withdrawn', instrumentListed: 'Unlisted', meetingDate: '2010-09-24', ratedAmount: 0.00, revisionDate: '2010-09-24', revisedRating: 'CARE BB+', priorRevisionDate: '-', priorRating: '-' },
+  { id: '12363', instrument: 'Non Fund Based Limits', instrumentStatus: 'Active', instrumentListed: 'Unlisted', meetingDate: '2010-09-24', ratedAmount: 886.01, revisionDate: '2010-09-24', revisedRating: 'CARE AA: Stable', priorRevisionDate: '-', priorRating: '-' },
+  { id: '12363', instrument: 'Term Loan', instrumentStatus: 'Closed', instrumentListed: 'Unlisted', meetingDate: '2010-09-24', ratedAmount: 1549.82, revisionDate: '2010-09-24', revisedRating: 'CARE BB+', priorRevisionDate: '-', priorRating: '-' },
+  { id: '12363', instrument: 'Term Loan', instrumentStatus: 'Closed', instrumentListed: 'Unlisted', meetingDate: '2010-09-24', ratedAmount: 150.00, revisionDate: '2010-09-24', revisedRating: 'CARE BB+', priorRevisionDate: '-', priorRating: '-' },
 ];
+
 
 export const mockMandateData: Mandate[] = [
     {
@@ -699,14 +693,9 @@ export const getDMSDocumentHistoryByCompanyId = (companyId: string): DMSDocument
 }
 
 export const getPressReleaseHistoryByCompanyId = (companyId: string): PressReleaseHistory[] => {
-    // This is a placeholder. In a real app, you'd filter by companyId.
-    // For now, we return all mock PR history entries.
-    return ratingNotes.filter(note => note.companyId === companyId && note.prContent).map(note => ({
-        id: `PR-${note.id}`,
-        pressReleaseDate: note.statusHistory.find(h => h.status === 'PR Generated')?.timestamp.toString() || new Date().toISOString(),
-        mandates: [] // This needs to be populated from instrument data
-    }));
-};
+    return mockPressReleaseHistoryData;
+}
+
 
 export const getAnnexureVHistoryByCompanyId = (companyId: string): AnnexureVHistory[] => {
     return mockAnnexureVHistoryData || [];

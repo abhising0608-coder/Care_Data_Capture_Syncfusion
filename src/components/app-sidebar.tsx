@@ -118,6 +118,7 @@ const manageInstrumentMenuItems = [
     { href: '/manage-instrument/instrument-details', label: 'Instrument Details', icon: Wrench },
     { href: '/manage-instrument/latest-bank-details', label: 'Latest Bank Details', icon: Landmark },
     { href: '/manage-instrument/annexure-v-history', label: 'Annexure V History', icon: History },
+    { href: '/manage-instrument/press-release-history', label: 'PR Details History', icon: Newspaper },
 ];
 
 
@@ -160,8 +161,8 @@ export function AppSidebar() {
               </SidebarMenuButton>
             </SidebarMenuItem>
           ))}
-          {isClient && (
-            <SidebarMenuItem>
+          
+          <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={pathname.startsWith('/manage-instrument')}>
                      <a href="/manage-instrument">
                         <Wrench className="h-4 w-4" />
@@ -169,7 +170,6 @@ export function AppSidebar() {
                     </a>
                 </SidebarMenuButton>
             </SidebarMenuItem>
-          )}
 
            {/* CKC Submenu */}
           {isClient && ['CKC_ADMIN', 'CKC_ANALYST'].includes(user?.role || '') && (
@@ -250,6 +250,35 @@ export function AppSidebar() {
                 </SidebarMenuSubContent>
               </SidebarMenuSub>
             </SidebarMenuItem>}
+            
+            {isClient && <SidebarMenuItem>
+              <SidebarMenuSub>
+                <SidebarMenuSubButton
+                  isActive={pathname.startsWith('/manage-instrument')}
+                  tooltip={{ children: 'Manage Instrument', side: 'right' }}
+                  className="justify-start"
+                >
+                  <Wrench className="h-4 w-4" />
+                  <span className="text-sm">Manage Instrument</span>
+                   <ChevronDown className="h-4 w-4 ml-auto shrink-0 transition-transform duration-200 group-data-[state=open]:rotate-180" />
+                </SidebarMenuSubButton>
+                <SidebarMenuSubContent>
+                  {manageInstrumentMenuItems.map((item) => (
+                      <SidebarMenuSubButton
+                        key={item.href}
+                        asChild
+                        isActive={pathname.startsWith(item.href)}
+                      >
+                        <a href={item.href} className="flex items-center gap-2">
+                           <item.icon className="h-4 w-4" />
+                           <span>{item.label}</span>
+                        </a>
+                      </SidebarMenuSubButton>
+                  ))}
+                </SidebarMenuSubContent>
+              </SidebarMenuSub>
+            </SidebarMenuItem>}
+
         </SidebarMenu>
       </SidebarContent>
       <SidebarFooter>
