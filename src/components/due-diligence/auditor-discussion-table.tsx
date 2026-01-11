@@ -14,12 +14,16 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import type { AuditorDiscussion } from '@/lib/definitions';
+import type { Auditor, AuditorDiscussion, AppUser, RatingNote } from '@/lib/definitions';
 import { mockAuditorContacts } from '@/lib/mock-data';
+import { AuditorEmailModal } from './auditor-email-modal';
+import { useAuth } from '@/firebase';
+
 
 interface AuditorDiscussionTableProps {
     discussions: AuditorDiscussion[];
-    auditorId: string;
+    auditor: Auditor;
+    note: RatingNote;
     onAddDiscussion: (newDiscussion: AuditorDiscussion) => void;
 }
 
@@ -40,13 +44,16 @@ const statusVariant = (status: AuditorDiscussion['status']) => {
 }
 
 
-export function AuditorDiscussionTable({ discussions, auditorId, onAddDiscussion }: AuditorDiscussionTableProps) {
+export function AuditorDiscussionTable({ discussions, auditor, note, onAddDiscussion }: AuditorDiscussionTableProps) {
     const { toast } = useToast();
     const router = useRouter();
     const params = useParams();
+    const { user } = useAuth();
     const ratingCycleId = params.ratingCycleId as string;
 
     const [localDiscussions, setLocalDiscussions] = useState(discussions);
+    const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
+    const [selectedDiscussion, setSelectedDiscussion] = useState<AuditorDiscussion | null>(null);
 
     const form = useForm<DiscussionFormValues>({
         resolver: zodResolver(discussionSchema),
@@ -81,13 +88,16 @@ export function AuditorDiscussionTable({ discussions, auditorId, onAddDiscussion
         });
     };
 
-    const handleAction = (action: 'view' | 'email', discussionId: string) => {
+    const handleAction = (action: 'view' | 'email', discussion: AuditorDiscussion) => {
         if (action === 'view') {
-            router.push(`/due-diligence/auditor-feedback/${ratingCycleId}/${auditorId}/${discussionId}`);
+            router.push(`/due-diligence/auditor-feedback/${ratingCycleId}/${auditor.id}/${discussion.id}`);
+        } else if (action === 'email') {
+            setSelectedDiscussion(discussion);
+            setIsEmailModalOpen(true);
         } else {
             toast({
                 title: 'Action Triggered',
-                description: `Action '${action}' on item ${discussionId} is a placeholder for now.`
+                description: `Action '${action}' on item ${discussion.id} is a placeholder for now.`
             });
         }
     };
@@ -102,6 +112,7 @@ export function AuditorDiscussionTable({ discussions, auditorId, onAddDiscussion
     }
 
     return (
+        <>
         <FormProvider {...form}>
             <form onSubmit={handleSubmit(handleAdd)}>
                 <div className="rounded-md border bg-card">
@@ -167,10 +178,10 @@ export function AuditorDiscussionTable({ discussions, auditorId, onAddDiscussion
                                     <TableCell>{d.contact}</TableCell>
                                     <TableCell><Badge variant={statusVariant(d.status)}>{d.status}</Badge></TableCell>
                                     <TableCell className="flex gap-1">
-                                        <Button variant="ghost" size="icon" onClick={() => handleAction('view', d.id)}>
+                                        <Button variant="ghost" size="icon" onClick={() => handleAction('view', d)}>
                                             <Eye className="h-4 w-4" />
                                         </Button>
-                                         <Button variant="ghost" size="icon" onClick={() => handleAction('email', d.id)}>
+                                         <Button variant="ghost" size="icon" onClick={() => handleAction('email', d)}>
                                             <Mail className="h-4 w-4" />
                                         </Button>
                                          <Button variant="ghost" size="icon" onClick={() => handleDelete(d.id)}>
@@ -184,5 +195,16 @@ export function AuditorDiscussionTable({ discussions, auditorId, onAddDiscussion
                 </div>
             </form>
         </FormProvider>
+        {selectedDiscussion && note && user && (
+            <AuditorEmailModal
+                isOpen={isEmailModalOpen}
+                onClose={() => setIsEmailModalOpen(false)}
+                discussion={selectedDiscussion}
+                auditor={auditor}
+                note={note}
+                analyst={user}
+            />
+        )}
+        </>
     );
 }

@@ -5,7 +5,7 @@ import { useForm, FormProvider, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import useSWR, { useSWRConfig } from 'swr';
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Save, Mail, FileText, ArrowLeft } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -15,8 +15,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
-import type { Auditor, AuditorDiscussion, AuditorQuestionnaireItem, RatingNote } from '@/lib/definitions';
+import type { Auditor, AuditorDiscussion, AuditorQuestionnaireItem, RatingNote, AppUser } from '@/lib/definitions';
 import { mockAuditorQuestionnaire } from '@/lib/mock-data';
+import { AuditorEmailModal } from '@/components/due-diligence/auditor-email-modal';
+import { useAuth } from '@/firebase';
 
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
@@ -33,7 +35,10 @@ export default function AuditorFeedbackCapturePage() {
   const params = useParams();
   const { toast } = useToast();
   const { mutate } = useSWRConfig();
+  const { user } = useAuth();
   const [ratingCycleId, auditorId, discussionId] = params.slug as string[];
+
+  const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
 
   const { data: note, isLoading: isNoteLoading } = useSWR<RatingNote>(`/api/notes/${ratingCycleId}`, fetcher);
   const { data: auditors, isLoading: isAuditorLoading } = useSWR<Auditor[]>(`/api/auditors/${ratingCycleId}`, fetcher);
@@ -88,13 +93,14 @@ export default function AuditorFeedbackCapturePage() {
     }
   }
   
-  const isLoading = isNoteLoading || isAuditorLoading || isDiscussionLoading;
+  const isLoading = isNoteLoading || isAuditorLoading || isDiscussionLoading || !user;
 
   if (isLoading) {
     return <div className="p-6"><Skeleton className="h-screen w-full" /></div>;
   }
 
   return (
+    <>
     <div className="space-y-6">
       <header>
         <h1 className="text-2xl font-bold tracking-tight text-foreground">{note?.companyName}</h1>
@@ -160,7 +166,7 @@ export default function AuditorFeedbackCapturePage() {
                      <Button type="button" variant="outline" onClick={() => toast({description: 'Placeholder'})}><FileText className="mr-2 h-4 w-4"/>Export</Button>
                 </div>
                 <div className="flex gap-2">
-                    <Button type="button" variant="outline" onClick={() => toast({description: 'Placeholder'})}><Mail className="mr-2 h-4 w-4"/>Email to Auditor</Button>
+                    <Button type="button" variant="outline" onClick={() => setIsEmailModalOpen(true)}><Mail className="mr-2 h-4 w-4"/>Email to Auditor</Button>
                     <Button type="submit"><Save className="mr-2 h-4 w-4"/>Save</Button>
                     <Button type="button" variant="outline" onClick={handleMarkAsComplete}>Mark as Complete</Button>
                     <Button type="button" onClick={() => router.back()}><ArrowLeft className="mr-2 h-4 w-4"/>Back</Button>
@@ -169,5 +175,16 @@ export default function AuditorFeedbackCapturePage() {
         </form>
       </FormProvider>
     </div>
+    {note && discussion && auditor && (
+        <AuditorEmailModal
+            isOpen={isEmailModalOpen}
+            onClose={() => setIsEmailModalOpen(false)}
+            discussion={discussion}
+            note={note}
+            auditor={auditor}
+            analyst={user!}
+        />
+    )}
+    </>
   );
 }
