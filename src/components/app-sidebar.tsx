@@ -218,7 +218,6 @@ export function AppSidebar() {
                         >
                         <FilePen className="h-4 w-4" />
                         <span className="text-sm">Rating Note</span>
-                         <Badge className="ml-auto bg-blue-500 text-white">W</Badge>
                     </SidebarMenuButton>
                     <SidebarMenuSubContent>
                         {ratingNoteSubItems.map(subItem => (
@@ -230,21 +229,6 @@ export function AppSidebar() {
                         ))}
                     </SidebarMenuSubContent>
                 </SidebarMenuSub>
-            </SidebarMenuItem>
-
-            {/* E2E Test Runner */}
-            <SidebarMenuItem>
-                 <SidebarMenuButton
-                        asChild
-                        isActive={pathname === '/e2e-test'}
-                        tooltip={{ children: 'E2E Test Runner', side: 'right' }}
-                        className="justify-start"
-                    >
-                        <a href='/e2e-test'>
-                        <TestTube2 className="h-4 w-4" />
-                        <span className="text-sm">E2E Test Runner</span>
-                        </a>
-                    </SidebarMenuButton>
             </SidebarMenuItem>
         </SidebarMenu>
       </SidebarContent>
