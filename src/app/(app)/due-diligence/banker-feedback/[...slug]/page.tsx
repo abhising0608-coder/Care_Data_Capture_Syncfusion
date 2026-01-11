@@ -18,6 +18,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import type { Banker, BankerDiscussion, RatingNote, AppUser } from '@/lib/definitions';
 import { mockAuditorQuestionnaire } from '@/lib/mock-data'; // Reusing the same questionnaire
 import { useAuth } from '@/firebase';
+import { BankerEmailModal } from '@/components/due-diligence/banker-email-modal';
 
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
@@ -36,6 +37,8 @@ export default function BankerFeedbackCapturePage() {
   const { mutate } = useSWRConfig();
   const { user } = useAuth();
   const [ratingCycleId, bankerId, discussionId] = params.slug as string[];
+
+  const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
 
   const { data: note, isLoading: isNoteLoading } = useSWR<RatingNote>(`/api/notes/${ratingCycleId}`, fetcher);
   const { data: bankers, isLoading: isBankerLoading } = useSWR<Banker[]>(`/api/bankers/${ratingCycleId}`, fetcher);
@@ -163,7 +166,7 @@ export default function BankerFeedbackCapturePage() {
                      <Button type="button" variant="outline" onClick={() => toast({description: 'Placeholder'})}><FileText className="mr-2 h-4 w-4"/>Export</Button>
                 </div>
                 <div className="flex gap-2">
-                    <Button type="button" variant="outline" onClick={() => toast({title: "Placeholder", description: "Email modal to be implemented"})}><Mail className="mr-2 h-4 w-4"/>Email to Banker</Button>
+                    <Button type="button" variant="outline" onClick={() => setIsEmailModalOpen(true)}><Mail className="mr-2 h-4 w-4"/>Email to Banker</Button>
                     <Button type="submit"><Save className="mr-2 h-4 w-4"/>Save</Button>
                     <Button type="button" variant="outline" onClick={handleMarkAsComplete}>Mark as Complete</Button>
                     <Button type="button" onClick={() => router.back()}><ArrowLeft className="mr-2 h-4 w-4"/>Back</Button>
@@ -172,6 +175,16 @@ export default function BankerFeedbackCapturePage() {
         </form>
       </FormProvider>
     </div>
+     {note && discussion && banker && user && (
+        <BankerEmailModal
+            isOpen={isEmailModalOpen}
+            onClose={() => setIsEmailModalOpen(false)}
+            discussion={discussion}
+            note={note}
+            banker={banker}
+            analyst={user}
+        />
+    )}
     </>
   );
 }

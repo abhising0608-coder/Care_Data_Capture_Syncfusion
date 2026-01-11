@@ -16,6 +16,7 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import type { Banker, BankerDiscussion, RatingNote } from '@/lib/definitions';
 import { useAuth } from '@/firebase';
+import { BankerEmailModal } from './banker-email-modal';
 
 
 interface BankerDiscussionTableProps {
@@ -50,6 +51,8 @@ export function BankerDiscussionTable({ discussions, banker, note, onAddDiscussi
     const ratingCycleId = params.ratingCycleId as string;
 
     const [localDiscussions, setLocalDiscussions] = useState(discussions);
+    const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
+    const [selectedDiscussion, setSelectedDiscussion] = useState<BankerDiscussion | null>(null);
 
     const form = useForm<DiscussionFormValues>({
         resolver: zodResolver(discussionSchema),
@@ -94,10 +97,8 @@ export function BankerDiscussionTable({ discussions, banker, note, onAddDiscussi
         if (action === 'view') {
             router.push(`/due-diligence/banker-feedback/${ratingCycleId}/${banker.id}/${discussion.id}`);
         } else if (action === 'email') {
-            toast({
-                title: 'Placeholder',
-                description: `Email functionality for ${discussion.contactPerson} will be implemented next.`,
-            });
+            setSelectedDiscussion(discussion);
+            setIsEmailModalOpen(true);
         }
     };
     
@@ -111,6 +112,7 @@ export function BankerDiscussionTable({ discussions, banker, note, onAddDiscussi
     }
 
     return (
+        <>
         <FormProvider {...form}>
             <form onSubmit={handleSubmit(handleAdd)}>
                 <div className="rounded-md border bg-card">
@@ -191,5 +193,16 @@ export function BankerDiscussionTable({ discussions, banker, note, onAddDiscussi
                 </div>
             </form>
         </FormProvider>
+        {selectedDiscussion && note && user && (
+            <BankerEmailModal
+                isOpen={isEmailModalOpen}
+                onClose={() => setIsEmailModalOpen(false)}
+                discussion={selectedDiscussion}
+                banker={banker}
+                note={note}
+                analyst={user}
+            />
+        )}
+        </>
     );
 }
