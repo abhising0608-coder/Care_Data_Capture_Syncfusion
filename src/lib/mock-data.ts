@@ -1,6 +1,6 @@
 
 
-import type { AppUser, Role, RequestStatus, CKCRequest, CKCRequestDocument, CompanyInfo, RatingNote, NoteStatus, RatingNoteDataSchema, LatestBankDetail, AnnexureVHistory, PressReleaseHistoryEntry, PressReleaseHistory, DMSDocumentHistory, BankerLenderDetail, PortfolioActivity, Mandate, Auditor, AuditorDiscussion, AuditorQuestionnaireItem, Banker, BankerDiscussion, DTA, DTADiscussion, DtaQuestionnaireItem } from './definitions';
+import type { AppUser, Role, RequestStatus, CKCRequest, CKCRequestDocument, CompanyInfo, RatingNote, NoteStatus, RatingNoteDataSchema, LatestBankDetail, AnnexureVHistory, PressReleaseHistoryEntry, PressReleaseHistory, DMSDocumentHistory, BankerLenderDetail, PortfolioActivity, Mandate, Auditor, AuditorDiscussion, AuditorQuestionnaireItem, Banker, BankerDiscussion, DTA, DTADiscussion, DtaQuestionnaireItem, IPA, IPADiscussion, IpaQuestionnaireItem } from './definitions';
 
 
 // --- FSD-based Master JSON Data Structure ---
@@ -504,6 +504,13 @@ export const mockDtaQuestionnaire: DtaQuestionnaireItem[] = [
     { id: 'dta-q4', particulars: 'Any other information' },
 ];
 
+export const mockIpaQuestionnaire: IpaQuestionnaireItem[] = [
+    { id: 'ipa-q1', particulars: 'Any delays in the servicing of interest/principal on the instruments. If yes, provide details w.r.t amount of delay, number of days of delay, date of delay, etc.' },
+    { id: 'ipa-q2', particulars: 'Any non-adherence to the terms and conditions or breach of material covenants as per the trust deed? If yes, provide details of the breach and its impact on interest rate or repayment schedule' },
+    { id: 'ipa-q3', particulars: 'Other adverse observation (including debt restructuring) if any' },
+    { id: 'ipa-q4', particulars: 'Any other information' },
+];
+
 
 let mockAuditors: Auditor[] = [
     { 
@@ -548,6 +555,15 @@ let mockDtas: DTA[] = [
     ]},
     { id: 'dta-2', firmName: 'PR Firm', discussions: [] },
     { id: 'dta-3', firmName: 'New India Associates', discussions: [] },
+];
+
+let mockIpas: IPA[] = [
+    { id: 'ipa-1', firmName: 'SDK & PR Associates', discussions: [
+        { id: 'd-ipa-1-1', contactPerson: 'Amit Sharma', discussionHappened: 'Yes', minutesCaptured: 'No', minutesCapturedOn: null, emailId: 'amit@abc.com', contact: '0000000000', status: 'Pending' },
+        { id: 'd-ipa-1-2', contactPerson: 'Vijay Varma', discussionHappened: 'Yes', minutesCaptured: 'Partial', minutesCapturedOn: null, emailId: 'vijay@abc.com', contact: '0000000000', status: 'In Progress' },
+    ]},
+    { id: 'ipa-2', firmName: 'Nelson and Co.', discussions: [] },
+    { id: 'ipa-3', firmName: 'Premchand Associations', discussions: [] },
 ];
 
 // --- New Rating Note Data Functions ---
@@ -596,6 +612,10 @@ export const getBankersByCompanyId = (companyId: string): Banker[] => {
 
 export const getDtasByCompanyId = (companyId: string): DTA[] => {
   return mockDtas;
+};
+
+export const getIpasByCompanyId = (companyId: string): IPA[] => {
+  return mockIpas;
 };
 
 export const getAuditorDiscussionById = (auditorId: string, discussionId: string): AuditorDiscussion | undefined => {

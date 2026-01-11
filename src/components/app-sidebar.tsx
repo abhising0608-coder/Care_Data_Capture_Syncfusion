@@ -104,7 +104,7 @@ const dueDiligenceMenuItems = [
     { href: '/due-diligence/auditor-feedback', label: 'Auditor Feedback', icon: Users },
     { href: '/due-diligence/banker-feedback', label: 'Banker Feedback', icon: Landmark },
     { href: '/due-diligence/dta-feedback', label: 'DTA Feedback', icon: FileText },
-    { href: '#', label: 'IPA Feedback', icon: FileText },
+    { href: '/due-diligence/ipa-feedback', label: 'IPA Feedback', icon: FileText },
     { href: '#', label: 'Management Discussion', icon: Presentation },
     { href: '#', label: 'Third Party Check', icon: ShieldCheck },
     { href: '#', label: 'Audit Committee Meeting', icon: FolderOpen },

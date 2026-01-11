@@ -45,6 +45,11 @@ export interface DtaQuestionnaireItem {
   particulars: string;
 }
 
+export interface IpaQuestionnaireItem {
+  id: string;
+  particulars: string;
+}
+
 
 export interface AuditorDiscussion {
     id: string;
@@ -101,6 +106,25 @@ export interface DTA {
     id: string;
     firmName: string;
     discussions: DTADiscussion[];
+}
+
+export interface IPADiscussion {
+    id: string;
+    contactPerson: string;
+    discussionHappened: 'Yes' | 'No';
+    minutesCaptured: 'Yes' | 'No' | 'Partial';
+    minutesCapturedOn: string | null;
+    emailId: string;
+    contact: string;
+    status: 'Pending' | 'In Progress' | 'Completed';
+    feedback?: Record<string, string>;
+    summary?: string;
+}
+
+export interface IPA {
+    id: string;
+    firmName: string;
+    discussions: IPADiscussion[];
 }
 
 export interface CKCRequestDocument {
