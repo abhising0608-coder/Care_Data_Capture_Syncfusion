@@ -510,9 +510,9 @@ export const mockDtaQuestionnaire: DtaQuestionnaireItem[] = [
 ];
 
 export const mockIpaQuestionnaire: IpaQuestionnaireItem[] = [
-    { id: 'ipa-q1', particulars: 'Any delays in the servicing of interest/principal on the instruments. If yes, provide details w.r.t amount of delay, number of days of delay, date of delay, etc.' },
-    { id: 'ipa-q2', particulars: 'Any non-adherence to the terms and conditions or breach of material covenants as per the trust deed? If yes, provide details of the breach and its impact on interest rate or repayment schedule' },
-    { id: 'ipa-q3', particulars: 'Other adverse observation (including debt restructuring) if any' },
+    { id: 'ipa-q1', particulars: 'Any delays in the debt servicing on the instruments. If yes, provide details w.r.t amount of delay, number of days of delay, date of delay, etc.' },
+    { id: 'ipa-q2', particulars: 'Any non-adherence to the terms of CP issue or payment structure for CPs backed by payment structure? If yes, provide details of non-adherence' },
+    { id: 'ipa-q3', particulars: 'Other adverse observation if any' },
     { id: 'ipa-q4', particulars: 'Any other information' },
 ];
 
@@ -686,7 +686,7 @@ export const updateDtaDiscussion = (dtaId: string, discussionId: string, updates
 
 export const getDMSDocumentHistoryByCompanyId = (companyId: string): DMSDocumentHistory[] => {
   return mockDMSDocumentHistoryData;
-};
+}
 
 export const getPressReleaseHistoryByCompanyId = (companyId: string): PressReleaseHistory[] => {
     // This is a placeholder. In a real app, you'd filter by companyId.

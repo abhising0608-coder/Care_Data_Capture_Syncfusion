@@ -88,11 +88,14 @@ export function IpaDiscussionTable({ discussions, ipa, note, onAddDiscussion }: 
     };
 
     const handleAction = (action: 'view' | 'email', discussion: IPADiscussion) => {
-        // Placeholder for navigation and email modal
-        toast({
-            title: `Action: ${action}`,
-            description: `Action on ${discussion.id} is a placeholder.`
-        })
+        if (action === 'view') {
+            router.push(`/due-diligence/ipa-feedback/${ratingCycleId}/${ipa.id}/${discussion.id}`);
+        } else {
+             toast({
+                title: `Action: ${action}`,
+                description: `Action on ${discussion.id} is a placeholder.`
+            })
+        }
     };
     
     const handleDelete = (id: string) => {
