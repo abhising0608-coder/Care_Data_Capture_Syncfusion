@@ -39,9 +39,13 @@ import {
   FileUp,
   FilePlus,
   BookCopy,
+  ChevronDown,
 } from 'lucide-react';
 import { useAuth } from '@/firebase';
 import { Badge } from '@/components/ui/badge';
+import React from 'react';
+import { cn } from '@/lib/utils';
+import Link from 'next/link';
 
 const topMenuItems = [
   {
@@ -97,20 +101,25 @@ const ckcAdminMenuItems = [
   { href: '#', label: 'RAR Input', icon: BookCopy },
 ];
 
-const ratingNoteSubItems = [
-    { href: '/rating-note/page', label: 'Rating Note' },
-    { href: '/manage-instrument/isin-update/temp-id/temp-id/temp-id', label: 'ISIN' },
-    { href: '/rating-note/page', label: 'RAR' },
-    { href: '/rating-note/page', label: 'RCM Status' },
-    { href: '/rating-note/page', label: 'Delay in Periodic Review' },
-    { href: '/rating-note/page', label: 'DMS' },
-    { href: '/manage-instrument/banker-lender/temp-id/temp-id/temp-id', label: 'Banker/Lender' },
-    { href: '/manage-instrument/update-inc-status', label: 'Update INC Status' },
+const dueDiligenceSubItems = [
+    { href: '/due-diligence/auditor-feedback', label: 'Auditor Feedback', icon: Users },
+    { href: '/due-diligence/banker-feedback', label: 'Banker Feedback', icon: Landmark },
+    { href: '/due-diligence/dt-feedback', label: 'DT Feedback', icon: Building },
+    { href: '/due-diligence/ipa-feedback', label: 'IPA Feedback', icon: ShieldCheck },
+    { href: '/due-diligence/management-discussion', label: 'Management Discussion', icon: Users },
+    { href: '/due-diligence/third-party-check', label: 'Third Party Check', icon: UserCheck },
+    { href: '/due-diligence/audit-committee-meeting', label: 'Audit Committee Meeting', icon: Presentation },
+    { href: '/due-diligence/site-visit', label: 'Site / Plant Visit', icon: Plane },
 ];
 
 export function AppSidebar() {
   const pathname = usePathname();
   const { user } = useAuth();
+  const [isClient, setIsClient] = React.useState(false);
+
+  React.useEffect(() => {
+    setIsClient(true);
+  }, []);
   
   const ckcMenuItems = user?.role === 'CKC_ADMIN' ? ckcAdminMenuItems : ckcAnalystMenuItems;
 
@@ -131,7 +140,7 @@ export function AppSidebar() {
             <SidebarMenuItem key={item.href}>
               <SidebarMenuButton
                 asChild
-                isActive={pathname === item.href || (item.href.startsWith('/portfolio') && pathname.startsWith('/portfolio'))}
+                isActive={isClient ? (pathname === item.href || (item.href.startsWith('/portfolio') && pathname.startsWith('/portfolio'))) : false}
                 tooltip={{ children: item.label, side: 'right' }}
                 className="justify-start"
               >
@@ -143,7 +152,7 @@ export function AppSidebar() {
             </SidebarMenuItem>
           ))}
            {/* CKC Submenu */}
-          {['CKC_ADMIN', 'CKC_ANALYST'].includes(user?.role || '') && (
+          {isClient && ['CKC_ADMIN', 'CKC_ANALYST'].includes(user?.role || '') && (
             <SidebarMenuItem>
               <SidebarMenuSub>
                 <SidebarMenuButton
@@ -197,7 +206,7 @@ export function AppSidebar() {
            <SidebarMenuItem>
               <SidebarMenuButton
                 asChild
-                isActive={pathname.startsWith('/operational-input/requests')}
+                isActive={isClient ? pathname.startsWith('/operational-input/requests') : false}
                 tooltip={{ children: 'Operational Input', side: 'right' }}
                 className="justify-start"
               >
@@ -207,29 +216,39 @@ export function AppSidebar() {
                 </a>
               </SidebarMenuButton>
             </SidebarMenuItem>
-
-          {/* Rating Note Submenu */}
-           <SidebarMenuItem>
-                <SidebarMenuSub>
-                    <SidebarMenuButton
-                        isActive={ratingNoteSubItems.some(item => pathname.startsWith(item.href.split('[')[0]))}
-                        tooltip={{ children: 'Rating Note', side: 'right' }}
-                        className="justify-start"
-                        >
-                        <FilePen className="h-4 w-4" />
-                        <span className="text-sm">Rating Note</span>
-                    </SidebarMenuButton>
-                    <SidebarMenuSubContent>
-                        {ratingNoteSubItems.map(subItem => (
-                             <SidebarMenuSubButton key={subItem.href} asChild isActive={pathname === subItem.href}>
-                                <a href={subItem.href} className="flex items-center gap-2">
-                                    <span>{subItem.label}</span>
-                                </a>
-                            </SidebarMenuSubButton>
-                        ))}
-                    </SidebarMenuSubContent>
-                </SidebarMenuSub>
+          
+           {/* Due Diligence Submenu */}
+            <SidebarMenuItem>
+              <SidebarMenuSub>
+                <SidebarMenuSubButton
+                  isActive={isClient ? dueDiligenceSubItems.some(item => pathname.startsWith(item.href)) : false}
+                  tooltip={{ children: 'Due Diligence', side: 'right' }}
+                  className="justify-start"
+                  asChild
+                >
+                  <Link href="/due-diligence/NOTE-001" className="flex items-center gap-2">
+                    <Shield className="h-4 w-4" />
+                    <span className="text-sm">Due Diligence</span>
+                    <ChevronDown className="h-4 w-4 ml-auto shrink-0 transition-transform duration-200 group-data-[state=open]:rotate-180" />
+                  </Link>
+                </SidebarMenuSubButton>
+                <SidebarMenuSubContent>
+                  {dueDiligenceSubItems.map(item => (
+                    <SidebarMenuSubButton
+                      key={item.href}
+                      asChild
+                      isActive={isClient ? pathname.startsWith(item.href) : false}
+                    >
+                      <a href={item.href} className="flex items-center gap-2">
+                         <item.icon className="h-4 w-4" />
+                         <span>{item.label}</span>
+                      </a>
+                    </SidebarMenuSubButton>
+                  ))}
+                </SidebarMenuSubContent>
+              </SidebarMenuSub>
             </SidebarMenuItem>
+
         </SidebarMenu>
       </SidebarContent>
       <SidebarFooter>
