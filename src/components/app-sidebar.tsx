@@ -26,7 +26,7 @@ import {
   FilePen,
   FileClock,
   History,
-  ShieldX,
+  Newspaper,
   FileSearch,
   Banknote,
   Presentation,
@@ -40,7 +40,6 @@ import {
   BookCopy,
   ChevronDown,
   Wrench,
-  Newspaper,
 } from 'lucide-react';
 import { useAuth } from '@/firebase';
 import { Badge } from '@/components/ui/badge';
@@ -238,33 +237,21 @@ export function AppSidebar() {
               </SidebarMenuSub>
             </SidebarMenuItem>}
             
-            {isClient && <SidebarMenuItem>
-              <SidebarMenuSub>
-                <SidebarMenuSubButton
+            {isClient && (
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
                   isActive={pathname.startsWith('/manage-instrument')}
                   tooltip={{ children: 'Manage Instrument', side: 'right' }}
                   className="justify-start"
                 >
-                  <Wrench className="h-4 w-4" />
-                  <span className="text-sm">Manage Instrument</span>
-                   <ChevronDown className="h-4 w-4 ml-auto shrink-0 transition-transform duration-200 group-data-[state=open]:rotate-180" />
-                </SidebarMenuSubButton>
-                <SidebarMenuSubContent>
-                  {manageInstrumentMenuItems.map((item) => (
-                      <SidebarMenuSubButton
-                        key={item.href}
-                        asChild
-                        isActive={pathname.startsWith(item.href)}
-                      >
-                        <a href={item.href} className="flex items-center gap-2">
-                           <item.icon className="h-4 w-4" />
-                           <span>{item.label}</span>
-                        </a>
-                      </SidebarMenuSubButton>
-                  ))}
-                </SidebarMenuSubContent>
-              </SidebarMenuSub>
-            </SidebarMenuItem>}
+                  <a href="/manage-instrument">
+                    <Wrench className="h-4 w-4" />
+                    <span className="text-sm">Manage Instrument</span>
+                  </a>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            )}
 
         </SidebarMenu>
       </SidebarContent>
