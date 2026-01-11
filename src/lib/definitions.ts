@@ -127,6 +127,29 @@ export interface IPA {
     discussions: IPADiscussion[];
 }
 
+export interface ManagementPersonnel {
+  id: string;
+  name: string;
+  designation: string;
+}
+
+export interface DiscussionMinute {
+  id: string;
+  srNo: number;
+  issue: string;
+  response: string;
+}
+
+export interface ManagementDiscussion {
+  companyId: string;
+  interactionDate: string;
+  meetingLocation: string;
+  careTeam: string[];
+  personnel: ManagementPersonnel[];
+  minutes: DiscussionMinute[];
+}
+
+
 export interface CKCRequestDocument {
   id: string;
   docType: 'Audited FY' | 'Provisional FY' | 'Projection';
