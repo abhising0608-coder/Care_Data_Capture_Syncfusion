@@ -115,12 +115,25 @@ const dueDiligenceMenuItems = [
     { href: '/due-diligence/site-plant-visit', label: 'Site / Plant Visit', icon: Building },
 ];
 
-const manageInstrumentMenuItems = [
-    { id: 'instrument-details', label: 'Instrument Details', icon: Wrench },
-    { id: 'latest-bank-details', label: 'Latest Bank Details', icon: Landmark },
-    { id: 'annexure-v-history', label: 'Annexure V History', icon: History },
-    { id: 'press-release-history', label: 'PR Details History', icon: Newspaper },
-    { id: 'dms-document-history', label: 'DMS Document History', icon: FolderOpen },
+const getRatingWorkflowMenuItems = (ratingCycleId: string | null) => [
+  {
+    href: ratingCycleId ? `/notes/new/${ratingCycleId}` : '/rating-note',
+    label: 'Initiate Rating Note',
+    icon: FilePlus,
+    pathStartsWith: '/notes/new',
+  },
+  {
+    href: ratingCycleId ? `/rating-note/${ratingCycleId}` : '/rating-note',
+    label: 'Generate Rating Note',
+    icon: FilePen,
+    pathStartsWith: '/rating-note',
+  },
+  {
+    href: ratingCycleId ? `/press-release/${ratingCycleId}` : '/press-release',
+    label: 'Press Release',
+    icon: Newspaper,
+    pathStartsWith: '/press-release',
+  },
 ];
 
 
@@ -136,6 +149,7 @@ export function AppSidebar() {
   }, []);
   
   const ckcMenuItems = user?.role === 'CKC_ADMIN' ? ckcAdminMenuItems : ckcAnalystMenuItems;
+  const ratingWorkflowMenuItems = getRatingWorkflowMenuItems(ratingCycleId);
 
   const isSubItemActive = (subItems: any[] | undefined) => {
     if (!subItems) return false;
@@ -235,7 +249,7 @@ export function AppSidebar() {
                         asChild
                         isActive={pathname.startsWith(item.href)}
                       >
-                        <a href={item.href} className="flex items-center gap-2">
+                        <a href={`${item.href}${ratingCycleId ? `/${ratingCycleId}` : ''}`} className="flex items-center gap-2">
                            <item.icon className="h-4 w-4" />
                            <span>{item.label}</span>
                         </a>
@@ -259,6 +273,23 @@ export function AppSidebar() {
                   </a>
                 </SidebarMenuButton>
               </SidebarMenuItem>}
+            
+            {isClient && ratingCycleId && ratingWorkflowMenuItems.map((item) => (
+            <SidebarMenuItem key={item.href}>
+              <SidebarMenuButton
+                asChild
+                isActive={pathname.startsWith(item.pathStartsWith)}
+                tooltip={{ children: item.label, side: 'right' }}
+                className="justify-start"
+              >
+                <a href={item.href!}>
+                  <item.icon className="h-4 w-4" />
+                  <span className="text-sm">{item.label}</span>
+                </a>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            ))}
+
 
         </SidebarMenu>
       </SidebarContent>

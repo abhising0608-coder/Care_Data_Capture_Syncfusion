@@ -9,9 +9,6 @@ import { useWorkflow } from '@/context/workflow-context';
 export const workflowSteps = [
   { id: 'due-diligence', name: 'Due Diligence' },
   { id: 'manage-instrument', name: 'Manage Instrument' },
-  { id: 'initiate-rating-note', name: 'Initiate Rating Note' },
-  { id: 'rating-note', name: 'Generate Rating Note' },
-  { id: 'press-release', name: 'Press Release' },
 ];
 
 export const dueDiligenceSubSteps = [
