@@ -28,6 +28,7 @@ import { DocumentsModal } from './documents-modal';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { SitePlantVisitOtherDetails } from './site-plant-visit-other-details';
 import { SitePlantVisitEmailModal } from './site-plant-visit-email-modal';
+import { Label } from '@/components/ui/label';
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
 
@@ -174,7 +175,7 @@ export default function SitePlantVisitClient() {
                               <SelectContent>
                                   {companies.map(c => <SelectItem key={c.id} value={c.id}>{c.companyName}</SelectItem>)}
                               </SelectContent>
-                          </Select>
+                            </Select>
                           <FormMessage />
                       </FormItem>
                   )}
